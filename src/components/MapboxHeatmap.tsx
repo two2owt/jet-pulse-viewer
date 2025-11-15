@@ -84,12 +84,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     });
 
     return () => {
+      // Prevent rendering effects while map is tearing down
+      setMapLoaded(false);
       markersRef.current.forEach((marker) => marker.remove());
       map.current?.remove();
     };
-  }, [mapboxToken, selectedCity]);
-
-  // Update map center when city changes
+  }, [mapboxToken]);
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     
