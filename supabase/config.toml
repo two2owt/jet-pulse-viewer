@@ -1,1 +1,10 @@
 project_id = "zbrscuoqmkdbmdimdnqu"
+
+[functions.get-mapbox-token]
+verify_jwt = false
+
+[functions.get-location-density]
+verify_jwt = false
+
+[functions.check-geofence]
+verify_jwt = true
