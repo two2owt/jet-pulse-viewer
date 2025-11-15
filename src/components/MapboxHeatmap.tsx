@@ -210,6 +210,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
   // Load neighborhoods and display them on the map
   const loadNeighborhoods = async () => {
+    if (!map.current) return;
+    
     try {
       const { data: neighborhoods, error } = await supabase
         .from('neighborhoods')
@@ -217,8 +219,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         .eq('active', true);
 
       if (error) throw error;
+      if (!neighborhoods || !map.current) return;
 
-      if (!map.current || !neighborhoods) return;
+      const mapInstance = map.current;
 
       // Add neighborhood boundaries as polygons
       neighborhoods.forEach((neighborhood, index) => {
@@ -234,7 +237,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         const lineLayerId = `neighborhood-line-${neighborhood.id}`;
 
         // Add source
-        map.current!.addSource(sourceId, {
+        mapInstance.addSource(sourceId, {
           type: 'geojson',
           data: {
             type: 'Feature',
@@ -250,7 +253,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         });
 
         // Add fill layer
-        map.current!.addLayer({
+        mapInstance.addLayer({
           id: fillLayerId,
           type: 'fill',
           source: sourceId,
@@ -261,7 +264,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         });
 
         // Add border layer
-        map.current!.addLayer({
+        mapInstance.addLayer({
           id: lineLayerId,
           type: 'line',
           source: sourceId,
@@ -273,7 +276,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         });
 
         // Add neighborhood label
-        map.current!.addLayer({
+        mapInstance.addLayer({
           id: `neighborhood-label-${neighborhood.id}`,
           type: 'symbol',
           source: sourceId,
@@ -290,8 +293,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         });
 
         // Add click handler for neighborhoods
-        map.current!.on('click', fillLayerId, (e: any) => {
-          if (e.features && e.features[0]) {
+        mapInstance.on('click', fillLayerId, (e: any) => {
+          if (e.features && e.features[0] && map.current) {
             new mapboxgl.Popup()
               .setLngLat(e.lngLat)
               .setHTML(`
@@ -300,17 +303,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   <p style="margin: 0; font-size: 12px; color: #9ca3af;">${neighborhood.description}</p>
                 </div>
               `)
-              .addTo(map.current!);
+              .addTo(map.current);
           }
         });
 
         // Change cursor on hover
-        map.current!.on('mouseenter', fillLayerId, () => {
-          map.current!.getCanvas().style.cursor = 'pointer';
+        mapInstance.on('mouseenter', fillLayerId, () => {
+          if (map.current) {
+            map.current.getCanvas().style.cursor = 'pointer';
+          }
         });
 
-        map.current!.on('mouseleave', fillLayerId, () => {
-          map.current!.getCanvas().style.cursor = '';
+        mapInstance.on('mouseleave', fillLayerId, () => {
+          if (map.current) {
+            map.current.getCanvas().style.cursor = '';
+          }
         });
       });
     } catch (error) {
@@ -436,11 +443,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </div>
       `);
 
-      // Create marker
+      // Create marker - check map exists before adding
+      if (!map.current) return;
+      
       const marker = new mapboxgl.Marker(container)
         .setLngLat([venue.lng, venue.lat])
         .setPopup(popup)
-        .addTo(map.current!);
+        .addTo(map.current);
 
       // Handle click on the whole container
       container.addEventListener("click", () => {
