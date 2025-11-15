@@ -10,6 +10,7 @@ import { ActiveDeals } from "@/components/ActiveDeals";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import jetLogo from "@/assets/jet-logo.png";
 
 const mockNotifications: Notification[] = [
   {
@@ -76,15 +77,7 @@ const Index = () => {
       <header className="bg-card/95 backdrop-blur-xl border-b border-border sticky top-0 z-40">
         <div className="max-w-lg mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary-glow rounded-xl flex items-center justify-center shadow-[var(--shadow-glow)]">
-                <Zap className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">JET</h1>
-                <p className="text-xs text-muted-foreground">Charlotte</p>
-              </div>
-            </div>
+            <img src={jetLogo} alt="JET Social" className="h-12 w-auto" />
             
             <div className="flex items-center gap-2">
               <div className="bg-muted/50 px-3 py-1.5 rounded-full">
