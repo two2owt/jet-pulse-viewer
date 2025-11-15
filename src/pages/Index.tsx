@@ -7,6 +7,7 @@ import { NotificationCard, type Notification } from "@/components/NotificationCa
 import { GeofenceTracker } from "@/components/GeofenceTracker";
 import { AuthButton } from "@/components/AuthButton";
 import { ActiveDeals } from "@/components/ActiveDeals";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -77,12 +78,17 @@ const Index = () => {
       <header className="bg-card/95 backdrop-blur-xl border-b border-border sticky top-0 z-40">
         <div className="max-w-lg mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <img src={jetLogo} alt="JET Social" className="h-12 w-auto" />
+            <img 
+              src={jetLogo} 
+              alt="JET Social" 
+              className="h-12 w-auto dark:brightness-100 brightness-100 transition-all" 
+            />
             
             <div className="flex items-center gap-2">
               <div className="bg-muted/50 px-3 py-1.5 rounded-full">
                 <p className="text-xs font-semibold text-foreground">8:42 PM</p>
               </div>
+              <ThemeToggle />
               <AuthButton />
             </div>
           </div>
