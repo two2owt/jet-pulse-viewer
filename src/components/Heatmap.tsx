@@ -41,16 +41,6 @@ export const Heatmap = ({ onVenueSelect }: { onVenueSelect: (venue: Venue) => vo
 
   return (
     <div className="relative w-full h-full bg-gradient-to-br from-background via-muted/20 to-background rounded-2xl overflow-hidden">
-      {/* Map Background with Grid */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
-            linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)
-          `,
-          backgroundSize: "40px 40px"
-        }} />
-      </div>
 
       {/* Charlotte Label */}
       <div className="absolute top-4 left-4 z-10">
