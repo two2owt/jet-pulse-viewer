@@ -84,20 +84,53 @@ export const Heatmap = ({ onVenueSelect }: { onVenueSelect: (venue: Venue) => vo
               onMouseEnter={() => setHoveredVenue(venue.id)}
               onMouseLeave={() => setHoveredVenue(null)}
               className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${
-                isHovered ? "scale-125 z-20" : "z-10"
+                isHovered ? "z-20" : "z-10"
               }`}
               style={{
                 left: `${((venue.lng + 80.85) / 0.08) * 100}%`,
                 top: `${((35.25 - venue.lat) / 0.06) * 100}%`,
               }}
             >
-              {/* Activity Pulse */}
+              {/* Heatmap glow layers - only visible on hover */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div 
+                  className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full transition-all duration-500 ${activityGlow}`}
+                  style={{
+                    background: `radial-gradient(circle, ${activityColor.replace('bg-', 'hsl(var(--')})40 0%, transparent 70%)`,
+                    filter: 'blur(20px)',
+                    opacity: isHovered ? 0.6 : 0,
+                    transform: isHovered ? 'scale(1.3)' : 'scale(1)',
+                  }}
+                />
+                <div 
+                  className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full transition-all duration-500 delay-100`}
+                  style={{
+                    background: `radial-gradient(circle, ${activityColor.replace('bg-', 'hsl(var(--')})60 0%, transparent 70%)`,
+                    filter: 'blur(15px)',
+                    opacity: isHovered ? 0.7 : 0,
+                    transform: isHovered ? 'scale(1.2)' : 'scale(1)',
+                  }}
+                />
+                <div 
+                  className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full transition-all duration-500 delay-200`}
+                  style={{
+                    background: `radial-gradient(circle, ${activityColor.replace('bg-', 'hsl(var(--')})80 0%, transparent 70%)`,
+                    filter: 'blur(10px)',
+                    opacity: isHovered ? 0.8 : 0,
+                    transform: isHovered ? 'scale(1.1)' : 'scale(1)',
+                  }}
+                />
+              </div>
+
+              {/* Activity Pulse - always visible for high activity */}
               <div className={`absolute inset-0 ${activityColor} rounded-full ${activityGlow} ${
                 venue.activity >= 80 ? "pulse-glow" : ""
-              }`} />
+              }`} style={{ opacity: venue.activity >= 80 ? 0.3 : 0 }} />
               
               {/* Marker */}
-              <div className={`relative w-12 h-12 ${activityColor} rounded-full flex items-center justify-center border-2 border-background`}>
+              <div className={`relative w-12 h-12 ${activityColor} rounded-full flex items-center justify-center border-2 border-background ${
+                isHovered ? 'scale-110 shadow-2xl' : ''
+              } transition-all duration-300`}>
                 <TrendingUp className="w-6 h-6 text-primary-foreground" />
               </div>
 

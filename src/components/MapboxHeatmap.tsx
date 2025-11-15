@@ -192,21 +192,62 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken }: MapboxHeat
     venues.forEach((venue) => {
       const color = getActivityColor(venue.activity);
 
-      // Create custom marker element
+      // Create marker container with heatmap effect
+      const container = document.createElement("div");
+      container.className = "venue-marker-container";
+      container.style.cssText = `
+        position: relative;
+        width: 50px;
+        height: 50px;
+        cursor: pointer;
+      `;
+
+      // Create heatmap glow layers (3 expanding rings)
+      const glowLayers = [
+        { size: 80, opacity: 0.3, blur: 30 },
+        { size: 120, opacity: 0.2, blur: 40 },
+        { size: 160, opacity: 0.1, blur: 50 },
+      ];
+
+      glowLayers.forEach((layer, index) => {
+        const glow = document.createElement("div");
+        glow.className = `heatmap-glow heatmap-glow-${index}`;
+        glow.style.cssText = `
+          position: absolute;
+          width: ${layer.size}px;
+          height: ${layer.size}px;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          background: radial-gradient(circle, ${color}${Math.round(layer.opacity * 255).toString(16).padStart(2, '0')} 0%, transparent 70%);
+          border-radius: 50%;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.5s ease, transform 0.5s ease;
+          filter: blur(${layer.blur}px);
+        `;
+        container.appendChild(glow);
+      });
+
+      // Create main marker
       const el = document.createElement("div");
       el.className = "venue-marker";
       el.style.cssText = `
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
         width: 40px;
         height: 40px;
         background: ${color};
         border: 3px solid #1a1f2e;
         border-radius: 50%;
-        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 0 20px ${color}80;
+        box-shadow: 0 0 20px ${color}CC, 0 0 40px ${color}66;
         transition: all 0.3s ease;
+        z-index: 10;
       `;
 
       // Add pulsing animation for high activity
@@ -222,13 +263,30 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken }: MapboxHeat
         </svg>
       `;
 
-      el.addEventListener("mouseenter", () => {
-        el.style.transform = "scale(1.2)";
+      container.appendChild(el);
+
+      // Enhanced hover effects - show heatmap layers
+      container.addEventListener("mouseenter", () => {
+        const glows = container.querySelectorAll('.heatmap-glow');
+        glows.forEach((glow, index) => {
+          const glowElement = glow as HTMLElement;
+          glowElement.style.opacity = '1';
+          glowElement.style.transform = `translate(-50%, -50%) scale(${1 + index * 0.1})`;
+        });
+        el.style.transform = "translate(-50%, -50%) scale(1.15)";
+        el.style.boxShadow = `0 0 30px ${color}FF, 0 0 60px ${color}99, 0 0 90px ${color}66`;
         el.style.zIndex = "1000";
       });
 
-      el.addEventListener("mouseleave", () => {
-        el.style.transform = "scale(1)";
+      container.addEventListener("mouseleave", () => {
+        const glows = container.querySelectorAll('.heatmap-glow');
+        glows.forEach((glow) => {
+          const glowElement = glow as HTMLElement;
+          glowElement.style.opacity = '0';
+          glowElement.style.transform = 'translate(-50%, -50%) scale(1)';
+        });
+        el.style.transform = "translate(-50%, -50%) scale(1)";
+        el.style.boxShadow = `0 0 20px ${color}CC, 0 0 40px ${color}66`;
         el.style.zIndex = "10";
       });
 
@@ -242,13 +300,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken }: MapboxHeat
       `);
 
       // Create marker
-      const marker = new mapboxgl.Marker(el)
+      const marker = new mapboxgl.Marker(container)
         .setLngLat([venue.lng, venue.lat])
         .setPopup(popup)
         .addTo(map.current!);
 
-      // Handle click
-      el.addEventListener("click", () => {
+      // Handle click on the whole container
+      container.addEventListener("click", () => {
         onVenueSelect(venue);
       });
 
@@ -297,16 +355,47 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken }: MapboxHeat
         </div>
       </div>
 
-      {/* Add pulse animation */}
+      {/* Add pulse and heatmap animations */}
       <style>{`
         @keyframes pulse {
           0%, 100% {
-            transform: scale(1);
+            transform: translate(-50%, -50%) scale(1);
             opacity: 1;
           }
           50% {
-            transform: scale(1.1);
-            opacity: 0.8;
+            transform: translate(-50%, -50%) scale(1.05);
+            opacity: 0.9;
+          }
+        }
+        
+        .venue-marker-container {
+          position: relative;
+        }
+        
+        .heatmap-glow {
+          animation: heatmap-pulse 3s ease-in-out infinite;
+        }
+        
+        .heatmap-glow-0 {
+          animation-delay: 0s;
+        }
+        
+        .heatmap-glow-1 {
+          animation-delay: 0.2s;
+        }
+        
+        .heatmap-glow-2 {
+          animation-delay: 0.4s;
+        }
+        
+        @keyframes heatmap-pulse {
+          0%, 100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0;
+          }
+          50% {
+            transform: translate(-50%, -50%) scale(1.2);
+            opacity: 0.3;
           }
         }
       `}</style>
