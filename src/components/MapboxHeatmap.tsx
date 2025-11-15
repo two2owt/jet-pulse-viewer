@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapPin, TrendingUp } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import type { Venue } from "./Heatmap";
 
 interface MapboxHeatmapProps {
@@ -59,6 +60,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken }: MapboxHeat
 
     map.current.on("load", () => {
       setMapLoaded(true);
+      
+      // Load neighborhoods and add them to map
+      loadNeighborhoods();
     });
 
     return () => {
@@ -66,6 +70,116 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken }: MapboxHeat
       map.current?.remove();
     };
   }, [mapboxToken]);
+
+  // Load neighborhoods and display them on the map
+  const loadNeighborhoods = async () => {
+    try {
+      const { data: neighborhoods, error } = await supabase
+        .from('neighborhoods')
+        .select('*')
+        .eq('active', true);
+
+      if (error) throw error;
+
+      if (!map.current || !neighborhoods) return;
+
+      // Add neighborhood boundaries as polygons
+      neighborhoods.forEach((neighborhood, index) => {
+        const boundaryPoints = neighborhood.boundary_points as number[][];
+        
+        // Convert to GeoJSON format (lng, lat)
+        const coordinates = boundaryPoints.map(point => [point[1], point[0]]);
+        // Close the polygon
+        coordinates.push(coordinates[0]);
+
+        const sourceId = `neighborhood-${neighborhood.id}`;
+        const fillLayerId = `neighborhood-fill-${neighborhood.id}`;
+        const lineLayerId = `neighborhood-line-${neighborhood.id}`;
+
+        // Add source
+        map.current!.addSource(sourceId, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {
+              name: neighborhood.name,
+              description: neighborhood.description,
+            },
+            geometry: {
+              type: 'Polygon',
+              coordinates: [coordinates],
+            },
+          },
+        });
+
+        // Add fill layer
+        map.current!.addLayer({
+          id: fillLayerId,
+          type: 'fill',
+          source: sourceId,
+          paint: {
+            'fill-color': '#FF5722',
+            'fill-opacity': 0.1,
+          },
+        });
+
+        // Add border layer
+        map.current!.addLayer({
+          id: lineLayerId,
+          type: 'line',
+          source: sourceId,
+          paint: {
+            'line-color': '#FF5722',
+            'line-width': 2,
+            'line-opacity': 0.5,
+          },
+        });
+
+        // Add neighborhood label
+        map.current!.addLayer({
+          id: `neighborhood-label-${neighborhood.id}`,
+          type: 'symbol',
+          source: sourceId,
+          layout: {
+            'text-field': neighborhood.name,
+            'text-size': 14,
+            'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+          },
+          paint: {
+            'text-color': '#FFFFFF',
+            'text-halo-color': '#1a1f2e',
+            'text-halo-width': 2,
+          },
+        });
+
+        // Add click handler for neighborhoods
+        map.current!.on('click', fillLayerId, (e: any) => {
+          if (e.features && e.features[0]) {
+            new mapboxgl.Popup()
+              .setLngLat(e.lngLat)
+              .setHTML(`
+                <div style="padding: 8px; background: #1f2937; border-radius: 8px;">
+                  <h3 style="margin: 0 0 4px 0; font-size: 14px; font-weight: bold; color: white;">${neighborhood.name}</h3>
+                  <p style="margin: 0; font-size: 12px; color: #9ca3af;">${neighborhood.description}</p>
+                </div>
+              `)
+              .addTo(map.current!);
+          }
+        });
+
+        // Change cursor on hover
+        map.current!.on('mouseenter', fillLayerId, () => {
+          map.current!.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.current!.on('mouseleave', fillLayerId, () => {
+          map.current!.getCanvas().style.cursor = '';
+        });
+      });
+    } catch (error) {
+      console.error('Error loading neighborhoods:', error);
+    }
+  };
 
   useEffect(() => {
     if (!map.current || !mapLoaded) return;

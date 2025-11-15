@@ -5,6 +5,8 @@ import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationCard, type Notification } from "@/components/NotificationCard";
 import { GeofenceTracker } from "@/components/GeofenceTracker";
+import { AuthButton } from "@/components/AuthButton";
+import { ActiveDeals } from "@/components/ActiveDeals";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -88,6 +90,7 @@ const Index = () => {
               <div className="bg-muted/50 px-3 py-1.5 rounded-full">
                 <p className="text-xs font-semibold text-foreground">8:42 PM</p>
               </div>
+              <AuthButton />
             </div>
           </div>
         </div>
@@ -127,6 +130,9 @@ const Index = () => {
 
             {/* Geofence Tracker */}
             <GeofenceTracker />
+
+            {/* Active Deals */}
+            <ActiveDeals />
 
             {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-3">
