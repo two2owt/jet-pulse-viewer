@@ -1,13 +1,14 @@
-import { Clock, MapPin, Users, Star, TrendingUp } from "lucide-react";
+import { Clock, MapPin, Users, Star, TrendingUp, X } from "lucide-react";
 import { Button } from "./ui/button";
 import type { Venue } from "./Heatmap";
 
 interface JetCardProps {
   venue: Venue;
   onGetDirections: () => void;
+  onClose?: () => void;
 }
 
-export const JetCard = ({ venue, onGetDirections }: JetCardProps) => {
+export const JetCard = ({ venue, onGetDirections, onClose }: JetCardProps) => {
   const getActivityLevel = (activity: number) => {
     if (activity >= 80) return { label: "🔥 Very Busy", color: "text-hot" };
     if (activity >= 60) return { label: "🌟 Busy", color: "text-warm" };
@@ -18,7 +19,18 @@ export const JetCard = ({ venue, onGetDirections }: JetCardProps) => {
   const activityLevel = getActivityLevel(venue.activity);
 
   return (
-    <div className="bg-card rounded-2xl overflow-hidden border border-border shadow-[var(--shadow-card)]">
+    <div className="bg-card rounded-2xl overflow-hidden border border-border shadow-[var(--shadow-card)] transition-all duration-300 hover-scale">
+      {/* Close Button */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 bg-background/90 backdrop-blur-md p-2 rounded-full hover:bg-background transition-colors"
+          aria-label="Close"
+        >
+          <X className="w-4 h-4 text-foreground" />
+        </button>
+      )}
+      
       {/* Image Header with Gradient Overlay */}
       <div className="relative h-48 bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20">
         <div className="absolute inset-0 flex items-center justify-center">
@@ -50,19 +62,19 @@ export const JetCard = ({ venue, onGetDirections }: JetCardProps) => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-muted/50 rounded-xl p-3 text-center">
+          <div className="bg-muted/50 rounded-xl p-3 text-center hover-scale transition-all">
             <TrendingUp className={`w-5 h-5 mx-auto mb-1 ${activityLevel.color}`} />
             <p className="text-xs text-muted-foreground">Status</p>
             <p className="text-sm font-bold text-foreground">{activityLevel.label.split(" ")[1]}</p>
           </div>
           
-          <div className="bg-muted/50 rounded-xl p-3 text-center">
+          <div className="bg-muted/50 rounded-xl p-3 text-center hover-scale transition-all">
             <Star className="w-5 h-5 mx-auto mb-1 text-warm" />
             <p className="text-xs text-muted-foreground">Rating</p>
             <p className="text-sm font-bold text-foreground">4.5</p>
           </div>
           
-          <div className="bg-muted/50 rounded-xl p-3 text-center">
+          <div className="bg-muted/50 rounded-xl p-3 text-center hover-scale transition-all">
             <Users className="w-5 h-5 mx-auto mb-1 text-secondary" />
             <p className="text-xs text-muted-foreground">Crowd</p>
             <p className="text-sm font-bold text-foreground">{Math.round(venue.activity / 10) * 10}+</p>
@@ -85,7 +97,7 @@ export const JetCard = ({ venue, onGetDirections }: JetCardProps) => {
         {/* Action Button */}
         <Button 
           onClick={onGetDirections}
-          className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 text-primary-foreground font-semibold py-6 rounded-xl shadow-[var(--shadow-glow)] transition-all duration-300"
+          className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 text-primary-foreground font-semibold py-6 rounded-xl shadow-[var(--shadow-glow)] transition-all duration-300 hover-scale"
         >
           Get Directions
         </Button>

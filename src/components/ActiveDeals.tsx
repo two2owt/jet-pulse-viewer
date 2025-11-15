@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock, MapPin, TrendingUp } from "lucide-react";
 import { Button } from "./ui/button";
+import { DealCardSkeleton } from "./skeletons/DealCardSkeleton";
 import { toast } from "sonner";
 
 interface Deal {
@@ -87,7 +88,19 @@ export const ActiveDeals = () => {
   };
 
   if (loading) {
-    return null;
+    return (
+      <div className="space-y-3 animate-fade-in">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-bold text-foreground">Active Deals</h3>
+        </div>
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <DealCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (deals.length === 0) {
@@ -99,7 +112,7 @@ export const ActiveDeals = () => {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 animate-fade-in">
       <div className="flex items-center gap-2">
         <TrendingUp className="w-5 h-5 text-primary" />
         <h3 className="text-lg font-bold text-foreground">Active Deals</h3>
@@ -109,10 +122,11 @@ export const ActiveDeals = () => {
       </div>
 
       <div className="space-y-2">
-        {deals.map((deal) => (
+        {deals.map((deal, index) => (
           <div
             key={deal.id}
-            className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-xl p-3 border border-primary/20"
+            className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-xl p-3 border border-primary/20 animate-scale-in hover-scale"
+            style={{ animationDelay: `${index * 50}ms` }}
           >
             <div className="flex items-start gap-3">
               <div className="text-2xl">{getDealIcon(deal.deal_type)}</div>

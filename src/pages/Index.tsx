@@ -10,7 +10,7 @@ import { ActiveDeals } from "@/components/ActiveDeals";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { CITIES, type City } from "@/types/cities";
-import { Zap, Loader2 } from "lucide-react";
+import { Zap } from "lucide-react";
 import { toast } from "sonner";
 import jetLogo from "@/assets/jet-logo.png";
 
@@ -109,15 +109,21 @@ const Index = () => {
         {activeTab === "map" && (
           <>
             {/* Mapbox Heatmap */}
-            <div className="h-[400px] rounded-2xl overflow-hidden">
+            <div className="h-[400px] rounded-2xl overflow-hidden animate-fade-in">
               {mapboxLoading && (
                 <div className="h-full flex items-center justify-center bg-card">
-                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                  <div className="text-center space-y-4">
+                    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-sm text-muted-foreground">Loading map...</p>
+                  </div>
                 </div>
               )}
               {mapboxError && (
-                <div className="h-full flex items-center justify-center bg-card">
-                  <p className="text-sm text-muted-foreground">{mapboxError}</p>
+                <div className="h-full flex items-center justify-center bg-card animate-fade-in">
+                  <div className="text-center space-y-2">
+                    <p className="text-sm text-destructive font-medium">Failed to load map</p>
+                    <p className="text-xs text-muted-foreground">{mapboxError}</p>
+                  </div>
                 </div>
               )}
               {!mapboxLoading && !mapboxError && mapboxToken && (
@@ -133,28 +139,36 @@ const Index = () => {
 
             {/* Selected Venue Card */}
             {selectedVenue && (
-              <div className="animate-in slide-in-from-bottom-4 duration-500">
-                <JetCard venue={selectedVenue} onGetDirections={handleGetDirections} />
+              <div className="animate-fade-in animate-scale-in relative">
+                <JetCard 
+                  venue={selectedVenue} 
+                  onGetDirections={handleGetDirections}
+                  onClose={() => setSelectedVenue(null)}
+                />
               </div>
             )}
 
             {/* Geofence Tracker */}
-            <GeofenceTracker />
+            <div className="animate-scale-in" style={{ animationDelay: '100ms' }}>
+              <GeofenceTracker />
+            </div>
 
             {/* Active Deals */}
-            <ActiveDeals />
+            <div className="animate-scale-in" style={{ animationDelay: '150ms' }}>
+              <ActiveDeals />
+            </div>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-card rounded-xl p-4 border border-border text-center">
+              <div className="bg-card rounded-xl p-4 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '200ms' }}>
                 <p className="text-2xl font-bold text-primary mb-1">24</p>
                 <p className="text-xs text-muted-foreground">Venues Nearby</p>
               </div>
-              <div className="bg-card rounded-xl p-4 border border-border text-center">
+              <div className="bg-card rounded-xl p-4 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '250ms' }}>
                 <p className="text-2xl font-bold text-warm mb-1">8</p>
                 <p className="text-xs text-muted-foreground">Active Deals</p>
               </div>
-              <div className="bg-card rounded-xl p-4 border border-border text-center">
+              <div className="bg-card rounded-xl p-4 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '300ms' }}>
                 <p className="text-2xl font-bold text-secondary mb-1">3</p>
                 <p className="text-xs text-muted-foreground">Live Events</p>
               </div>
@@ -162,22 +176,28 @@ const Index = () => {
           </>
         )}
 
-        {activeTab === "notifications" && (
-          <div className="space-y-4">
+         {activeTab === "notifications" && (
+          <div className="space-y-4 animate-fade-in">
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-2">Notifications</h2>
               <p className="text-sm text-muted-foreground">Stay updated with nearby deals and events</p>
             </div>
             
-            {mockNotifications.map((notification) => (
-              <NotificationCard key={notification.id} notification={notification} />
+            {mockNotifications.map((notification, index) => (
+              <div 
+                key={notification.id}
+                className="animate-scale-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <NotificationCard notification={notification} />
+              </div>
             ))}
           </div>
         )}
 
         {activeTab === "explore" && (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="text-center py-12 animate-fade-in">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-scale-in">
               <Zap className="w-8 h-8 text-primary" />
             </div>
             <h2 className="text-xl font-bold text-foreground mb-2">Discover Charlotte</h2>
@@ -186,8 +206,8 @@ const Index = () => {
         )}
 
         {activeTab === "profile" && (
-          <div className="text-center py-12">
-            <div className="w-20 h-20 bg-gradient-to-r from-primary to-primary-glow rounded-full mx-auto mb-4" />
+          <div className="text-center py-12 animate-fade-in">
+            <div className="w-20 h-20 bg-gradient-to-r from-primary to-primary-glow rounded-full mx-auto mb-4 animate-scale-in" />
             <h2 className="text-xl font-bold text-foreground mb-2">Your Profile</h2>
             <p className="text-sm text-muted-foreground">Track your favorite spots and rewards</p>
           </div>

@@ -34,7 +34,7 @@ export const NotificationCard = ({ notification }: { notification: Notification 
   };
 
   return (
-    <div className={`bg-gradient-to-r ${getGradient()} rounded-xl p-4 border border-border/50`}>
+    <div className={`bg-gradient-to-r ${getGradient()} rounded-xl p-4 border border-border/50 hover-scale transition-all cursor-pointer`}>
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 bg-card rounded-full flex items-center justify-center flex-shrink-0 border border-border">
           {getIcon()}
