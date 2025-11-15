@@ -9,6 +9,7 @@ import { AuthButton } from "@/components/AuthButton";
 import { ActiveDeals } from "@/components/ActiveDeals";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
+import { CITIES, type City } from "@/types/cities";
 import { Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import jetLogo from "@/assets/jet-logo.png";
@@ -57,7 +58,15 @@ const mockVenues: Venue[] = [
 const Index = () => {
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "profile">("map");
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
+
+  const handleCityChange = (city: City) => {
+    setSelectedCity(city);
+    toast.success(`Switched to ${city.name}, ${city.state}`, {
+      description: "Finding deals in your area"
+    });
+  };
 
   const handleVenueSelect = (venue: Venue) => {
     setSelectedVenue(venue);
@@ -112,11 +121,13 @@ const Index = () => {
                 </div>
               )}
               {!mapboxLoading && !mapboxError && mapboxToken && (
-                <MapboxHeatmap 
-                  onVenueSelect={handleVenueSelect} 
-                  venues={mockVenues}
-                  mapboxToken={mapboxToken}
-                />
+              <MapboxHeatmap 
+                onVenueSelect={handleVenueSelect} 
+                venues={mockVenues} 
+                mapboxToken={mapboxToken}
+                selectedCity={selectedCity}
+                onCityChange={handleCityChange}
+              />
               )}
             </div>
 

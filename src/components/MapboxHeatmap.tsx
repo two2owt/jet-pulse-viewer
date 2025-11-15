@@ -7,11 +7,14 @@ import { useLocationDensity } from "@/hooks/useLocationDensity";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import type { Venue } from "./Heatmap";
+import { CITIES, type City } from "@/types/cities";
 
 interface MapboxHeatmapProps {
   onVenueSelect: (venue: Venue) => void;
   venues: Venue[];
   mapboxToken: string;
+  selectedCity: City;
+  onCityChange: (city: City) => void;
 }
 
 const getActivityColor = (activity: number) => {
@@ -21,7 +24,7 @@ const getActivityColor = (activity: number) => {
   return "#2196F3"; // cold
 };
 
-export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken }: MapboxHeatmapProps) => {
+export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange }: MapboxHeatmapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -44,12 +47,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken }: MapboxHeat
 
     mapboxgl.accessToken = mapboxToken;
 
-    // Initialize map centered on Charlotte
+    // Initialize map centered on selected city
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/dark-v11",
-      center: [-80.843, 35.227], // Charlotte, NC
-      zoom: 12,
+      center: [selectedCity.lng, selectedCity.lat],
+      zoom: selectedCity.zoom,
       pitch: 45,
     });
 
@@ -84,7 +87,19 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken }: MapboxHeat
       markersRef.current.forEach((marker) => marker.remove());
       map.current?.remove();
     };
-  }, [mapboxToken]);
+  }, [mapboxToken, selectedCity]);
+
+  // Update map center when city changes
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    
+    map.current.flyTo({
+      center: [selectedCity.lng, selectedCity.lat],
+      zoom: selectedCity.zoom,
+      duration: 2000,
+      essential: true
+    });
+  }, [selectedCity, mapLoaded]);
 
   // Add/update density heatmap layer
   useEffect(() => {
@@ -440,14 +455,29 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken }: MapboxHeat
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0 rounded-2xl overflow-hidden" />
 
-      {/* Charlotte Label */}
+      {/* City Selector */}
       <div className="absolute top-4 left-4 z-10">
-        <div className="bg-card/90 backdrop-blur-xl px-4 py-2 rounded-full border border-border">
-          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-primary" />
-            Charlotte, NC
-          </p>
-        </div>
+        <Select
+          value={selectedCity.id}
+          onValueChange={(cityId) => {
+            const city = CITIES.find(c => c.id === cityId);
+            if (city) onCityChange(city);
+          }}
+        >
+          <SelectTrigger className="bg-card/90 backdrop-blur-xl border-border w-auto">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span className="font-semibold">{selectedCity.name}, {selectedCity.state}</span>
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            {CITIES.map((city) => (
+              <SelectItem key={city.id} value={city.id}>
+                {city.name}, {city.state}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Live Indicator */}
