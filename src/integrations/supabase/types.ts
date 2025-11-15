@@ -14,7 +14,223 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      deals: {
+        Row: {
+          active: boolean | null
+          active_days: number[] | null
+          created_at: string | null
+          deal_type: string
+          description: string
+          expires_at: string
+          id: string
+          neighborhood_id: string | null
+          starts_at: string
+          title: string
+          updated_at: string | null
+          venue_id: string
+          venue_name: string
+        }
+        Insert: {
+          active?: boolean | null
+          active_days?: number[] | null
+          created_at?: string | null
+          deal_type: string
+          description: string
+          expires_at: string
+          id?: string
+          neighborhood_id?: string | null
+          starts_at: string
+          title: string
+          updated_at?: string | null
+          venue_id: string
+          venue_name: string
+        }
+        Update: {
+          active?: boolean | null
+          active_days?: number[] | null
+          created_at?: string | null
+          deal_type?: string
+          description?: string
+          expires_at?: string
+          id?: string
+          neighborhood_id?: string | null
+          starts_at?: string
+          title?: string
+          updated_at?: string | null
+          venue_id?: string
+          venue_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_neighborhood_id_fkey"
+            columns: ["neighborhood_id"]
+            isOneToOne: false
+            referencedRelation: "neighborhoods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neighborhoods: {
+        Row: {
+          active: boolean | null
+          boundary_points: Json
+          center_lat: number
+          center_lng: number
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          boundary_points: Json
+          center_lat: number
+          center_lng: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          boundary_points?: Json
+          center_lat?: number
+          center_lng?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      notification_logs: {
+        Row: {
+          deal_id: string | null
+          id: string
+          message: string
+          neighborhood_id: string | null
+          notification_type: string
+          read: boolean | null
+          sent_at: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          deal_id?: string | null
+          id?: string
+          message: string
+          neighborhood_id?: string | null
+          notification_type: string
+          read?: boolean | null
+          sent_at?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          deal_id?: string | null
+          id?: string
+          message?: string
+          neighborhood_id?: string | null
+          notification_type?: string
+          read?: boolean | null
+          sent_at?: string | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_logs_neighborhood_id_fkey"
+            columns: ["neighborhood_id"]
+            isOneToOne: false
+            referencedRelation: "neighborhoods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          active: boolean | null
+          auth_key: string
+          created_at: string | null
+          endpoint: string
+          id: string
+          p256dh_key: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          auth_key: string
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          p256dh_key: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          auth_key?: string
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          p256dh_key?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_locations: {
+        Row: {
+          accuracy: number | null
+          created_at: string | null
+          current_neighborhood_id: string | null
+          id: string
+          latitude: number
+          longitude: number
+          user_id: string | null
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string | null
+          current_neighborhood_id?: string | null
+          id?: string
+          latitude: number
+          longitude: number
+          user_id?: string | null
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string | null
+          current_neighborhood_id?: string | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_locations_current_neighborhood_id_fkey"
+            columns: ["current_neighborhood_id"]
+            isOneToOne: false
+            referencedRelation: "neighborhoods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
