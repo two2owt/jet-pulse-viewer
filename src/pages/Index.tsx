@@ -4,6 +4,7 @@ import { MapboxHeatmap } from "@/components/MapboxHeatmap";
 import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationCard, type Notification } from "@/components/NotificationCard";
+import { GeofenceTracker } from "@/components/GeofenceTracker";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -123,6 +124,9 @@ const Index = () => {
                 <JetCard venue={selectedVenue} onGetDirections={handleGetDirections} />
               </div>
             )}
+
+            {/* Geofence Tracker */}
+            <GeofenceTracker />
 
             {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-3">
