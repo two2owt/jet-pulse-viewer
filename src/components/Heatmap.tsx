@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { MapPin, TrendingUp } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { CITIES, type City } from "@/types/cities";
 
 interface Venue {
   id: string;
@@ -36,20 +38,43 @@ const getActivityGlow = (activity: number) => {
   return "shadow-[0_0_5px_hsl(220_70%_50%/0.3)]";
 };
 
-export const Heatmap = ({ onVenueSelect }: { onVenueSelect: (venue: Venue) => void }) => {
+export const Heatmap = ({ 
+  onVenueSelect,
+  selectedCity,
+  onCityChange 
+}: { 
+  onVenueSelect: (venue: Venue) => void;
+  selectedCity: City;
+  onCityChange: (city: City) => void;
+}) => {
   const [hoveredVenue, setHoveredVenue] = useState<string | null>(null);
 
   return (
     <div className="relative w-full h-full bg-gradient-to-br from-background via-muted/20 to-background rounded-2xl overflow-hidden">
 
-      {/* Charlotte Label */}
+      {/* City Selector */}
       <div className="absolute top-4 left-4 z-10">
-        <div className="bg-card/80 backdrop-blur-xl px-4 py-2 rounded-full border border-border">
-          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-primary" />
-            Charlotte, NC
-          </p>
-        </div>
+        <Select
+          value={selectedCity.id}
+          onValueChange={(cityId) => {
+            const city = CITIES.find(c => c.id === cityId);
+            if (city) onCityChange(city);
+          }}
+        >
+          <SelectTrigger className="bg-card/80 backdrop-blur-xl border-border w-auto">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span className="font-semibold text-sm">{selectedCity.name}, {selectedCity.state}</span>
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            {CITIES.map((city) => (
+              <SelectItem key={city.id} value={city.id}>
+                {city.name}, {city.state}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Live Indicator */}
