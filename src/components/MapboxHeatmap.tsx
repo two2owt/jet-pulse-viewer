@@ -328,12 +328,18 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
+    // Store map instance to prevent race conditions
+    const mapInstance = map.current;
+
     // Clear existing markers
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
     // Add venue markers
     venues.forEach((venue) => {
+      // Guard against map becoming null during iteration
+      if (!mapInstance) return;
+      
       const color = getActivityColor(venue.activity);
 
       // Create marker container with heatmap effect
@@ -443,13 +449,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </div>
       `);
 
-      // Create marker - check map exists before adding
-      if (!map.current) return;
-      
+      // Create marker using stored map instance
       const marker = new mapboxgl.Marker(container)
         .setLngLat([venue.lng, venue.lat])
         .setPopup(popup)
-        .addTo(map.current);
+        .addTo(mapInstance);
 
       // Handle click on the whole container
       container.addEventListener("click", () => {
