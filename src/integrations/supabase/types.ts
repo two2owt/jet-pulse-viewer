@@ -231,6 +231,36 @@ export type Database = {
           },
         ]
       }
+      user_preferences: {
+        Row: {
+          background_tracking_enabled: boolean
+          created_at: string | null
+          id: string
+          location_tracking_enabled: boolean
+          notifications_enabled: boolean
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          background_tracking_enabled?: boolean
+          created_at?: string | null
+          id?: string
+          location_tracking_enabled?: boolean
+          notifications_enabled?: boolean
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          background_tracking_enabled?: boolean
+          created_at?: string | null
+          id?: string
+          location_tracking_enabled?: boolean
+          notifications_enabled?: boolean
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
