@@ -20,14 +20,51 @@ export const GeofenceTracker = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [backgroundTracking, setBackgroundTracking] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
+  // Load user preferences from database
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const loadPreferences = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setIsAuthenticated(!!session);
-    });
+      
+      if (session?.user) {
+        setUserId(session.user.id);
+        
+        // Fetch user preferences
+        const { data: preferences } = await supabase
+          .from('user_preferences')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        if (preferences) {
+          setNotificationsEnabled(preferences.notifications_enabled);
+          setBackgroundTracking(preferences.background_tracking_enabled);
+        } else {
+          // Create default preferences
+          await supabase
+            .from('user_preferences')
+            .insert({
+              user_id: session.user.id,
+              notifications_enabled: true,
+              background_tracking_enabled: true,
+              location_tracking_enabled: false
+            });
+        }
+      }
+    };
+
+    loadPreferences();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
+      if (session?.user) {
+        setUserId(session.user.id);
+        loadPreferences();
+      } else {
+        setUserId(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -56,8 +93,8 @@ export const GeofenceTracker = () => {
     return "Tracking disabled";
   };
 
-  const handleToggleTracking = () => {
-    if (!isAuthenticated) {
+  const handleToggleTracking = async () => {
+    if (!isAuthenticated || !userId) {
       return;
     }
     
@@ -65,6 +102,34 @@ export const GeofenceTracker = () => {
       stopTracking();
     } else {
       startTracking();
+    }
+    
+    // Update preference in database
+    await supabase
+      .from('user_preferences')
+      .update({ location_tracking_enabled: !isTracking })
+      .eq('user_id', userId);
+  };
+
+  const handleNotificationsToggle = async (enabled: boolean) => {
+    setNotificationsEnabled(enabled);
+    
+    if (userId) {
+      await supabase
+        .from('user_preferences')
+        .update({ notifications_enabled: enabled })
+        .eq('user_id', userId);
+    }
+  };
+
+  const handleBackgroundTrackingToggle = async (enabled: boolean) => {
+    setBackgroundTracking(enabled);
+    
+    if (userId) {
+      await supabase
+        .from('user_preferences')
+        .update({ background_tracking_enabled: enabled })
+        .eq('user_id', userId);
     }
   };
 
@@ -103,7 +168,7 @@ export const GeofenceTracker = () => {
                   <Switch
                     id="notifications"
                     checked={notificationsEnabled}
-                    onCheckedChange={setNotificationsEnabled}
+                    onCheckedChange={handleNotificationsToggle}
                   />
                 </div>
 
@@ -119,7 +184,7 @@ export const GeofenceTracker = () => {
                   <Switch
                     id="background"
                     checked={backgroundTracking}
-                    onCheckedChange={setBackgroundTracking}
+                    onCheckedChange={handleBackgroundTrackingToggle}
                   />
                 </div>
 
