@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Heatmap, type Venue } from "@/components/Heatmap";
+import { MapboxHeatmap } from "@/components/MapboxHeatmap";
 import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationCard, type Notification } from "@/components/NotificationCard";
-import { Zap } from "lucide-react";
+import { useMapboxToken } from "@/hooks/useMapboxToken";
+import { Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const mockNotifications: Notification[] = [
@@ -36,9 +38,21 @@ const mockNotifications: Notification[] = [
   }
 ];
 
+const mockVenues: Venue[] = [
+  { id: "1", name: "Rooftop 210", lat: 35.220, lng: -80.840, activity: 92, category: "Bar", neighborhood: "South End" },
+  { id: "2", name: "Pin House", lat: 35.218, lng: -80.842, activity: 78, category: "Bar", neighborhood: "South End" },
+  { id: "3", name: "Wooden Robot", lat: 35.215, lng: -80.838, activity: 85, category: "Brewery", neighborhood: "South End" },
+  { id: "4", name: "Ink N Ivy", lat: 35.227, lng: -80.843, activity: 67, category: "Restaurant", neighborhood: "Uptown" },
+  { id: "5", name: "Fitzgerald's", lat: 35.205, lng: -80.820, activity: 88, category: "Bar", neighborhood: "Plaza Midwood" },
+  { id: "6", name: "The Punch Room", lat: 35.225, lng: -80.845, activity: 55, category: "Cocktail Bar", neighborhood: "Uptown" },
+  { id: "7", name: "NoDa Brewing", lat: 35.251, lng: -80.800, activity: 73, category: "Brewery", neighborhood: "NoDa" },
+  { id: "8", name: "Camp North End", lat: 35.240, lng: -80.830, activity: 81, category: "Food Hall", neighborhood: "Camp North End" },
+];
+
 const Index = () => {
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "profile">("map");
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
 
   const handleVenueSelect = (venue: Venue) => {
     setSelectedVenue(venue);
@@ -82,9 +96,25 @@ const Index = () => {
       <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
         {activeTab === "map" && (
           <>
-            {/* Heatmap */}
+            {/* Mapbox Heatmap */}
             <div className="h-[400px] rounded-2xl overflow-hidden">
-              <Heatmap onVenueSelect={handleVenueSelect} />
+              {mapboxLoading && (
+                <div className="h-full flex items-center justify-center bg-card">
+                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                </div>
+              )}
+              {mapboxError && (
+                <div className="h-full flex items-center justify-center bg-card">
+                  <p className="text-sm text-muted-foreground">{mapboxError}</p>
+                </div>
+              )}
+              {!mapboxLoading && !mapboxError && mapboxToken && (
+                <MapboxHeatmap 
+                  onVenueSelect={handleVenueSelect} 
+                  venues={mockVenues}
+                  mapboxToken={mapboxToken}
+                />
+              )}
             </div>
 
             {/* Selected Venue Card */}
