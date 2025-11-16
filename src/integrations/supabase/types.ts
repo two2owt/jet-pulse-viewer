@@ -23,12 +23,14 @@ export type Database = {
           description: string
           expires_at: string
           id: string
+          image_url: string | null
           neighborhood_id: string | null
           starts_at: string
           title: string
           updated_at: string | null
           venue_id: string
           venue_name: string
+          website_url: string | null
         }
         Insert: {
           active?: boolean | null
@@ -38,12 +40,14 @@ export type Database = {
           description: string
           expires_at: string
           id?: string
+          image_url?: string | null
           neighborhood_id?: string | null
           starts_at: string
           title: string
           updated_at?: string | null
           venue_id: string
           venue_name: string
+          website_url?: string | null
         }
         Update: {
           active?: boolean | null
@@ -53,12 +57,14 @@ export type Database = {
           description?: string
           expires_at?: string
           id?: string
+          image_url?: string | null
           neighborhood_id?: string | null
           starts_at?: string
           title?: string
           updated_at?: string | null
           venue_id?: string
           venue_name?: string
+          website_url?: string | null
         }
         Relationships: [
           {
