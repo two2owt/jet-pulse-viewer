@@ -138,41 +138,44 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           0, 0,
           10, 1,
         ],
-        // Increase intensity as zoom level increases
+        // Increase intensity as zoom level increases for vibrant colors
         'heatmap-intensity': [
           'interpolate',
           ['linear'],
           ['zoom'],
-          0, 1,
-          15, 3,
+          0, 1.5,
+          15, 4,
         ],
-        // Color ramp for heatmap - hot colors for high density
+        // Vibrant color ramp: blue → cyan → green → yellow → orange → red
         'heatmap-color': [
           'interpolate',
           ['linear'],
           ['heatmap-density'],
-          0, 'rgba(33, 102, 172, 0)',
-          0.2, 'rgb(103, 169, 207)',
-          0.4, 'rgb(209, 229, 240)',
-          0.6, 'rgb(253, 219, 199)',
-          0.8, 'rgb(239, 138, 98)',
-          1, 'rgb(178, 24, 43)',
+          0, 'rgba(0, 0, 255, 0)',          // transparent blue
+          0.15, 'rgb(0, 191, 255)',          // cyan
+          0.3, 'rgb(0, 255, 127)',           // spring green
+          0.45, 'rgb(173, 255, 47)',         // green-yellow
+          0.6, 'rgb(255, 255, 0)',           // yellow
+          0.75, 'rgb(255, 165, 0)',          // orange
+          0.9, 'rgb(255, 69, 0)',            // orange-red
+          1, 'rgb(255, 0, 0)',               // red
         ],
-        // Adjust radius based on zoom level
+        // Larger radius for smooth, blob-like appearance
         'heatmap-radius': [
           'interpolate',
           ['linear'],
           ['zoom'],
-          0, 2,
-          15, 20,
+          0, 15,
+          9, 40,
+          15, 80,
         ],
-        // Transition from heatmap to circle layer at higher zooms
+        // High opacity for vibrant appearance
         'heatmap-opacity': [
           'interpolate',
           ['linear'],
           ['zoom'],
-          7, 1,
-          15, 0.8,
+          7, 0.9,
+          15, 0.85,
         ],
       },
     });
