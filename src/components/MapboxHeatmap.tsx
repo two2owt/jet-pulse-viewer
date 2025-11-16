@@ -28,6 +28,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const userMarker = useRef<mapboxgl.Marker | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   
   // Density heatmap state
@@ -75,9 +76,38 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     
     map.current.addControl(geolocateControl, "top-right");
     
-    // Listen for geolocate events to update city
+    // Create custom marker element for user location
+    const createUserMarker = () => {
+      const el = document.createElement('div');
+      el.className = 'user-location-marker';
+      el.style.width = '40px';
+      el.style.height = '40px';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+      el.innerHTML = `
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
+        </svg>
+      `;
+      return el;
+    };
+    
+    // Listen for geolocate events to update city and marker
     geolocateControl.on('geolocate', (e: any) => {
       const { longitude, latitude } = e.coords;
+      
+      // Create or update user marker
+      if (!userMarker.current && map.current) {
+        userMarker.current = new mapboxgl.Marker({
+          element: createUserMarker(),
+          anchor: 'center'
+        })
+          .setLngLat([longitude, latitude])
+          .addTo(map.current);
+      } else if (userMarker.current) {
+        userMarker.current.setLngLat([longitude, latitude]);
+      }
       
       // Find the nearest city
       let nearestCity = CITIES[0];
@@ -100,6 +130,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         onCityChange(nearestCity);
       }
     });
+    
+    // Remove marker when tracking stops
+    geolocateControl.on('trackuserlocationend', () => {
+      if (userMarker.current) {
+        userMarker.current.remove();
+        userMarker.current = null;
+      }
+    });
 
     map.current.on("load", () => {
       setMapLoaded(true);
@@ -111,6 +149,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     return () => {
       // Prevent rendering effects while map is tearing down
       setMapLoaded(false);
+      if (userMarker.current) {
+        userMarker.current.remove();
+      }
       markersRef.current.forEach((marker) => marker.remove());
       map.current?.remove();
     };
