@@ -13,9 +13,17 @@ import { GeofenceTracker } from "@/components/GeofenceTracker";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
 import { CITIES, type City } from "@/types/cities";
-import { Zap } from "lucide-react";
+import { Zap, Navigation, Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
 import jetLogo from "@/assets/jet-logo.png";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const mockNotifications: Notification[] = [
   {
@@ -62,6 +70,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "profile">("map");
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
+  const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
   const { getVenueImage } = useVenueImages();
 
@@ -102,8 +111,38 @@ const Index = () => {
   };
 
   const handleGetDirections = () => {
-    toast.success("Opening directions...", {
-      description: `Navigate to ${selectedVenue?.name}`
+    if (!selectedVenue) return;
+    setShowDirectionsDialog(true);
+  };
+
+  const openDirections = (app: 'google' | 'apple' | 'waze') => {
+    if (!selectedVenue) return;
+    
+    const { lat, lng } = selectedVenue;
+    const destination = encodeURIComponent(selectedVenue.name);
+    
+    let url = '';
+    
+    switch (app) {
+      case 'google':
+        // Google Maps
+        url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${destination}`;
+        break;
+      case 'apple':
+        // Apple Maps
+        url = `http://maps.apple.com/?daddr=${lat},${lng}&q=${destination}`;
+        break;
+      case 'waze':
+        // Waze
+        url = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes&q=${destination}`;
+        break;
+    }
+    
+    window.open(url, '_blank');
+    setShowDirectionsDialog(false);
+    
+    toast.success(`Opening ${app === 'google' ? 'Google Maps' : app === 'apple' ? 'Apple Maps' : 'Waze'}`, {
+      description: `Navigate to ${selectedVenue.name}`
     });
   };
 
@@ -238,6 +277,61 @@ const Index = () => {
         onTabChange={setActiveTab}
         notificationCount={mockNotifications.length}
       />
+
+      {/* Directions Dialog */}
+      <Dialog open={showDirectionsDialog} onOpenChange={setShowDirectionsDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Choose Navigation App</DialogTitle>
+            <DialogDescription>
+              Select your preferred navigation app to get directions to {selectedVenue?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-4">
+            <Button
+              onClick={() => openDirections('google')}
+              variant="outline"
+              className="h-auto py-4 justify-start gap-3 hover:bg-accent transition-colors"
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                <MapIcon className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold">Google Maps</p>
+                <p className="text-xs text-muted-foreground">Navigate with Google</p>
+              </div>
+            </Button>
+            
+            <Button
+              onClick={() => openDirections('apple')}
+              variant="outline"
+              className="h-auto py-4 justify-start gap-3 hover:bg-accent transition-colors"
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center flex-shrink-0">
+                <Navigation className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold">Apple Maps</p>
+                <p className="text-xs text-muted-foreground">Navigate with Apple</p>
+              </div>
+            </Button>
+            
+            <Button
+              onClick={() => openDirections('waze')}
+              variant="outline"
+              className="h-auto py-4 justify-start gap-3 hover:bg-accent transition-colors"
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold">Waze</p>
+                <p className="text-xs text-muted-foreground">Navigate with Waze</p>
+              </div>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
