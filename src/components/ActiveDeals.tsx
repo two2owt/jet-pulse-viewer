@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, MapPin, TrendingUp } from "lucide-react";
+import { Clock, MapPin, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "./ui/button";
 import { DealCardSkeleton } from "./skeletons/DealCardSkeleton";
 import { toast } from "sonner";
@@ -19,6 +19,8 @@ interface Deal {
 export const ActiveDeals = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
+  const INITIAL_DISPLAY = 5;
 
   useEffect(() => {
     loadActiveDeals();
@@ -52,7 +54,7 @@ export const ActiveDeals = () => {
         .eq('active', true)
         .gte('expires_at', new Date().toISOString())
         .lte('starts_at', new Date().toISOString())
-        .limit(5);
+        .limit(20);
 
       if (error) throw error;
       setDeals(data || []);
@@ -113,6 +115,9 @@ export const ActiveDeals = () => {
     );
   }
 
+  const visibleDeals = showAll ? deals : deals.slice(0, INITIAL_DISPLAY);
+  const hasMore = deals.length > INITIAL_DISPLAY;
+
   return (
     <div className="space-y-3 animate-fade-in">
       <div className="flex items-center gap-2">
@@ -124,7 +129,7 @@ export const ActiveDeals = () => {
       </div>
 
       <div className="space-y-2">
-        {deals.map((deal, index) => (
+        {visibleDeals.map((deal, index) => (
           <div
             key={deal.id}
             className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-xl overflow-hidden border border-primary/20 animate-scale-in hover-scale"
@@ -170,6 +175,27 @@ export const ActiveDeals = () => {
           </div>
         ))}
       </div>
+
+      {hasMore && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowAll(!showAll)}
+          className="w-full text-primary hover:bg-primary/10"
+        >
+          {showAll ? (
+            <>
+              <ChevronUp className="w-4 h-4 mr-1" />
+              Show Less
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-4 h-4 mr-1" />
+              Show More ({deals.length - INITIAL_DISPLAY} more)
+            </>
+          )}
+        </Button>
+      )}
     </div>
   );
 };
