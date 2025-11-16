@@ -175,7 +175,7 @@ const Index = () => {
 
             {/* Active Deals */}
             <div className="animate-scale-in" style={{ animationDelay: '150ms' }}>
-              <ActiveDeals />
+              <ActiveDeals selectedCity={selectedCity} />
             </div>
 
             {/* Quick Stats */}

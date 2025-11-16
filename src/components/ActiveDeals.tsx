@@ -4,6 +4,7 @@ import { Clock, MapPin, TrendingUp, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "./ui/button";
 import { DealCardSkeleton } from "./skeletons/DealCardSkeleton";
 import { toast } from "sonner";
+import type { City } from "@/types/cities";
 
 interface Deal {
   id: string;
@@ -14,9 +15,14 @@ interface Deal {
   expires_at: string;
   image_url: string | null;
   website_url: string | null;
+  neighborhood_id: string | null;
 }
 
-export const ActiveDeals = () => {
+interface ActiveDealsProps {
+  selectedCity: City;
+}
+
+export const ActiveDeals = ({ selectedCity }: ActiveDealsProps) => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
@@ -44,16 +50,39 @@ export const ActiveDeals = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [selectedCity]);
 
   const loadActiveDeals = async () => {
     try {
+      // First, get neighborhoods near the selected city (within ~50km radius)
+      const { data: neighborhoods, error: neighborhoodError } = await supabase
+        .from('neighborhoods')
+        .select('id, center_lat, center_lng')
+        .eq('active', true);
+
+      if (neighborhoodError) throw neighborhoodError;
+
+      // Filter neighborhoods by distance to selected city
+      const nearbyNeighborhoods = neighborhoods?.filter(neighborhood => {
+        const distance = getDistance(
+          selectedCity.lat,
+          selectedCity.lng,
+          Number(neighborhood.center_lat),
+          Number(neighborhood.center_lng)
+        );
+        return distance <= 50; // 50km radius
+      });
+
+      const neighborhoodIds = nearbyNeighborhoods?.map(n => n.id) || [];
+
+      // Get deals for nearby neighborhoods
       const { data, error } = await supabase
         .from('deals')
         .select('*')
         .eq('active', true)
         .gte('expires_at', new Date().toISOString())
         .lte('starts_at', new Date().toISOString())
+        .in('neighborhood_id', neighborhoodIds)
         .limit(20);
 
       if (error) throw error;
@@ -63,6 +92,19 @@ export const ActiveDeals = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Calculate distance between two coordinates in km using Haversine formula
+  const getDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   };
 
   const getDealIcon = (dealType: string) => {
