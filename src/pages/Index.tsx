@@ -4,7 +4,6 @@ import { MapboxHeatmap } from "@/components/MapboxHeatmap";
 import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationCard, type Notification } from "@/components/NotificationCard";
-import { GeofenceTracker } from "@/components/GeofenceTracker";
 import { AuthButton } from "@/components/AuthButton";
 import { ActiveDeals } from "@/components/ActiveDeals";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -155,11 +154,6 @@ const Index = () => {
                 />
               </div>
             )}
-
-            {/* Geofence Tracker */}
-            <div className="animate-scale-in" style={{ animationDelay: '100ms' }}>
-              <GeofenceTracker />
-            </div>
 
             {/* Active Deals */}
             <div className="animate-scale-in" style={{ animationDelay: '150ms' }}>
