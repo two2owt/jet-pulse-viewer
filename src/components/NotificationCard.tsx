@@ -1,16 +1,31 @@
 import { MapPin, Clock, Gift, TrendingUp } from "lucide-react";
 
-interface Notification {
+export interface Notification {
   id: string;
   type: "offer" | "event" | "trending";
   title: string;
   message: string;
-  venue: string;
+  venue?: string;
   timestamp: string;
   distance?: string;
+  read?: boolean;
 }
 
-export const NotificationCard = ({ notification }: { notification: Notification }) => {
+interface NotificationCardProps {
+  notification: Notification;
+  onVenueClick?: (venue: string) => void;
+  onRead?: () => void;
+}
+
+export const NotificationCard = ({ notification, onVenueClick, onRead }: NotificationCardProps) => {
+  const handleClick = () => {
+    if (notification.venue && onVenueClick) {
+      onVenueClick(notification.venue);
+    }
+    if (onRead && !notification.read) {
+      onRead();
+    }
+  };
   const getIcon = () => {
     switch (notification.type) {
       case "offer":
@@ -34,7 +49,12 @@ export const NotificationCard = ({ notification }: { notification: Notification 
   };
 
   return (
-    <div className={`bg-gradient-to-r ${getGradient()} rounded-xl p-4 border border-border/50 hover-scale transition-all cursor-pointer`}>
+    <div 
+      className={`bg-gradient-to-r ${getGradient()} rounded-xl p-4 border border-border/50 hover-scale transition-all ${
+        onVenueClick ? 'cursor-pointer' : ''
+      } ${notification.read ? 'opacity-60' : ''}`}
+      onClick={handleClick}
+    >
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 bg-card rounded-full flex items-center justify-center flex-shrink-0 border border-border">
           {getIcon()}
@@ -45,10 +65,12 @@ export const NotificationCard = ({ notification }: { notification: Notification 
           <p className="text-xs text-muted-foreground mb-2">{notification.message}</p>
           
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              <span>{notification.venue}</span>
-            </div>
+            {notification.venue && (
+              <div className="flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                <span>{notification.venue}</span>
+              </div>
+            )}
             
             {notification.distance && (
               <span className="text-primary font-medium">{notification.distance}</span>
@@ -63,5 +85,3 @@ export const NotificationCard = ({ notification }: { notification: Notification 
     </div>
   );
 };
-
-export type { Notification };

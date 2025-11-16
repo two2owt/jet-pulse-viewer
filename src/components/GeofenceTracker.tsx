@@ -15,7 +15,8 @@ import {
 } from "./ui/dialog";
 
 export const GeofenceTracker = () => {
-  const { isTracking, currentNeighborhood, permissionStatus, startTracking, stopTracking } = useGeofencing(false);
+  const [trackingEnabled, setTrackingEnabled] = useState(false);
+  const { isTracking, currentNeighborhood, permissionStatus, startTracking, stopTracking } = useGeofencing(trackingEnabled);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [backgroundTracking, setBackgroundTracking] = useState(true);
@@ -98,16 +99,19 @@ export const GeofenceTracker = () => {
       return;
     }
     
-    if (isTracking) {
-      stopTracking();
+    const newTrackingState = !isTracking;
+    setTrackingEnabled(newTrackingState);
+    
+    if (newTrackingState) {
+      await startTracking();
     } else {
-      startTracking();
+      stopTracking();
     }
     
     // Update preference in database
     await supabase
       .from('user_preferences')
-      .update({ location_tracking_enabled: !isTracking })
+      .update({ location_tracking_enabled: newTrackingState })
       .eq('user_id', userId);
   };
 

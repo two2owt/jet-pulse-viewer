@@ -12,8 +12,9 @@ import { ExploreTab } from "@/components/ExploreTab";
 import { GeofenceTracker } from "@/components/GeofenceTracker";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
+import { useNotifications } from "@/hooks/useNotifications";
 import { CITIES, type City } from "@/types/cities";
-import { Zap, Navigation, Map as MapIcon } from "lucide-react";
+import { Zap, Navigation, Map as MapIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import jetLogo from "@/assets/jet-logo.png";
 import {
@@ -24,36 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "offer",
-    title: "🎉 Flash Deal Alert",
-    message: "$3 beers for the next hour",
-    venue: "Wooden Robot Brewery",
-    timestamp: "2m ago",
-    distance: "0.3 mi"
-  },
-  {
-    id: "2",
-    type: "trending",
-    title: "🔥 Getting Busy",
-    message: "Crowd levels rising fast",
-    venue: "Rooftop 210",
-    timestamp: "15m ago",
-    distance: "0.5 mi"
-  },
-  {
-    id: "3",
-    type: "event",
-    title: "🎵 Live Music Starting",
-    message: "Local band performing at 8 PM",
-    venue: "NoDa Brewing",
-    timestamp: "1h ago",
-    distance: "1.2 mi"
-  }
-];
+import { NotificationSkeleton } from "@/components/skeletons/NotificationSkeleton";
 
 const mockVenues: Venue[] = [
   { id: "1", name: "Rooftop 210", lat: 35.220, lng: -80.840, activity: 92, category: "Bar", neighborhood: "South End" },
@@ -73,6 +45,7 @@ const Index = () => {
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
   const { getVenueImage } = useVenueImages();
+  const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
 
   const handleCityChange = (city: City) => {
     setSelectedCity(city);
@@ -248,15 +221,32 @@ const Index = () => {
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Stay updated with nearby deals and events</p>
             </div>
             
-            {mockNotifications.map((notification, index) => (
-              <div 
-                key={notification.id}
-                className="animate-scale-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <NotificationCard notification={notification} />
+            {notificationsLoading ? (
+              <>
+                <NotificationSkeleton />
+                <NotificationSkeleton />
+                <NotificationSkeleton />
+              </>
+            ) : notifications.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <p>No notifications yet</p>
+                <p className="text-sm mt-2">Enable location tracking to receive deal alerts</p>
               </div>
-            ))}
+            ) : (
+              notifications.map((notification, index) => (
+                <div 
+                  key={notification.id}
+                  className="animate-scale-in"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <NotificationCard 
+                    notification={notification} 
+                    onVenueClick={handleVenueSelect}
+                    onRead={() => markAsRead(notification.id)}
+                  />
+                </div>
+              ))
+            )}
           </div>
         )}
 
@@ -275,7 +265,7 @@ const Index = () => {
       <BottomNav 
         activeTab={activeTab} 
         onTabChange={setActiveTab}
-        notificationCount={mockNotifications.length}
+        notificationCount={notifications.filter(n => !n.read).length}
       />
 
       {/* Directions Dialog */}
