@@ -8,6 +8,7 @@ import { AuthButton } from "@/components/AuthButton";
 import { ActiveDeals } from "@/components/ActiveDeals";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserProfile } from "@/components/UserProfile";
+import { ExploreTab } from "@/components/ExploreTab";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
 import { CITIES, type City } from "@/types/cities";
@@ -70,16 +71,33 @@ const Index = () => {
     });
   };
 
-  const handleVenueSelect = (venue: Venue) => {
-    // Add image URL to the venue if available
-    const venueWithImage = {
-      ...venue,
-      imageUrl: getVenueImage(venue.name)
-    };
-    setSelectedVenue(venueWithImage);
-    toast.success(`Selected ${venue.name}`, {
-      description: `${venue.activity}% active in ${venue.neighborhood}`
-    });
+  const handleVenueSelect = (venue: Venue | string) => {
+    // Handle both Venue object and venue name string
+    if (typeof venue === 'string') {
+      // Find the venue by name in mockVenues
+      const foundVenue = mockVenues.find(v => v.name === venue);
+      if (foundVenue) {
+        const venueWithImage = {
+          ...foundVenue,
+          imageUrl: getVenueImage(foundVenue.name)
+        };
+        setSelectedVenue(venueWithImage);
+        setActiveTab('map'); // Switch to map tab
+        toast.success(`Selected ${foundVenue.name}`, {
+          description: `${foundVenue.activity}% active in ${foundVenue.neighborhood}`
+        });
+      }
+    } else {
+      // Original venue object handling
+      const venueWithImage = {
+        ...venue,
+        imageUrl: getVenueImage(venue.name)
+      };
+      setSelectedVenue(venueWithImage);
+      toast.success(`Selected ${venue.name}`, {
+        description: `${venue.activity}% active in ${venue.neighborhood}`
+      });
+    }
   };
 
   const handleGetDirections = () => {
@@ -198,13 +216,7 @@ const Index = () => {
         )}
 
         {activeTab === "explore" && (
-          <div className="text-center py-12 animate-fade-in">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-scale-in">
-              <Zap className="w-8 h-8 text-primary" />
-            </div>
-            <h2 className="text-xl font-bold text-foreground mb-2">Discover Charlotte</h2>
-            <p className="text-sm text-muted-foreground">Explore trending spots and hidden gems</p>
-          </div>
+          <ExploreTab onVenueSelect={handleVenueSelect} />
         )}
 
         {activeTab === "profile" && (
