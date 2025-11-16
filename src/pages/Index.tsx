@@ -10,6 +10,7 @@ import { ActiveDeals } from "@/components/ActiveDeals";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AdminImageScraper } from "@/components/AdminImageScraper";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
+import { useVenueImages } from "@/hooks/useVenueImages";
 import { CITIES, type City } from "@/types/cities";
 import { Zap } from "lucide-react";
 import { toast } from "sonner";
@@ -61,6 +62,7 @@ const Index = () => {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
+  const { getVenueImage } = useVenueImages();
 
   const handleCityChange = (city: City) => {
     setSelectedCity(city);
@@ -70,7 +72,12 @@ const Index = () => {
   };
 
   const handleVenueSelect = (venue: Venue) => {
-    setSelectedVenue(venue);
+    // Add image URL to the venue if available
+    const venueWithImage = {
+      ...venue,
+      imageUrl: getVenueImage(venue.name)
+    };
+    setSelectedVenue(venueWithImage);
     toast.success(`Selected ${venue.name}`, {
       description: `${venue.activity}% active in ${venue.neighborhood}`
     });
