@@ -39,24 +39,23 @@ const Settings = () => {
 
   const loadPreferences = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!user) {
-        toast.error("Please sign in to access settings");
-        navigate("/");
+      if (!session?.user) {
+        setIsLoading(false);
         return;
       }
 
       const { data, error } = await supabase
         .from('user_preferences')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .single();
 
       if (error) {
         // If no preferences exist, create default ones
         if (error.code === 'PGRST116') {
-          await createDefaultPreferences(user.id);
+          await createDefaultPreferences(session.user.id);
           return;
         }
         throw error;
@@ -144,6 +143,38 @@ const Settings = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!preferences) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <header className="bg-card/95 backdrop-blur-xl border-b border-border sticky top-0 z-40">
+          <div className="max-w-lg mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/")}
+                className="hover:bg-muted"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <h1 className="text-xl font-bold text-foreground">Settings</h1>
+            </div>
+          </div>
+        </header>
+        
+        <main className="max-w-lg mx-auto px-4 py-6">
+          <Card className="p-6 text-center">
+            <Bell className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground mb-4">Please sign in to access settings</p>
+            <Button onClick={() => navigate("/auth")}>
+              Sign In
+            </Button>
+          </Card>
+        </main>
       </div>
     );
   }
