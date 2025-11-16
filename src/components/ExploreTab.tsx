@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Search, MapPin, Clock, TrendingUp, Loader2 } from "lucide-react";
+import { Button } from "./ui/button";
+import { Search, MapPin, Clock, TrendingUp, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface Deal {
@@ -26,6 +27,8 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [generatingImageId, setGeneratingImageId] = useState<string | null>(null);
+  const [isGeneratingAll, setIsGeneratingAll] = useState(false);
 
   useEffect(() => {
     loadDeals();
@@ -112,12 +115,109 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
     });
   };
 
+  const generateImageForDeal = async (deal: Deal) => {
+    setGeneratingImageId(deal.id);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-deal-image', {
+        body: {
+          dealId: deal.id,
+          title: deal.title,
+          description: deal.description,
+          dealType: deal.deal_type
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success('Image generated successfully!');
+        // Refresh deals to show the new image
+        await loadDeals();
+      } else {
+        throw new Error(data.error || 'Failed to generate image');
+      }
+    } catch (error) {
+      console.error('Error generating image:', error);
+      toast.error('Failed to generate image');
+    } finally {
+      setGeneratingImageId(null);
+    }
+  };
+
+  const generateAllImages = async () => {
+    const dealsWithoutImages = deals.filter(d => !d.image_url);
+    
+    if (dealsWithoutImages.length === 0) {
+      toast.info('All deals already have images!');
+      return;
+    }
+
+    setIsGeneratingAll(true);
+    toast.info(`Generating images for ${dealsWithoutImages.length} deals...`);
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const deal of dealsWithoutImages) {
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-deal-image', {
+          body: {
+            dealId: deal.id,
+            title: deal.title,
+            description: deal.description,
+            dealType: deal.deal_type
+          }
+        });
+
+        if (error || !data.success) {
+          failCount++;
+        } else {
+          successCount++;
+        }
+
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error) {
+        failCount++;
+      }
+    }
+
+    setIsGeneratingAll(false);
+    await loadDeals();
+    toast.success(`Generated ${successCount} images${failCount > 0 ? `, ${failCount} failed` : ''}!`);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Explore Deals</h2>
-        <p className="text-sm text-muted-foreground">Discover trending spots and exclusive offers</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Explore Deals</h2>
+          <p className="text-sm text-muted-foreground">Discover trending spots and exclusive offers</p>
+        </div>
+        
+        {deals.some(d => !d.image_url) && (
+          <Button
+            onClick={generateAllImages}
+            disabled={isGeneratingAll}
+            size="sm"
+            variant="outline"
+            className="flex-shrink-0"
+          >
+            {isGeneratingAll ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate Images
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Search Bar */}
@@ -198,8 +298,21 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
                     }}
                   />
                 ) : (
-                  <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-lg flex-shrink-0">
-                    <span className="text-3xl">{getDealIcon(deal.deal_type)}</span>
+                  <div 
+                    className="w-20 h-20 flex flex-col items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-lg flex-shrink-0 relative group"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      generateImageForDeal(deal);
+                    }}
+                  >
+                    {generatingImageId === deal.id ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    ) : (
+                      <>
+                        <span className="text-3xl group-hover:opacity-50 transition-opacity">{getDealIcon(deal.deal_type)}</span>
+                        <Sparkles className="w-4 h-4 text-primary absolute opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </>
+                    )}
                   </div>
                 )}
 
