@@ -64,17 +64,42 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       "top-right"
     );
 
-    // Add geolocate control
-    map.current.addControl(
-      new mapboxgl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true,
-        },
-        trackUserLocation: true,
-        showUserHeading: true,
-      }),
-      "top-right"
-    );
+    // Add geolocate control with location change handler
+    const geolocateControl = new mapboxgl.GeolocateControl({
+      positionOptions: {
+        enableHighAccuracy: true,
+      },
+      trackUserLocation: true,
+      showUserHeading: true,
+    });
+    
+    map.current.addControl(geolocateControl, "top-right");
+    
+    // Listen for geolocate events to update city
+    geolocateControl.on('geolocate', (e: any) => {
+      const { longitude, latitude } = e.coords;
+      
+      // Find the nearest city
+      let nearestCity = CITIES[0];
+      let minDistance = Infinity;
+      
+      CITIES.forEach(city => {
+        const distance = Math.sqrt(
+          Math.pow(city.lat - latitude, 2) + 
+          Math.pow(city.lng - longitude, 2)
+        );
+        
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestCity = city;
+        }
+      });
+      
+      // Update to nearest city if different
+      if (nearestCity.id !== selectedCity.id) {
+        onCityChange(nearestCity);
+      }
+    });
 
     map.current.on("load", () => {
       setMapLoaded(true);
