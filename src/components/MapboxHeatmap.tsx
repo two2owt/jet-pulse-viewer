@@ -30,6 +30,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [mapLoaded, setMapLoaded] = useState(false);
   const userMarker = useRef<mapboxgl.Marker | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const dealMarkersRef = useRef<mapboxgl.Marker[]>([]);
   
   // Density heatmap state
   const [showDensityLayer, setShowDensityLayer] = useState(false);
@@ -153,6 +154,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         userMarker.current.remove();
       }
       markersRef.current.forEach((marker) => marker.remove());
+      dealMarkersRef.current.forEach((marker) => marker.remove());
       map.current?.remove();
     };
   }, [mapboxToken]);
@@ -532,6 +534,183 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       markersRef.current.push(marker);
     });
   }, [venues, mapLoaded, onVenueSelect]);
+
+  // Load and display active deals on the map
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    const loadActiveDeals = async () => {
+      try {
+        const { data: deals, error } = await supabase
+          .from('deals')
+          .select(`
+            *,
+            neighborhoods (
+              center_lat,
+              center_lng,
+              name
+            )
+          `)
+          .eq('active', true)
+          .gte('expires_at', new Date().toISOString())
+          .lte('starts_at', new Date().toISOString());
+
+        if (error) throw error;
+        if (!deals || !map.current) return;
+
+        // Clear existing deal markers
+        dealMarkersRef.current.forEach((marker) => marker.remove());
+        dealMarkersRef.current = [];
+
+        const mapInstance = map.current;
+
+        deals.forEach((deal: any) => {
+          if (!deal.neighborhoods || !mapInstance) return;
+
+          const neighborhood = deal.neighborhoods;
+          const dealColor = deal.deal_type === 'food' ? '#FF6B35' : 
+                           deal.deal_type === 'drink' ? '#4ECDC4' : 
+                           deal.deal_type === 'event' ? '#9B59B6' : 
+                           '#F7B731';
+
+          // Create enhanced deal marker container
+          const container = document.createElement("div");
+          container.className = "deal-marker-container";
+          container.style.cssText = `
+            position: relative;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+          `;
+
+          // Create animated ring layers
+          for (let i = 0; i < 3; i++) {
+            const ring = document.createElement("div");
+            ring.className = `deal-ring deal-ring-${i}`;
+            ring.style.cssText = `
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              width: ${50 + i * 20}px;
+              height: ${50 + i * 20}px;
+              border: 2px solid ${dealColor};
+              border-radius: 50%;
+              opacity: ${0.6 - i * 0.2};
+              animation: dealPulse ${2 + i * 0.5}s ease-out infinite;
+              animation-delay: ${i * 0.3}s;
+              pointer-events: none;
+            `;
+            container.appendChild(ring);
+          }
+
+          // Create glow effect
+          const glow = document.createElement("div");
+          glow.className = "deal-glow";
+          glow.style.cssText = `
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle, ${dealColor}40 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(15px);
+            animation: dealGlow 2s ease-in-out infinite;
+            pointer-events: none;
+          `;
+          container.appendChild(glow);
+
+          // Create main marker
+          const marker = document.createElement("div");
+          marker.className = "deal-marker";
+          marker.style.cssText = `
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, ${dealColor} 0%, ${dealColor}CC 100%);
+            border: 3px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px ${dealColor}80, 0 0 40px ${dealColor}40;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            animation: dealBounce 3s ease-in-out infinite;
+          `;
+
+          // Deal icon based on type
+          const icon = deal.deal_type === 'food' ? '🍕' :
+                       deal.deal_type === 'drink' ? '🍹' :
+                       deal.deal_type === 'event' ? '🎉' : '⭐';
+
+          marker.innerHTML = `
+            <span style="font-size: 24px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">${icon}</span>
+          `;
+
+          container.appendChild(marker);
+
+          // Enhanced hover effects
+          container.addEventListener("mouseenter", () => {
+            marker.style.transform = "translate(-50%, -50%) scale(1.3) rotate(10deg)";
+            marker.style.boxShadow = `0 8px 40px ${dealColor}CC, 0 0 60px ${dealColor}80`;
+            glow.style.width = "100px";
+            glow.style.height = "100px";
+            glow.style.filter = "blur(25px)";
+          });
+
+          container.addEventListener("mouseleave", () => {
+            marker.style.transform = "translate(-50%, -50%) scale(1) rotate(0deg)";
+            marker.style.boxShadow = `0 4px 20px ${dealColor}80, 0 0 40px ${dealColor}40`;
+            glow.style.width = "70px";
+            glow.style.height = "70px";
+            glow.style.filter = "blur(15px)";
+          });
+
+          // Create enhanced popup
+          const popup = new mapboxgl.Popup({ 
+            offset: 30,
+            className: 'deal-popup'
+          }).setHTML(`
+            <div style="padding: 12px; background: linear-gradient(135deg, #1f2937 0%, #111827 100%); border-radius: 12px; border: 2px solid ${dealColor}; min-width: 200px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span style="font-size: 24px;">${icon}</span>
+                <span style="background: ${dealColor}30; color: ${dealColor}; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; text-transform: uppercase;">${deal.deal_type}</span>
+              </div>
+              <h3 style="margin: 0 0 6px 0; font-size: 15px; font-weight: bold; color: white;">${deal.title}</h3>
+              <p style="margin: 0 0 8px 0; font-size: 12px; color: #9ca3af; line-height: 1.4;">${deal.description}</p>
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${dealColor}" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <p style="margin: 0; font-size: 11px; color: #6b7280; font-weight: 600;">${deal.venue_name} • ${neighborhood.name}</p>
+              </div>
+            </div>
+          `);
+
+          // Add marker to map
+          const dealMarker = new mapboxgl.Marker(container)
+            .setLngLat([Number(neighborhood.center_lng), Number(neighborhood.center_lat)])
+            .setPopup(popup)
+            .addTo(mapInstance);
+
+          dealMarkersRef.current.push(dealMarker);
+        });
+
+        console.log(`Added ${deals.length} deal markers to map`);
+      } catch (error) {
+        console.error('Error loading deals:', error);
+      }
+    };
+
+    loadActiveDeals();
+  }, [mapLoaded]);
 
   return (
     <div className="relative w-full h-full">
