@@ -156,4 +156,29 @@ All colors MUST be HSL.
   .glow-button:hover {
     box-shadow: 0 0 25px hsl(var(--primary) / 0.5);
   }
+  
+  /* Mobile map controls - smaller for phone view */
+  @media (max-width: 768px) {
+    .mapboxgl-ctrl-group {
+      transform: scale(0.75);
+      transform-origin: top right;
+    }
+    
+    .mapboxgl-ctrl-compass {
+      width: 24px !important;
+      height: 24px !important;
+    }
+    
+    .mapboxgl-ctrl-zoom-in,
+    .mapboxgl-ctrl-zoom-out {
+      width: 24px !important;
+      height: 24px !important;
+      line-height: 24px !important;
+    }
+    
+    .mapboxgl-ctrl-geolocate {
+      width: 24px !important;
+      height: 24px !important;
+    }
+  }
 }
