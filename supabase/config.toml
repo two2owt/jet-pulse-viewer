@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.check-geofence]
 verify_jwt = true
+
+[functions.scrape-venue-images]
+verify_jwt = true

@@ -12,6 +12,8 @@ interface Deal {
   venue_name: string;
   deal_type: string;
   expires_at: string;
+  image_url: string | null;
+  website_url: string | null;
 }
 
 export const ActiveDeals = () => {
@@ -125,11 +127,24 @@ export const ActiveDeals = () => {
         {deals.map((deal, index) => (
           <div
             key={deal.id}
-            className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-xl p-3 border border-primary/20 animate-scale-in hover-scale"
+            className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-xl overflow-hidden border border-primary/20 animate-scale-in hover-scale"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            <div className="flex items-start gap-3">
-              <div className="text-2xl">{getDealIcon(deal.deal_type)}</div>
+            <div className="flex items-start gap-3 p-3">
+              {deal.image_url ? (
+                <img 
+                  src={deal.image_url} 
+                  alt={deal.venue_name}
+                  className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="w-16 h-16 flex items-center justify-center text-3xl flex-shrink-0">
+                  {getDealIcon(deal.deal_type)}
+                </div>
+              )}
               
               <div className="flex-1 min-w-0">
                 <h4 className="text-sm font-bold text-foreground mb-1 truncate">

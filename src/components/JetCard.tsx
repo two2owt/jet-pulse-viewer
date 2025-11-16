@@ -32,10 +32,23 @@ export const JetCard = ({ venue, onGetDirections, onClose }: JetCardProps) => {
       )}
       
       {/* Image Header with Gradient Overlay */}
-      <div className="relative h-48 bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-6xl opacity-50">🍹</div>
-        </div>
+      <div className="relative h-48 bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 overflow-hidden">
+        {venue.imageUrl ? (
+          <img 
+            src={venue.imageUrl} 
+            alt={venue.name}
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to emoji if image fails to load
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-6xl opacity-50">🍹</div>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         
         {/* Activity Badge */}
         <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5">

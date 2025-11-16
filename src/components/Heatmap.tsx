@@ -11,6 +11,7 @@ interface Venue {
   activity: number; // 0-100
   category: string;
   neighborhood: string;
+  imageUrl?: string;
 }
 
 const mockVenues: Venue[] = [
