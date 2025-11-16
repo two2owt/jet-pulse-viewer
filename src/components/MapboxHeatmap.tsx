@@ -560,195 +560,91 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
         const mapInstance = map.current;
 
-        // Remove existing layers and sources
-        if (mapInstance.getLayer('clusters')) mapInstance.removeLayer('clusters');
-        if (mapInstance.getLayer('cluster-count')) mapInstance.removeLayer('cluster-count');
-        if (mapInstance.getLayer('unclustered-point')) mapInstance.removeLayer('unclustered-point');
-        if (mapInstance.getSource('deals')) mapInstance.removeSource('deals');
+        // Clear existing deal markers
+        dealMarkersRef.current.forEach((marker) => marker.remove());
+        dealMarkersRef.current = [];
 
-        // Convert deals to GeoJSON format
-        const geojsonFeatures = deals
-          .filter((deal: any) => deal.neighborhoods)
-          .map((deal: any) => {
-            const neighborhood = deal.neighborhoods;
-            const dealColor = deal.deal_type === 'food' ? '#FF6B35' : 
-                             deal.deal_type === 'drink' ? '#4ECDC4' : 
-                             deal.deal_type === 'event' ? '#9B59B6' : 
-                             '#F7B731';
-            const icon = deal.deal_type === 'food' ? '🍕' :
-                         deal.deal_type === 'drink' ? '🍹' :
-                         deal.deal_type === 'event' ? '🎉' : '⭐';
+        // Add deal markers
+        deals.forEach((deal: any) => {
+          if (!deal.neighborhoods || !mapInstance) return;
 
-            return {
-              type: 'Feature' as const,
-              geometry: {
-                type: 'Point' as const,
-                coordinates: [Number(neighborhood.center_lng), Number(neighborhood.center_lat)]
-              },
-              properties: {
-                id: deal.id,
-                title: deal.title,
-                description: deal.description,
-                venue_name: deal.venue_name,
-                deal_type: deal.deal_type,
-                neighborhood_name: neighborhood.name,
-                color: dealColor,
-                icon: icon
-              }
-            };
-          });
+          const neighborhood = deal.neighborhoods;
+          const dealColor = deal.deal_type === 'food' ? '#FF6B35' : 
+                           deal.deal_type === 'drink' ? '#4ECDC4' : 
+                           deal.deal_type === 'event' ? '#9B59B6' : 
+                           '#F7B731';
+          const icon = deal.deal_type === 'food' ? '🍕' :
+                       deal.deal_type === 'drink' ? '🍹' :
+                       deal.deal_type === 'event' ? '🎉' : '⭐';
 
-        // Add source with clustering enabled
-        mapInstance.addSource('deals', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: geojsonFeatures
-          },
-          cluster: true,
-          clusterMaxZoom: 14,
-          clusterRadius: 50
-        });
+          // Create marker element with animations
+          const markerEl = document.createElement('div');
+          markerEl.style.cssText = `
+            position: relative;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-center;
+          `;
 
-        // Add cluster circle layer
-        mapInstance.addLayer({
-          id: 'clusters',
-          type: 'circle',
-          source: 'deals',
-          filter: ['has', 'point_count'],
-          paint: {
-            'circle-color': [
-              'step',
-              ['get', 'point_count'],
-              '#4ECDC4',
-              5,
-              '#F7B731',
-              10,
-              '#FF6B35',
-              20,
-              '#9B59B6'
-            ],
-            'circle-radius': [
-              'step',
-              ['get', 'point_count'],
-              25,
-              5,
-              30,
-              10,
-              35,
-              20,
-              40
-            ],
-            'circle-opacity': 0.8,
-            'circle-stroke-width': 3,
-            'circle-stroke-color': '#ffffff'
-          }
-        });
+          // Main marker with bounce animation
+          const mainMarker = document.createElement('div');
+          mainMarker.style.cssText = `
+            width: 48px;
+            height: 48px;
+            background: ${dealColor};
+            border: 3px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10;
+            position: relative;
+            animation: dealBounce 2s ease-in-out infinite;
+          `;
+          mainMarker.innerHTML = icon;
 
-        // Add cluster count text
-        mapInstance.addLayer({
-          id: 'cluster-count',
-          type: 'symbol',
-          source: 'deals',
-          filter: ['has', 'point_count'],
-          layout: {
-            'text-field': '{point_count_abbreviated}',
-            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            'text-size': 16
-          },
-          paint: {
-            'text-color': '#ffffff'
-          }
-        });
+          markerEl.appendChild(mainMarker);
 
-        // Add unclustered point layer (individual deals)
-        mapInstance.addLayer({
-          id: 'unclustered-point',
-          type: 'circle',
-          source: 'deals',
-          filter: ['!', ['has', 'point_count']],
-          paint: {
-            'circle-color': ['get', 'color'],
-            'circle-radius': 24,
-            'circle-stroke-width': 3,
-            'circle-stroke-color': '#ffffff',
-            'circle-opacity': 0.9
-          }
-        });
-
-        // Add symbol layer for emoji icons
-        mapInstance.addLayer({
-          id: 'unclustered-symbol',
-          type: 'symbol',
-          source: 'deals',
-          filter: ['!', ['has', 'point_count']],
-          layout: {
-            'text-field': ['get', 'icon'],
-            'text-size': 20,
-            'text-allow-overlap': true
-          }
-        });
-
-        // Click on cluster to zoom in
-        mapInstance.on('click', 'clusters', (e: any) => {
-          const features = mapInstance.queryRenderedFeatures(e.point, {
-            layers: ['clusters']
-          });
-          const clusterId = features[0].properties.cluster_id;
-          const source = mapInstance.getSource('deals') as mapboxgl.GeoJSONSource;
-          
-          source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-            if (err) return;
-
-            mapInstance.easeTo({
-              center: (features[0].geometry as any).coordinates,
-              zoom: zoom
-            });
-          });
-        });
-
-        // Show popup on unclustered point click
-        mapInstance.on('click', 'unclustered-point', (e: any) => {
-          const coordinates = (e.features[0].geometry as any).coordinates.slice();
-          const props = e.features[0].properties;
-
+          // Create popup
           const popup = new mapboxgl.Popup({ 
             offset: 30,
             className: 'deal-popup'
-          }).setLngLat(coordinates).setHTML(`
-            <div style="padding: 12px; background: linear-gradient(135deg, #1f2937 0%, #111827 100%); border-radius: 12px; border: 2px solid ${props.color}; min-width: 200px;">
+          }).setHTML(`
+            <div style="padding: 12px; background: linear-gradient(135deg, #1f2937 0%, #111827 100%); border-radius: 12px; border: 2px solid ${dealColor}; min-width: 200px;">
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <span style="font-size: 24px;">${props.icon}</span>
-                <span style="background: ${props.color}30; color: ${props.color}; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; text-transform: uppercase;">${props.deal_type}</span>
+                <span style="font-size: 24px;">${icon}</span>
+                <span style="background: ${dealColor}30; color: ${dealColor}; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; text-transform: uppercase;">${deal.deal_type}</span>
               </div>
-              <h3 style="margin: 0 0 6px 0; font-size: 15px; font-weight: bold; color: white;">${props.title}</h3>
-              <p style="margin: 0 0 8px 0; font-size: 12px; color: #9ca3af; line-height: 1.4;">${props.description}</p>
+              <h3 style="margin: 0 0 6px 0; font-size: 15px; font-weight: bold; color: white;">${deal.title}</h3>
+              <p style="margin: 0 0 8px 0; font-size: 12px; color: #9ca3af; line-height: 1.4;">${deal.description}</p>
               <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${props.color}" stroke-width="2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${dealColor}" stroke-width="2">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                   <circle cx="12" cy="10" r="3"></circle>
                 </svg>
-                <p style="margin: 0; font-size: 11px; color: #6b7280; font-weight: 600;">${props.venue_name} • ${props.neighborhood_name}</p>
+                <p style="margin: 0; font-size: 11px; color: #6b7280; font-weight: 600;">${deal.venue_name} • ${neighborhood.name}</p>
               </div>
             </div>
-          `).addTo(mapInstance);
+          `);
+
+          // Create and add marker
+          const marker = new mapboxgl.Marker({ 
+            element: markerEl,
+            anchor: 'center'
+          })
+            .setLngLat([Number(neighborhood.center_lng), Number(neighborhood.center_lat)])
+            .setPopup(popup)
+            .addTo(mapInstance);
+
+          dealMarkersRef.current.push(marker);
         });
 
-        // Change cursor on hover for both clusters and points
-        mapInstance.on('mouseenter', 'clusters', () => {
-          mapInstance.getCanvas().style.cursor = 'pointer';
-        });
-        mapInstance.on('mouseleave', 'clusters', () => {
-          mapInstance.getCanvas().style.cursor = '';
-        });
-        mapInstance.on('mouseenter', 'unclustered-point', () => {
-          mapInstance.getCanvas().style.cursor = 'pointer';
-        });
-        mapInstance.on('mouseleave', 'unclustered-point', () => {
-          mapInstance.getCanvas().style.cursor = '';
-        });
-
-        console.log(`Added ${deals.length} deals with clustering enabled`);
+        console.log(`Added ${deals.length} deal markers`);
       } catch (error) {
         console.error('Error loading deals:', error);
       }

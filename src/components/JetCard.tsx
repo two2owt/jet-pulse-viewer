@@ -52,7 +52,7 @@ export const JetCard = ({ venue, onGetDirections, onClose }: JetCardProps) => {
         
         {/* Activity Badge */}
         <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5">
-          <div className="w-2 h-2 bg-primary rounded-full pulse-glow" />
+          <div className="w-2 h-2 bg-primary rounded-full" />
           <span className="text-xs font-bold text-foreground">{venue.activity}% Active</span>
         </div>
 
