@@ -37,20 +37,27 @@ export const UserProfile = () => {
 
   const loadProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!user) {
-        toast.error("Please log in to view your profile");
+      if (!session?.user) {
+        setIsLoading(false);
         return;
       }
 
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', session.user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If no profile exists, create one
+        if (error.code === 'PGRST116') {
+          await createDefaultProfile(session.user);
+          return;
+        }
+        throw error;
+      }
 
       if (data) {
         setProfile(data);
@@ -65,9 +72,32 @@ export const UserProfile = () => {
     }
   };
 
+  const createDefaultProfile = async (user: any) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          display_name: user.email?.split('@')[0] || 'User',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setProfile(data);
+      setDisplayName(data.display_name || "");
+      setBio(data.bio || "");
+      toast.success('Profile created! Welcome to JET Social');
+    } catch (error) {
+      console.error('Error creating profile:', error);
+      toast.error('Failed to create profile');
+    }
+  };
+
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !profile) return;
 
     // Validate file type and size
     if (!file.type.startsWith('image/')) {
@@ -83,11 +113,11 @@ export const UserProfile = () => {
     setIsUploading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error('Not authenticated');
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const fileName = `${session.user.id}/avatar.${fileExt}`;
 
       // Delete old avatar if exists
       if (profile?.avatar_url) {
@@ -111,7 +141,7 @@ export const UserProfile = () => {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
+        .eq('id', session.user.id);
 
       if (updateError) throw updateError;
 
@@ -133,8 +163,11 @@ export const UserProfile = () => {
         bio: bio || undefined,
       });
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast.error('Please sign in to update your profile');
+        return;
+      }
 
       setIsSaving(true);
 
@@ -144,7 +177,7 @@ export const UserProfile = () => {
           display_name: validatedData.display_name,
           bio: validatedData.bio || null,
         })
-        .eq('id', user.id);
+        .eq('id', session.user.id);
 
       if (error) throw error;
 
@@ -176,7 +209,10 @@ export const UserProfile = () => {
     return (
       <Card className="p-6 bg-card/90 backdrop-blur-sm text-center">
         <User className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-        <p className="text-muted-foreground">Please log in to view your profile</p>
+        <p className="text-muted-foreground mb-4">Please sign in to view your profile</p>
+        <Button onClick={() => navigate("/auth")}>
+          Sign In
+        </Button>
       </Card>
     );
   }
