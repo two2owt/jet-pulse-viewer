@@ -107,19 +107,19 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20 md:pb-24">
       {/* Header */}
       <header className="bg-card/95 backdrop-blur-xl border-b border-border sticky top-0 z-40">
-        <div className="max-w-lg mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <img 
               src={jetLogo} 
               alt="JET Social" 
-              className="h-12 w-auto dark:brightness-100 brightness-100 transition-all" 
+              className="h-10 sm:h-12 md:h-14 w-auto dark:brightness-100 brightness-100 transition-all" 
             />
             
-            <div className="flex items-center gap-2">
-              <div className="bg-muted/50 px-3 py-1.5 rounded-full">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="bg-muted/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                 <p className="text-xs font-semibold text-foreground">8:42 PM</p>
               </div>
               <ThemeToggle />
@@ -130,11 +130,11 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
         {activeTab === "map" && (
           <>
             {/* Mapbox Heatmap */}
-            <div className="h-[400px] rounded-2xl overflow-hidden animate-fade-in">
+            <div className="h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden animate-fade-in">
               {mapboxLoading && (
                 <div className="h-full flex items-center justify-center bg-card">
                   <div className="text-center space-y-4">
@@ -179,28 +179,28 @@ const Index = () => {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-card rounded-xl p-4 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '200ms' }}>
-                <p className="text-2xl font-bold text-primary mb-1">24</p>
-                <p className="text-xs text-muted-foreground">Venues Nearby</p>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+              <div className="bg-card rounded-xl p-3 sm:p-4 md:p-5 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '200ms' }}>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-1">24</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Venues Nearby</p>
               </div>
-              <div className="bg-card rounded-xl p-4 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '250ms' }}>
-                <p className="text-2xl font-bold text-warm mb-1">8</p>
-                <p className="text-xs text-muted-foreground">Active Deals</p>
+              <div className="bg-card rounded-xl p-3 sm:p-4 md:p-5 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '250ms' }}>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-warm mb-1">8</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Active Deals</p>
               </div>
-              <div className="bg-card rounded-xl p-4 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '300ms' }}>
-                <p className="text-2xl font-bold text-secondary mb-1">3</p>
-                <p className="text-xs text-muted-foreground">Live Events</p>
+              <div className="bg-card rounded-xl p-3 sm:p-4 md:p-5 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '300ms' }}>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-secondary mb-1">3</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Live Events</p>
               </div>
             </div>
           </>
         )}
 
          {activeTab === "notifications" && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-3 sm:space-y-4 md:space-y-5 animate-fade-in">
             <div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">Notifications</h2>
-              <p className="text-sm text-muted-foreground">Stay updated with nearby deals and events</p>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2">Notifications</h2>
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Stay updated with nearby deals and events</p>
             </div>
             
             {mockNotifications.map((notification, index) => (
@@ -220,7 +220,7 @@ const Index = () => {
         )}
 
         {activeTab === "profile" && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-4 sm:space-y-5 md:space-y-6 animate-fade-in">
             <UserProfile />
           </div>
         )}

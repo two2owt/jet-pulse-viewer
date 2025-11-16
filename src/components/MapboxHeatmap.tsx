@@ -50,7 +50,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     // Initialize map centered on selected city
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
+      style: "mapbox://styles/hodgesb02/cmi15w1cm00ft01s1ci7s2t0z",
       center: [selectedCity.lng, selectedCity.lat],
       zoom: selectedCity.zoom,
       pitch: 45,
@@ -472,7 +472,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       <div ref={mapContainer} className="absolute inset-0 rounded-2xl overflow-hidden" />
 
       {/* City Selector */}
-      <div className="absolute top-4 left-4 z-10">
+      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 md:top-4 md:left-4 z-10">
         <Select
           value={selectedCity.id}
           onValueChange={(cityId) => {
@@ -480,9 +480,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             if (city) onCityChange(city);
           }}
         >
-          <SelectTrigger className="bg-card/90 backdrop-blur-xl border-border w-auto">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-primary" />
+          <SelectTrigger className="bg-card/90 backdrop-blur-xl border-border w-auto text-xs sm:text-sm">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
               <span className="font-semibold">{selectedCity.name}, {selectedCity.state}</span>
             </div>
           </SelectTrigger>
@@ -497,27 +497,28 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Live Indicator */}
-      <div className="absolute top-4 right-16 z-10">
-        <div className="bg-card/90 backdrop-blur-xl px-4 py-2 rounded-full border border-border flex items-center gap-2">
-          <div className="w-2 h-2 bg-primary rounded-full pulse-glow" />
-          <p className="text-sm font-semibold text-foreground">Live</p>
+      <div className="absolute top-2 right-2 sm:top-3 sm:right-14 md:top-4 md:right-16 z-10">
+        <div className="bg-card/90 backdrop-blur-xl px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 rounded-full border border-border flex items-center gap-1.5 sm:gap-2">
+          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full pulse-glow" />
+          <p className="text-xs sm:text-sm font-semibold text-foreground">Live</p>
         </div>
       </div>
 
       {/* Density Layer Controls */}
-      <div className="absolute top-4 right-16 z-10 space-y-2">
+      <div className="absolute bottom-16 right-2 sm:bottom-20 sm:right-3 md:bottom-4 md:right-16 z-10 space-y-2">
         <Button
           onClick={() => setShowDensityLayer(!showDensityLayer)}
           variant={showDensityLayer ? "default" : "secondary"}
           size="sm"
-          className="bg-card/90 backdrop-blur-xl border border-border"
+          className="bg-card/90 backdrop-blur-xl border border-border text-xs sm:text-sm"
         >
-          <Layers className="w-4 h-4 mr-2" />
-          {showDensityLayer ? "Hide" : "Show"} Heat Layer
+          <Layers className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">{showDensityLayer ? "Hide" : "Show"} Heat Layer</span>
+          <span className="sm:hidden">Heat</span>
         </Button>
 
         {showDensityLayer && (
-          <div className="bg-card/90 backdrop-blur-xl rounded-xl border border-border p-3 space-y-2">
+          <div className="bg-card/90 backdrop-blur-xl rounded-xl border border-border p-2 sm:p-3 space-y-2 max-w-[180px] sm:max-w-none">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-semibold text-foreground">Heat Filters</p>
               {densityLoading && (
@@ -590,15 +591,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-xl px-4 py-3 rounded-xl border border-border z-10">
+      <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 md:bottom-4 md:left-4 bg-card/90 backdrop-blur-xl px-2 py-2 sm:px-3 sm:py-2.5 md:px-4 md:py-3 rounded-xl border border-border z-10">
         {showDensityLayer ? (
           <>
-            <p className="text-xs font-semibold text-muted-foreground mb-2">User Density</p>
-            <div className="flex items-center gap-2">
-              <div className="w-20 h-4 rounded" style={{
+            <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground mb-1.5 sm:mb-2">User Density</p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
+              <div className="w-16 sm:w-20 h-3 sm:h-4 rounded" style={{
                 background: 'linear-gradient(to right, rgb(103, 169, 207), rgb(209, 229, 240), rgb(253, 219, 199), rgb(239, 138, 98), rgb(178, 24, 43))'
               }} />
-              <div className="flex justify-between w-full text-xs text-muted-foreground">
+              <div className="flex justify-between w-full text-[10px] sm:text-xs text-muted-foreground">
                 <span>Low</span>
                 <span>High</span>
               </div>
@@ -606,19 +607,19 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </>
         ) : (
           <>
-            <p className="text-xs font-semibold text-muted-foreground mb-2">Activity Level</p>
-            <div className="flex gap-3">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-hot rounded-full" />
-                <span className="text-xs text-foreground">Hot</span>
+            <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground mb-1.5 sm:mb-2">Activity Level</p>
+            <div className="flex gap-2 sm:gap-3 flex-wrap">
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-hot rounded-full" />
+                <span className="text-[10px] sm:text-xs text-foreground">Hot</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-warm rounded-full" />
-                <span className="text-xs text-foreground">Warm</span>
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-warm rounded-full" />
+                <span className="text-[10px] sm:text-xs text-foreground">Warm</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-cool rounded-full" />
-                <span className="text-xs text-foreground">Cool</span>
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-cool rounded-full" />
+                <span className="text-[10px] sm:text-xs text-foreground">Cool</span>
               </div>
             </div>
           </>
