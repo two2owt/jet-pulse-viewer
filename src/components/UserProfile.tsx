@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Camera, Loader2, User } from "lucide-react";
+import { Camera, Loader2, User, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -22,6 +23,7 @@ interface Profile {
 }
 
 export const UserProfile = () => {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -270,6 +272,15 @@ export const UserProfile = () => {
           ) : (
             'Save Profile'
           )}
+        </Button>
+
+        <Button
+          onClick={() => navigate('/settings')}
+          variant="outline"
+          className="w-full"
+        >
+          <Settings className="w-4 h-4 mr-2" />
+          App Settings
         </Button>
       </div>
     </Card>
