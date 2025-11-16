@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.scrape-venue-images]
 verify_jwt = true
+
+[functions.generate-deal-image]
+verify_jwt = false
