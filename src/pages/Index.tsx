@@ -8,7 +8,7 @@ import { GeofenceTracker } from "@/components/GeofenceTracker";
 import { AuthButton } from "@/components/AuthButton";
 import { ActiveDeals } from "@/components/ActiveDeals";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AdminImageScraper } from "@/components/AdminImageScraper";
+import { UserProfile } from "@/components/UserProfile";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
 import { CITIES, type City } from "@/types/cities";
@@ -215,13 +215,7 @@ const Index = () => {
 
         {activeTab === "profile" && (
           <div className="space-y-6 animate-fade-in">
-            <div className="text-center py-8">
-              <div className="w-20 h-20 bg-gradient-to-r from-primary to-primary-glow rounded-full mx-auto mb-4 animate-scale-in" />
-              <h2 className="text-xl font-bold text-foreground mb-2">Your Profile</h2>
-              <p className="text-sm text-muted-foreground">Track your favorite spots and rewards</p>
-            </div>
-            
-            <AdminImageScraper />
+            <UserProfile />
           </div>
         )}
       </main>
