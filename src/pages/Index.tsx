@@ -9,6 +9,7 @@ import { ActiveDeals } from "@/components/ActiveDeals";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserProfile } from "@/components/UserProfile";
 import { ExploreTab } from "@/components/ExploreTab";
+import { GeofenceTracker } from "@/components/GeofenceTracker";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
 import { CITIES, type City } from "@/types/cities";
@@ -176,6 +177,11 @@ const Index = () => {
             {/* Active Deals */}
             <div className="animate-scale-in" style={{ animationDelay: '150ms' }}>
               <ActiveDeals selectedCity={selectedCity} />
+            </div>
+
+            {/* Geofence Tracker */}
+            <div className="animate-scale-in" style={{ animationDelay: '200ms' }}>
+              <GeofenceTracker />
             </div>
 
             {/* Quick Stats */}
