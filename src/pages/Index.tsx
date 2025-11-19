@@ -211,26 +211,6 @@ const Index = () => {
               </div>
             )}
 
-            {/* Active Deals */}
-            <div className="animate-scale-in" style={{ animationDelay: '150ms' }}>
-              <ActiveDeals selectedCity={selectedCity} />
-            </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-              <div className="bg-card rounded-xl p-3 sm:p-4 md:p-5 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '200ms' }}>
-                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-1">24</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Venues Nearby</p>
-              </div>
-              <div className="bg-card rounded-xl p-3 sm:p-4 md:p-5 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '250ms' }}>
-                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-warm mb-1">8</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Active Deals</p>
-              </div>
-              <div className="bg-card rounded-xl p-3 sm:p-4 md:p-5 border border-border text-center animate-scale-in hover-scale" style={{ animationDelay: '300ms' }}>
-                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-secondary mb-1">3</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Live Events</p>
-              </div>
-            </div>
           </>
         )}
 
