@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { DealCardSkeleton } from "./skeletons/DealCardSkeleton";
 import { toast } from "sonner";
 import type { City } from "@/types/cities";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 
 interface Deal {
   id: string;
@@ -26,6 +27,7 @@ export const ActiveDeals = ({ selectedCity }: ActiveDealsProps) => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const INITIAL_DISPLAY = 5;
 
   useEffect(() => {
@@ -161,83 +163,92 @@ export const ActiveDeals = ({ selectedCity }: ActiveDealsProps) => {
   const hasMore = deals.length > INITIAL_DISPLAY;
 
   return (
-    <div className="space-y-3 animate-fade-in">
-      <div className="flex items-center gap-2">
-        <TrendingUp className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-bold text-foreground">Active Deals</h3>
-        <div className="bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs font-bold">
-          {deals.length}
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3 animate-fade-in">
+      <CollapsibleTrigger className="w-full">
+        <div className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-bold text-foreground">Active Deals</h3>
+          <div className="bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs font-bold">
+            {deals.length}
+          </div>
+          {isOpen ? (
+            <ChevronUp className="w-4 h-4 text-muted-foreground ml-auto" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-muted-foreground ml-auto" />
+          )}
         </div>
-      </div>
+      </CollapsibleTrigger>
 
-      <div className="space-y-2">
-        {visibleDeals.map((deal, index) => (
-          <div
-            key={deal.id}
-            className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-xl overflow-hidden border border-primary/20 animate-scale-in hover-scale"
-            style={{ animationDelay: `${index * 50}ms` }}
-          >
-            <div className="flex items-start gap-3 p-3">
-              {deal.image_url ? (
-                <img 
-                  src={deal.image_url} 
-                  alt={deal.venue_name}
-                  className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              ) : (
-                <div className="w-16 h-16 flex items-center justify-center text-3xl flex-shrink-0">
-                  {getDealIcon(deal.deal_type)}
-                </div>
-              )}
-              
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-bold text-foreground mb-1 truncate">
-                  {deal.title}
-                </h4>
-                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                  {deal.description}
-                </p>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="w-3 h-3" />
-                    <span className="truncate">{deal.venue_name}</span>
+      <CollapsibleContent className="space-y-2">
+        <div className="space-y-2">
+          {visibleDeals.map((deal, index) => (
+            <div
+              key={deal.id}
+              className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-xl overflow-hidden border border-primary/20 animate-scale-in hover-scale"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <div className="flex items-start gap-3 p-3">
+                {deal.image_url ? (
+                  <img 
+                    src={deal.image_url} 
+                    alt={deal.venue_name}
+                    className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-16 h-16 flex items-center justify-center text-3xl flex-shrink-0">
+                    {getDealIcon(deal.deal_type)}
                   </div>
+                )}
+                
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-bold text-foreground mb-1 truncate">
+                    {deal.title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                    {deal.description}
+                  </p>
                   
-                  <div className="flex items-center gap-1 text-xs text-primary font-medium">
-                    <Clock className="w-3 h-3" />
-                    <span>{getTimeRemaining(deal.expires_at)}</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="w-3 h-3" />
+                      <span className="truncate">{deal.venue_name}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-1 text-xs text-primary font-medium">
+                      <Clock className="w-3 h-3" />
+                      <span>{getTimeRemaining(deal.expires_at)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {hasMore && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowAll(!showAll)}
-          className="w-full text-primary hover:bg-primary/10"
-        >
-          {showAll ? (
-            <>
-              <ChevronUp className="w-4 h-4 mr-1" />
-              Show Less
-            </>
-          ) : (
-            <>
-              <ChevronDown className="w-4 h-4 mr-1" />
-              Show More ({deals.length - INITIAL_DISPLAY} more)
-            </>
-          )}
-        </Button>
-      )}
-    </div>
+        {hasMore && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAll(!showAll)}
+            className="w-full text-primary hover:bg-primary/10"
+          >
+            {showAll ? (
+              <>
+                <ChevronUp className="w-4 h-4 mr-1" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4 mr-1" />
+                Show More ({deals.length - INITIAL_DISPLAY} more)
+              </>
+            )}
+          </Button>
+        )}
+      </CollapsibleContent>
+    </Collapsible>
   );
 };
