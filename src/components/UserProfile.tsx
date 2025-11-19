@@ -16,6 +16,17 @@ const profileSchema = z.object({
   bio: z.string().trim().max(500, "Bio must be less than 500 characters").optional(),
 });
 
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'] as const;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+const avatarFileSchema = z.object({
+  type: z.enum(ALLOWED_IMAGE_TYPES, {
+    errorMap: () => ({ message: 'Only JPG, PNG, WEBP, and GIF images are allowed' })
+  }),
+  size: z.number().max(MAX_FILE_SIZE, 'Image size must be less than 5MB'),
+  name: z.string().regex(/\.(jpg|jpeg|png|webp|gif)$/i, 'Invalid file extension')
+});
+
 interface Profile {
   id: string;
   display_name: string | null;
@@ -100,14 +111,19 @@ export const UserProfile = () => {
     const file = e.target.files?.[0];
     if (!file || !profile) return;
 
-    // Validate file type and size
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size must be less than 5MB');
+    // Validate file with Zod schema
+    try {
+      avatarFileSchema.parse({
+        type: file.type,
+        size: file.size,
+        name: file.name
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error('Invalid file');
+      }
       return;
     }
 
