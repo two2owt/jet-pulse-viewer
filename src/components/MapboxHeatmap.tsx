@@ -175,8 +175,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
     const sourceId = 'location-density';
     const layerId = 'location-density-heat';
+    const pointLayerId = `${layerId}-point`;
 
-    // Remove existing layer and source if they exist
+    // Remove existing layers and source if they exist
+    if (map.current.getLayer(pointLayerId)) {
+      map.current.removeLayer(pointLayerId);
+    }
     if (map.current.getLayer(layerId)) {
       map.current.removeLayer(layerId);
     }
