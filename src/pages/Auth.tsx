@@ -29,10 +29,12 @@ const Auth = () => {
 
         if (error) throw error;
 
-        toast.success("Account created!", {
-          description: "Welcome to JET Charlotte",
+        toast.success("Check your email!", {
+          description: "We sent you a verification link. Please verify your email to continue.",
         });
-        navigate("/onboarding");
+        // Don't navigate - user needs to verify email first
+        setEmail("");
+        setPassword("");
         return;
       } else {
         const { error, data } = await supabase.auth.signInWithPassword({
@@ -41,6 +43,16 @@ const Auth = () => {
         });
 
         if (error) throw error;
+
+        // Check if email is verified
+        if (!data.user.email_confirmed_at) {
+          await supabase.auth.signOut();
+          toast.error("Email not verified", {
+            description: "Please check your email and click the verification link before signing in.",
+          });
+          setIsLoading(false);
+          return;
+        }
 
         // Check if onboarding is completed
         const { data: profile } = await supabase
