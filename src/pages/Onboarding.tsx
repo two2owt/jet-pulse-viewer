@@ -96,15 +96,17 @@ const Onboarding = () => {
         avatarUrl = publicUrl;
       }
       
-      // Update profile
+      // Use upsert to handle cases where profile might not exist yet
       const { error } = await supabase
         .from("profiles")
-        .update({
+        .upsert({
+          id: userId,
           display_name: displayName,
           bio: bio || null,
           avatar_url: avatarUrl,
-        })
-        .eq("id", userId);
+        }, {
+          onConflict: 'id'
+        });
       
       if (error) throw error;
       
@@ -121,14 +123,16 @@ const Onboarding = () => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({
+        .upsert({
+          id: userId,
           preferences: {
             dealTypes: selectedDealTypes,
             trendingVenues,
             activityInArea,
           },
-        })
-        .eq("id", userId);
+        }, {
+          onConflict: 'id'
+        });
       
       if (error) throw error;
       
@@ -145,8 +149,12 @@ const Onboarding = () => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ onboarding_completed: true })
-        .eq("id", userId);
+        .upsert({
+          id: userId,
+          onboarding_completed: true
+        }, {
+          onConflict: 'id'
+        });
       
       if (error) throw error;
       
