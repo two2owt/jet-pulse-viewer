@@ -18,10 +18,10 @@ interface MapboxHeatmapProps {
 }
 
 const getActivityColor = (activity: number) => {
-  if (activity >= 80) return "#FF5722"; // hot
-  if (activity >= 60) return "#FF9800"; // warm
-  if (activity >= 40) return "#00BCD4"; // cool
-  return "#2196F3"; // cold
+  if (activity >= 80) return "hsl(24, 100%, 60%)"; // sunset orange
+  if (activity >= 60) return "hsl(14, 100%, 62%)"; // warm orange
+  if (activity >= 40) return "hsl(320, 80%, 65%)"; // sunset pink
+  return "hsl(0, 0%, 45%)"; // cool gray
 };
 
 export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange }: MapboxHeatmapProps) => {
@@ -52,10 +52,71 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     // Initialize map centered on selected city
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/hodgesb02/cmi15w1cm00ft01s1ci7s2t0z",
+      style: "mapbox://styles/mapbox/dark-v11",
       center: [selectedCity.lng, selectedCity.lat],
       zoom: selectedCity.zoom,
-      pitch: 45,
+      pitch: 50,
+      bearing: 0,
+      antialias: true,
+    });
+
+    // Add atmospheric effects when style loads
+    map.current.on('style.load', () => {
+      if (!map.current) return;
+      
+      // Add fog/atmosphere for depth
+      map.current.setFog({
+        color: 'rgb(10, 10, 15)', // Dark atmosphere
+        'high-color': 'rgb(30, 20, 40)', // Subtle purple tint at horizon
+        'horizon-blend': 0.05,
+        'space-color': 'rgb(5, 5, 10)',
+        'star-intensity': 0.2,
+      });
+
+      // Enhance 3D buildings for depth
+      const layers = map.current.getStyle().layers;
+      if (layers) {
+        const labelLayerId = layers.find(
+          (layer) => layer.type === 'symbol' && layer.layout && layer.layout['text-field']
+        )?.id;
+
+        if (labelLayerId && !map.current.getLayer('3d-buildings')) {
+          map.current.addLayer(
+            {
+              id: '3d-buildings',
+              source: 'composite',
+              'source-layer': 'building',
+              filter: ['==', 'extrude', 'true'],
+              type: 'fill-extrusion',
+              minzoom: 14,
+              paint: {
+                'fill-extrusion-color': 'hsl(0, 0%, 15%)',
+                'fill-extrusion-height': [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  14,
+                  0,
+                  14.05,
+                  ['get', 'height'],
+                ],
+                'fill-extrusion-base': [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  14,
+                  0,
+                  14.05,
+                  ['get', 'min_height'],
+                ],
+                'fill-extrusion-opacity': 0.8,
+              },
+            },
+            labelLayerId
+          );
+        }
+      }
+      
     });
 
     // Add navigation controls
@@ -87,7 +148,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       el.style.alignItems = 'center';
       el.style.justifyContent = 'center';
       el.innerHTML = `
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#sunsetGradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <defs>
+            <linearGradient id="sunsetGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:hsl(24, 100%, 60%);stop-opacity:1" />
+              <stop offset="100%" style="stop-color:hsl(320, 80%, 65%);stop-opacity:1" />
+            </linearGradient>
+          </defs>
           <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
         </svg>
       `;
