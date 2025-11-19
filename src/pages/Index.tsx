@@ -13,6 +13,7 @@ import { ExploreTab } from "@/components/ExploreTab";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useAutoScrapeVenueImages } from "@/hooks/useAutoScrapeVenueImages";
 import { CITIES, type City } from "@/types/cities";
 import { Zap, Navigation, Map as MapIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -46,6 +47,7 @@ const Index = () => {
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
   const { getVenueImage } = useVenueImages();
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
+  const { isScrapingActive } = useAutoScrapeVenueImages(true);
 
   const handleCityChange = (city: City) => {
     setSelectedCity(city);
