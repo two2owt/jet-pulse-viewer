@@ -18,9 +18,9 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border safe-area-bottom z-50">
-      <div className="max-w-lg mx-auto px-4 py-3">
-        <div className="flex items-center justify-around">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 safe-area-bottom z-50">
+      <div className="max-w-lg mx-auto px-2 py-4">
+        <div className="flex items-center justify-around gap-2">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;
@@ -29,27 +29,22 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-300 ${
+                className={`relative flex flex-col items-center justify-center gap-2 px-6 py-3 rounded-2xl transition-all duration-300 ${
                   isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-gradient-primary shadow-glow text-primary-foreground scale-105"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 }`}
               >
-                <div className="relative">
-                  <Icon className={`w-6 h-6 transition-transform duration-300 ${
-                    isActive ? "scale-110" : ""
-                  }`} />
-                </div>
+                <Icon 
+                  className="w-7 h-7 transition-transform duration-300" 
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
                 
-                <span className={`text-xs font-medium transition-all duration-300 ${
-                  isActive ? "opacity-100" : "opacity-60"
+                <span className={`text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
+                  isActive ? "opacity-100" : "opacity-70"
                 }`}>
                   {item.label}
                 </span>
-                
-                {isActive && (
-                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
-                )}
               </button>
             );
           })}
