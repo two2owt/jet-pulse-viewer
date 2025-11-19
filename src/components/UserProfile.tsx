@@ -213,7 +213,7 @@ export const UserProfile = () => {
 
   if (isLoading) {
     return (
-      <Card className="p-6 bg-card/90 backdrop-blur-sm">
+      <Card className="p-6 bg-card/90 backdrop-blur-sm shadow-none">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
@@ -223,7 +223,7 @@ export const UserProfile = () => {
 
   if (!profile) {
     return (
-      <Card className="p-6 bg-card/90 backdrop-blur-sm text-center">
+      <Card className="p-6 bg-card/90 backdrop-blur-sm text-center shadow-none">
         <User className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
         <p className="text-muted-foreground mb-4">Please sign in to view your profile</p>
         <Button onClick={() => navigate("/auth")}>
@@ -234,7 +234,7 @@ export const UserProfile = () => {
   }
 
   return (
-    <Card className="p-6 space-y-6 bg-card/90 backdrop-blur-sm">
+    <Card className="p-6 space-y-6 bg-card/90 backdrop-blur-sm shadow-none">
       <div className="flex items-center gap-2">
         <User className="w-5 h-5 text-primary" />
         <h2 className="text-xl font-bold text-foreground">Your Profile</h2>
