@@ -43,11 +43,7 @@ export const JetCard = ({ venue, onGetDirections, onClose }: JetCardProps) => {
               e.currentTarget.style.display = 'none';
             }}
           />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-6xl opacity-50">🍹</div>
-          </div>
-        )}
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         
         {/* Activity Badge */}
