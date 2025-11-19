@@ -23,7 +23,7 @@ const Auth = () => {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}/onboarding`,
           },
         });
 
@@ -32,15 +32,29 @@ const Auth = () => {
         toast.success("Account created!", {
           description: "Welcome to JET Charlotte",
         });
+        navigate("/onboarding");
+        return;
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error, data } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
         if (error) throw error;
 
+        // Check if onboarding is completed
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("onboarding_completed")
+          .eq("id", data.user.id)
+          .single();
+
         toast.success("Signed in successfully");
+        
+        if (!profile?.onboarding_completed) {
+          navigate("/onboarding");
+          return;
+        }
       }
 
       navigate("/");
