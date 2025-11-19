@@ -150,7 +150,7 @@ const Settings = () => {
   if (!preferences) {
     return (
       <div className="min-h-screen bg-background pb-20">
-        <header className="bg-card/95 backdrop-blur-xl border-b border-border sticky top-0 z-40">
+        <header className="bg-card border-b border-border sticky top-0 z-40">
           <div className="max-w-lg mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
               <Button
@@ -182,7 +182,7 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="bg-card/95 backdrop-blur-xl border-b border-border sticky top-0 z-40">
+      <header className="bg-card border-b border-border sticky top-0 z-40">
         <div className="max-w-lg mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <Button
@@ -201,7 +201,7 @@ const Settings = () => {
       {/* Content */}
       <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
         {/* Notifications Section */}
-        <Card className="p-6 space-y-6 bg-card/90 backdrop-blur-sm">
+        <Card className="p-6 space-y-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Bell className="w-5 h-5 text-primary" />
@@ -234,7 +234,7 @@ const Settings = () => {
         </Card>
 
         {/* Location Section */}
-        <Card className="p-6 space-y-6 bg-card/90 backdrop-blur-sm">
+        <Card className="p-6 space-y-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <MapPin className="w-5 h-5 text-primary" />
@@ -284,7 +284,7 @@ const Settings = () => {
         </Card>
 
         {/* Privacy Info */}
-        <Card className="p-6 bg-muted/50">
+        <Card className="p-6 bg-muted">
           <div className="flex items-start gap-3">
             <Radio className="w-5 h-5 text-muted-foreground mt-0.5" />
             <div className="space-y-2 flex-1">
