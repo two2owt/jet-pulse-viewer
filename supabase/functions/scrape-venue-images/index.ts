@@ -19,6 +19,45 @@ serve(async (req) => {
       throw new Error('dealId and websiteUrl are required');
     }
 
+    // Validate URL to prevent SSRF attacks
+    try {
+      const url = new URL(websiteUrl);
+      
+      // Only allow HTTPS
+      if (url.protocol !== 'https:') {
+        throw new Error('Only HTTPS URLs are allowed');
+      }
+      
+      // Block private IP ranges and localhost
+      const hostname = url.hostname;
+      const privateIPRegex = /^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|127\.|169\.254\.|localhost$|::1$|fe80:)/i;
+      
+      if (privateIPRegex.test(hostname)) {
+        throw new Error('Private IP addresses and localhost are not allowed');
+      }
+      
+      // Block IP addresses directly - require domain names
+      const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+      if (ipRegex.test(hostname)) {
+        throw new Error('Direct IP addresses are not allowed. Please use a domain name.');
+      }
+      
+    } catch (urlError) {
+      console.error('URL validation error:', urlError);
+      return new Response(
+        JSON.stringify({ 
+          error: urlError instanceof Error ? urlError.message : 'Invalid URL format' 
+        }),
+        { 
+          status: 400,
+          headers: { 
+            ...corsHeaders,
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
+    }
+
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     if (!firecrawlApiKey) {
       throw new Error('FIRECRAWL_API_KEY not configured');
