@@ -134,17 +134,17 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <Card className="p-4 text-center bg-card/90 backdrop-blur-sm hover-scale">
+        <Card className="p-4 text-center bg-card/90 backdrop-blur-sm hover-scale shadow-none">
           <TrendingUp className="w-6 h-6 mx-auto mb-2 text-primary" />
           <p className="text-2xl font-bold text-foreground">{deals.length}</p>
           <p className="text-xs text-muted-foreground">Active Deals</p>
         </Card>
-        <Card className="p-4 text-center bg-card/90 backdrop-blur-sm hover-scale">
+        <Card className="p-4 text-center bg-card/90 backdrop-blur-sm hover-scale shadow-none">
           <MapPin className="w-6 h-6 mx-auto mb-2 text-accent" />
           <p className="text-2xl font-bold text-foreground">{new Set(deals.map(d => d.venue_name)).size}</p>
           <p className="text-xs text-muted-foreground">Venues</p>
         </Card>
-        <Card className="p-4 text-center bg-card/90 backdrop-blur-sm hover-scale">
+        <Card className="p-4 text-center bg-card/90 backdrop-blur-sm hover-scale shadow-none">
           <Clock className="w-6 h-6 mx-auto mb-2 text-secondary" />
           <p className="text-2xl font-bold text-foreground">{filteredDeals.length}</p>
           <p className="text-xs text-muted-foreground">Results</p>
@@ -160,7 +160,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
 
       {/* No Results */}
       {!isLoading && filteredDeals.length === 0 && searchQuery && (
-        <Card className="p-8 text-center bg-card/90 backdrop-blur-sm">
+        <Card className="p-8 text-center bg-card/90 backdrop-blur-sm shadow-none">
           <Search className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <p className="text-muted-foreground mb-2">No deals found</p>
           <p className="text-sm text-muted-foreground">Try searching for something else</p>
@@ -169,7 +169,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
 
       {/* No Deals */}
       {!isLoading && deals.length === 0 && (
-        <Card className="p-8 text-center bg-card/90 backdrop-blur-sm">
+        <Card className="p-8 text-center bg-card/90 backdrop-blur-sm shadow-none">
           <TrendingUp className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <p className="text-muted-foreground mb-2">No active deals right now</p>
           <p className="text-sm text-muted-foreground">Check back soon for new offers</p>
@@ -182,7 +182,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
           {filteredDeals.map((deal, index) => (
             <Card
               key={deal.id}
-              className="overflow-hidden bg-card/90 backdrop-blur-sm hover-scale cursor-pointer transition-all animate-scale-in"
+              className="overflow-hidden bg-card/90 backdrop-blur-sm hover-scale cursor-pointer transition-all animate-scale-in shadow-none"
               style={{ animationDelay: `${index * 50}ms` }}
               onClick={() => handleDealClick(deal)}
             >
