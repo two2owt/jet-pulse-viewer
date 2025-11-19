@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { GeofenceTracker } from "./GeofenceTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -218,7 +219,8 @@ export const UserProfile = () => {
   }
 
   return (
-    <Card className="p-6 space-y-6 bg-card/90 backdrop-blur-sm">
+    <>
+      <Card className="p-6 space-y-6 bg-card/90 backdrop-blur-sm">
       <div className="flex items-center gap-2">
         <User className="w-5 h-5 text-primary" />
         <h2 className="text-xl font-bold text-foreground">Your Profile</h2>
@@ -320,5 +322,9 @@ export const UserProfile = () => {
         </Button>
       </div>
     </Card>
+
+    {/* Geofence Tracker - Active when user is viewing profile */}
+    <GeofenceTracker />
+    </>
   );
 };
