@@ -12,8 +12,39 @@ serve(async (req) => {
   }
 
   try {
+    // Get user from JWT
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Extract JWT token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !user) {
+      throw new Error('Invalid or expired token');
+    }
+
+    // Check if user has admin role
+    const { data: hasAdminRole, error: roleError } = await supabase
+      .rpc('has_role', { _user_id: user.id, _role: 'admin' });
+
+    if (roleError) {
+      console.error('Error checking role:', roleError);
+      throw new Error('Failed to verify permissions');
+    }
+
+    if (!hasAdminRole) {
+      throw new Error('Unauthorized: Admin role required to generate deal images');
+    }
+
     const { dealId, title, description, dealType } = await req.json();
-    console.log('Generating image for deal:', dealId, title);
+    console.log('Admin user generating image for deal:', dealId, title);
 
     if (!dealId || !title) {
       throw new Error('dealId and title are required');
@@ -76,9 +107,7 @@ serve(async (req) => {
     }
 
     // Upload the base64 image to Supabase Storage
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // (supabase client already initialized at the top for auth check)
 
     // Convert base64 to blob
     const base64Data = imageUrl.split(',')[1];
