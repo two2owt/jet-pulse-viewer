@@ -816,6 +816,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         )}
       </div>
 
+      {/* Heatmap Loading Overlay */}
+      {showDensityLayer && densityLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-sm z-20">
+          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-4 flex flex-col items-center gap-3 shadow-lg">
+            <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm font-medium text-foreground">Loading heatmap data...</p>
+          </div>
+        </div>
+      )}
+
       {/* Add pulse and heatmap animations */}
       <style>{`
         @keyframes pulse {
