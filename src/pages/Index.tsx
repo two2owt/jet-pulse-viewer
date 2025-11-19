@@ -58,6 +58,16 @@ const Index = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
+        // Check if email is verified
+        if (!session.user.email_confirmed_at) {
+          toast.error("Email not verified", {
+            description: "Please verify your email before accessing the app. Check your inbox.",
+          });
+          await supabase.auth.signOut();
+          navigate("/auth");
+          return;
+        }
+
         const { data: profile } = await supabase
           .from("profiles")
           .select("onboarding_completed")
