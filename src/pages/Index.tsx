@@ -17,6 +17,7 @@ import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAutoScrapeVenueImages } from "@/hooks/useAutoScrapeVenueImages";
+import { useDeals } from "@/hooks/useDeals";
 import { CITIES, type City } from "@/types/cities";
 import { Zap, Navigation, Map as MapIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -52,6 +53,7 @@ const Index = () => {
   const { getVenueImage } = useVenueImages();
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
   const { isScrapingActive } = useAutoScrapeVenueImages(true);
+  const { deals } = useDeals();
 
   // Check onboarding status
   useEffect(() => {
@@ -159,7 +161,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-24">
       {/* Header */}
-      <Header />
+      <Header 
+        venues={mockVenues}
+        deals={deals}
+        onVenueSelect={handleVenueSelect}
+      />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">

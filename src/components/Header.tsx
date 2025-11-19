@@ -6,10 +6,46 @@ import jetLogo from "@/assets/jet-logo.png";
 import { Input } from "./ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useNavigate } from "react-router-dom";
+import { SearchResults } from "./SearchResults";
+import type { Venue } from "./Heatmap";
+import type { Database } from "@/integrations/supabase/types";
+import { z } from "zod";
 
-export const Header = () => {
+type Deal = Database['public']['Tables']['deals']['Row'];
+
+const searchSchema = z.string().trim().max(100, { message: "Search query too long" });
+
+interface HeaderProps {
+  venues: Venue[];
+  deals: Deal[];
+  onVenueSelect: (venue: Venue) => void;
+}
+
+export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showResults, setShowResults] = useState(false);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Validate input
+    try {
+      searchSchema.parse(value);
+      setSearchQuery(value);
+      setShowResults(value.trim().length > 0);
+    } catch (error) {
+      // Keep the previous valid value if validation fails
+      if (value.length <= 100) {
+        setSearchQuery(value);
+        setShowResults(value.trim().length > 0);
+      }
+    }
+  };
+
+  const handleCloseResults = () => {
+    setShowResults(false);
+  };
 
   return (
     <header className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-40">
@@ -24,13 +60,24 @@ export const Header = () => {
           
           {/* Search Bar */}
           <div className="flex-1 max-w-xl relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               placeholder="Search venues, events..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
+              onFocus={() => searchQuery.trim() && setShowResults(true)}
               className="w-full pl-12 pr-4 h-12 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-foreground placeholder:text-muted-foreground"
+              maxLength={100}
+            />
+            
+            <SearchResults
+              query={searchQuery}
+              venues={venues}
+              deals={deals}
+              onVenueSelect={onVenueSelect}
+              onClose={handleCloseResults}
+              isVisible={showResults}
             />
           </div>
 
