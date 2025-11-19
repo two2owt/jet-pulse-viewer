@@ -24,6 +24,7 @@ export const AuthButton = () => {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success("Signed out successfully");
+    navigate("/auth");
   };
 
   if (user) {
