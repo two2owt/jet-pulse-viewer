@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Search, Settings } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { AuthButton } from "./AuthButton";
-import jetLogo from "@/assets/jet-logo.png";
 import { Input } from "./ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useNavigate } from "react-router-dom";
@@ -52,11 +51,11 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center gap-4">
           {/* Logo */}
-          <img 
-            src={jetLogo} 
-            alt="JET Social" 
-            className="h-10 w-auto flex-shrink-0" 
-          />
+          <div className="flex items-center">
+            <h1 className="text-2xl font-bold text-foreground tracking-wider">
+              JET
+            </h1>
+          </div>
           
           {/* Search Bar */}
           <div className="flex-1 max-w-xl relative">
