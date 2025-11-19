@@ -27,8 +27,15 @@ export const ActiveDeals = ({ selectedCity }: ActiveDealsProps) => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(() => {
+    const saved = localStorage.getItem('activeDealsOpen');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
   const INITIAL_DISPLAY = 5;
+
+  useEffect(() => {
+    localStorage.setItem('activeDealsOpen', JSON.stringify(isOpen));
+  }, [isOpen]);
 
   useEffect(() => {
     loadActiveDeals();
