@@ -173,6 +173,8 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          onboarding_completed: boolean | null
+          preferences: Json | null
           updated_at: string
         }
         Insert: {
@@ -181,6 +183,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          onboarding_completed?: boolean | null
+          preferences?: Json | null
           updated_at?: string
         }
         Update: {
@@ -189,6 +193,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          onboarding_completed?: boolean | null
+          preferences?: Json | null
           updated_at?: string
         }
         Relationships: []

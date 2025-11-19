@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Heatmap, type Venue } from "@/components/Heatmap";
 import { MapboxHeatmap } from "@/components/MapboxHeatmap";
 import { JetCard } from "@/components/JetCard";
@@ -40,6 +42,7 @@ const mockVenues: Venue[] = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "profile">("map");
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
@@ -48,6 +51,27 @@ const Index = () => {
   const { getVenueImage } = useVenueImages();
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
   const { isScrapingActive } = useAutoScrapeVenueImages(true);
+
+  // Check onboarding status
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("onboarding_completed")
+          .eq("id", session.user.id)
+          .single();
+        
+        if (profile && !profile.onboarding_completed) {
+          navigate("/onboarding");
+        }
+      }
+    };
+    
+    checkOnboarding();
+  }, [navigate]);
 
   const handleCityChange = (city: City) => {
     setSelectedCity(city);
