@@ -27,7 +27,7 @@ export const ActiveDeals = ({ selectedCity }: ActiveDealsProps) => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const INITIAL_DISPLAY = 5;
 
   useEffect(() => {
