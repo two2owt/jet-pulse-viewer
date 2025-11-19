@@ -685,7 +685,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             z-index: 10;
             position: relative;
-            animation: dealBounce 2s ease-in-out infinite;
           `;
           mainMarker.innerHTML = icon;
 
