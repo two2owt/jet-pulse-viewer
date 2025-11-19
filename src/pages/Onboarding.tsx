@@ -81,11 +81,11 @@ const Onboarding = () => {
       // Upload avatar if provided
       if (avatarFile && userId) {
         const fileExt = avatarFile.name.split('.').pop();
-        const fileName = `${userId}-${Date.now()}.${fileExt}`;
+        const fileName = `${userId}/avatar.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(fileName, avatarFile);
+          .upload(fileName, avatarFile, { upsert: true });
         
         if (uploadError) throw uploadError;
         
