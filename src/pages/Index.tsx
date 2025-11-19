@@ -11,6 +11,7 @@ import { ActiveDeals } from "@/components/ActiveDeals";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserProfile } from "@/components/UserProfile";
 import { ExploreTab } from "@/components/ExploreTab";
+import { Header } from "@/components/Header";
 
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
@@ -158,25 +159,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-24">
       {/* Header */}
-      <header className="bg-card/95 backdrop-blur-xl border-b border-border sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 md:py-4">
-          <div className="flex items-center justify-between">
-            <img 
-              src={jetLogo} 
-              alt="JET Social" 
-              className="h-10 sm:h-12 md:h-14 w-auto dark:brightness-100 brightness-100 transition-all" 
-            />
-            
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="bg-muted/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
-                <p className="text-xs font-semibold text-foreground">8:42 PM</p>
-              </div>
-              <ThemeToggle />
-              <AuthButton />
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
