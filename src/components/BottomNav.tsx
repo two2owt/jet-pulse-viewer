@@ -13,7 +13,7 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
   const navItems = [
     { id: "map" as NavItem, icon: Map, label: "Map" },
     { id: "explore" as NavItem, icon: Compass, label: "Explore" },
-    { id: "notifications" as NavItem, icon: Bell, label: "Alerts", badge: notificationCount },
+    { id: "notifications" as NavItem, icon: Bell, label: "Alerts" },
     { id: "profile" as NavItem, icon: User, label: "Profile" },
   ];
 
@@ -39,14 +39,6 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
                   <Icon className={`w-6 h-6 transition-transform duration-300 ${
                     isActive ? "scale-110" : ""
                   }`} />
-                  
-                  {item.badge && item.badge > 0 && (
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center pulse-glow">
-                      <span className="text-[10px] font-bold text-primary-foreground">
-                        {item.badge}
-                      </span>
-                    </div>
-                  )}
                 </div>
                 
                 <span className={`text-xs font-medium transition-all duration-300 ${
