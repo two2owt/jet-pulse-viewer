@@ -6,7 +6,10 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Camera, Loader2, User, Settings } from "lucide-react";
+import { Camera, Loader2, User, Settings, Edit2, X } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
+import { Separator } from "./ui/separator";
+import { Label } from "./ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -41,6 +44,7 @@ export const UserProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -198,6 +202,7 @@ export const UserProfile = () => {
       if (error) throw error;
 
       toast.success('Profile updated successfully');
+      setIsEditing(false);
       await loadProfile();
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -235,9 +240,21 @@ export const UserProfile = () => {
 
   return (
     <Card className="p-6 space-y-6 bg-card/90 backdrop-blur-sm shadow-none">
-      <div className="flex items-center gap-2">
-        <User className="w-5 h-5 text-primary" />
-        <h2 className="text-xl font-bold text-foreground">Your Profile</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <User className="w-5 h-5 text-primary" />
+          <h2 className="text-xl font-bold text-foreground">Your Profile</h2>
+        </div>
+        {!isEditing && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+          >
+            <Edit2 className="w-4 h-4 mr-2" />
+            Edit
+          </Button>
+        )}
       </div>
 
       {/* Avatar Upload */}
@@ -250,38 +267,42 @@ export const UserProfile = () => {
             </AvatarFallback>
           </Avatar>
           
-          <label
-            htmlFor="avatar-upload"
-            className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors"
-          >
-            {isUploading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Camera className="w-4 h-4" />
-            )}
-          </label>
-          <input
-            id="avatar-upload"
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarUpload}
-            disabled={isUploading}
-            className="hidden"
-          />
+          {isEditing && (
+            <>
+              <label
+                htmlFor="avatar-upload"
+                className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors"
+              >
+                {isUploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
+              </label>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                disabled={isUploading}
+                className="hidden"
+              />
+            </>
+          )}
         </div>
-        <p className="text-xs text-muted-foreground text-center">
-          Click the camera icon to upload a new avatar
-          <br />
-          Max size: 5MB
-        </p>
+        {isEditing && (
+          <p className="text-xs text-muted-foreground text-center">
+            Click the camera icon to upload a new avatar
+            <br />
+            Max size: 5MB
+          </p>
+        )}
       </div>
 
       {/* Profile Form */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <label htmlFor="display_name" className="text-sm font-medium text-foreground">
-            Display Name *
-          </label>
+          <Label htmlFor="display_name">Display Name *</Label>
           <Input
             id="display_name"
             type="text"
@@ -290,13 +311,12 @@ export const UserProfile = () => {
             placeholder="Your display name"
             maxLength={100}
             className="bg-background"
+            disabled={!isEditing}
           />
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="bio" className="text-sm font-medium text-foreground">
-            Bio
-          </label>
+          <Label htmlFor="bio">Bio</Label>
           <Textarea
             id="bio"
             value={bio}
@@ -305,35 +325,76 @@ export const UserProfile = () => {
             maxLength={500}
             rows={4}
             className="bg-background resize-none"
+            disabled={!isEditing}
           />
-          <p className="text-xs text-muted-foreground text-right">
-            {bio.length}/500
-          </p>
+          {isEditing && (
+            <p className="text-xs text-muted-foreground text-right">
+              {bio.length}/500
+            </p>
+          )}
         </div>
 
-        <Button
-          onClick={handleSaveProfile}
-          disabled={isSaving || !displayName.trim()}
-          className="w-full"
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            'Save Profile'
-          )}
-        </Button>
+        {isEditing && (
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSaveProfile}
+              disabled={isSaving || !displayName.trim()}
+              className="flex-1"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+            <Button
+              onClick={() => {
+                setIsEditing(false);
+                setDisplayName(profile.display_name || "");
+                setBio(profile.bio || "");
+              }}
+              variant="outline"
+              disabled={isSaving}
+            >
+              <X className="w-4 h-4 mr-2" />
+              Cancel
+            </Button>
+          </div>
+        )}
+      </div>
 
-        <Button
-          onClick={() => navigate('/settings')}
-          variant="outline"
-          className="w-full"
-        >
-          <Settings className="w-4 h-4 mr-2" />
-          App Settings
-        </Button>
+      <Separator />
+
+      {/* App Settings Section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Settings className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">App Settings</h3>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Theme</Label>
+              <p className="text-xs text-muted-foreground">
+                Switch between light and dark mode
+              </p>
+            </div>
+            <ThemeToggle />
+          </div>
+
+          <Button
+            onClick={() => navigate('/settings')}
+            variant="outline"
+            className="w-full"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Notification & Location Settings
+          </Button>
+        </div>
       </div>
     </Card>
   );

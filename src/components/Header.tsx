@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Search, Settings } from "lucide-react";
-import { ThemeToggle } from "./ThemeToggle";
+import { Search } from "lucide-react";
 import { AuthButton } from "./AuthButton";
 import { Input } from "./ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -82,15 +81,6 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-3 flex-shrink-0">
-            <ThemeToggle />
-            
-            <button 
-              onClick={() => navigate("/settings")}
-              className="w-10 h-10 rounded-full bg-secondary/50 hover:bg-secondary flex items-center justify-center transition-all"
-            >
-              <Settings className="w-5 h-5 text-foreground" />
-            </button>
-
             <Avatar className="w-10 h-10 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all">
               <AvatarImage src="" />
               <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold">
