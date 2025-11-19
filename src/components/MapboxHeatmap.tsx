@@ -241,7 +241,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           9, 40,
           15, 80,
         ],
-        // High opacity for vibrant appearance
+        // High opacity for vibrant appearance with smooth fade-in
         'heatmap-opacity': [
           'interpolate',
           ['linear'],
@@ -249,6 +249,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           7, 0.9,
           15, 0.85,
         ],
+        // Add smooth opacity transition
+        'heatmap-opacity-transition': {
+          duration: 800,
+          delay: 0
+        }
       },
     });
 
@@ -277,6 +282,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         'circle-opacity': 0.6,
         'circle-stroke-width': 1,
         'circle-stroke-color': '#fff',
+        // Add smooth opacity transition
+        'circle-opacity-transition': {
+          duration: 800,
+          delay: 100
+        }
       },
     });
 
