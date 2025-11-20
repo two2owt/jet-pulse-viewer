@@ -473,8 +473,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       // Add neighborhood boundaries and labels by group
       neighborhoodGroups.forEach((group, groupIndex) => {
-        // Add each neighborhood's boundary individually
-        group.forEach((neighborhood) => {
+        // For groups, create a single unified boundary combining all neighborhoods
+        // For single neighborhoods, show their original boundary
+        
+        if (group.length === 1) {
+          // Single neighborhood - show its original boundary
+          const neighborhood = group[0];
           const boundaryPoints = neighborhood.boundary_points as number[][];
           
           // Convert to GeoJSON format (lng, lat)
@@ -482,9 +486,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           // Close the polygon
           coordinates.push(coordinates[0]);
 
-          const sourceId = `neighborhood-${neighborhood.id}`;
-          const fillLayerId = `neighborhood-fill-${neighborhood.id}`;
-          const lineLayerId = `neighborhood-line-${neighborhood.id}`;
+          const sourceId = `neighborhood-group-${groupIndex}`;
+          const fillLayerId = `neighborhood-fill-group-${groupIndex}`;
+          const lineLayerId = `neighborhood-line-group-${groupIndex}`;
 
           // Add source
           mapInstance.addSource(sourceId, {
@@ -495,7 +499,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 name: neighborhood.name,
                 description: neighborhood.description,
                 groupIndex,
-                groupSize: group.length,
+                neighborhoods: [neighborhood.name],
               },
               geometry: {
                 type: 'Polygon',
@@ -527,36 +531,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             },
           });
 
-          // Add click handler for neighborhoods with popup
+          // Add click handler with popup
           mapInstance.on('click', fillLayerId, (e: any) => {
-            // If this is part of a group, show all neighborhoods in the group
-            const groupNeighborhoods = group.length > 1 
-              ? group.map(n => `<li style="margin: 4px 0;">${n.name}</li>`).join('')
-              : '';
-
             const popupContent = `
               <div style="padding: 8px; min-width: 200px;">
-                ${group.length > 1 ? `
-                  <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #FFFFFF;">
-                    ${group.length} Neighborhoods
-                  </h3>
-                  <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #E0E0E0;">
-                    ${groupNeighborhoods}
-                  </ul>
-                ` : `
-                  <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #FFFFFF;">
-                    ${neighborhood.name}
-                  </h3>
-                  ${neighborhood.description ? `
-                    <p style="margin: 0; font-size: 14px; color: #E0E0E0; line-height: 1.5;">
-                      ${neighborhood.description}
-                    </p>
-                  ` : ''}
-                `}
+                <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #FFFFFF;">
+                  ${neighborhood.name}
+                </h3>
+                ${neighborhood.description ? `
+                  <p style="margin: 0; font-size: 14px; color: #E0E0E0; line-height: 1.5;">
+                    ${neighborhood.description}
+                  </p>
+                ` : ''}
               </div>
             `;
 
-            // Create and show popup
             new mapboxgl.Popup({
               closeButton: true,
               closeOnClick: true,
@@ -580,7 +569,116 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               map.current.getCanvas().style.cursor = '';
             }
           });
-        });
+        } else {
+          // Multiple neighborhoods - create a unified boundary from all points
+          const allPoints: [number, number][] = [];
+          
+          // Collect all boundary points from all neighborhoods in the group
+          group.forEach(neighborhood => {
+            const boundaryPoints = neighborhood.boundary_points as number[][];
+            boundaryPoints.forEach(point => {
+              allPoints.push([point[1], point[0]]); // [lng, lat]
+            });
+          });
+
+          // Create a convex hull of all points for a unified boundary
+          // Simple implementation: find the outermost points
+          const minLng = Math.min(...allPoints.map(p => p[0]));
+          const maxLng = Math.max(...allPoints.map(p => p[0]));
+          const minLat = Math.min(...allPoints.map(p => p[1]));
+          const maxLat = Math.max(...allPoints.map(p => p[1]));
+          
+          // Create a simple bounding polygon
+          const unifiedBoundary: [number, number][] = [
+            [minLng, minLat],
+            [maxLng, minLat],
+            [maxLng, maxLat],
+            [minLng, maxLat],
+            [minLng, minLat], // Close the polygon
+          ];
+
+          const sourceId = `neighborhood-group-${groupIndex}`;
+          const fillLayerId = `neighborhood-fill-group-${groupIndex}`;
+          const lineLayerId = `neighborhood-line-group-${groupIndex}`;
+
+          // Add source for unified boundary
+          mapInstance.addSource(sourceId, {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              properties: {
+                groupIndex,
+                neighborhoods: group.map(n => n.name),
+              },
+              geometry: {
+                type: 'Polygon',
+                coordinates: [unifiedBoundary],
+              },
+            },
+          });
+
+          // Add fill layer
+          mapInstance.addLayer({
+            id: fillLayerId,
+            type: 'fill',
+            source: sourceId,
+            paint: {
+              'fill-color': '#FF5722',
+              'fill-opacity': 0.1,
+            },
+          });
+
+          // Add border layer
+          mapInstance.addLayer({
+            id: lineLayerId,
+            type: 'line',
+            source: sourceId,
+            paint: {
+              'line-color': '#FF5722',
+              'line-width': 2,
+              'line-opacity': 0.5,
+            },
+          });
+
+          // Add click handler showing all neighborhoods in the group
+          mapInstance.on('click', fillLayerId, (e: any) => {
+            const groupNeighborhoods = group.map(n => `<li style="margin: 4px 0;">${n.name}</li>`).join('');
+
+            const popupContent = `
+              <div style="padding: 8px; min-width: 200px;">
+                <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #FFFFFF;">
+                  ${group.length} Neighborhoods
+                </h3>
+                <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #E0E0E0;">
+                  ${groupNeighborhoods}
+                </ul>
+              </div>
+            `;
+
+            new mapboxgl.Popup({
+              closeButton: true,
+              closeOnClick: true,
+              className: 'neighborhood-popup',
+              maxWidth: '300px'
+            })
+              .setLngLat(e.lngLat)
+              .setHTML(popupContent)
+              .addTo(mapInstance);
+          });
+
+          // Change cursor on hover
+          mapInstance.on('mouseenter', fillLayerId, () => {
+            if (map.current) {
+              map.current.getCanvas().style.cursor = 'pointer';
+            }
+          });
+
+          mapInstance.on('mouseleave', fillLayerId, () => {
+            if (map.current) {
+              map.current.getCanvas().style.cursor = '';
+            }
+          });
+        }
 
         // Add a single label for the group at the centroid
         const groupCenter = group.reduce(
