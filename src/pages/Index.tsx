@@ -18,8 +18,9 @@ import { useVenueImages } from "@/hooks/useVenueImages";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAutoScrapeVenueImages } from "@/hooks/useAutoScrapeVenueImages";
 import { useDeals } from "@/hooks/useDeals";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { CITIES, type City } from "@/types/cities";
-import { Zap, Navigation, Map as MapIcon, Loader2 } from "lucide-react";
+import { Zap, Navigation, Map as MapIcon, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import jetLogo from "@/assets/jet-logo.png";
 import {
@@ -53,8 +54,31 @@ const Index = () => {
   const { getVenueImage } = useVenueImages();
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
   const { isScrapingActive } = useAutoScrapeVenueImages(true);
-  const { deals } = useDeals();
+  const { deals, refresh: refreshDeals } = useDeals();
   const jetCardRef = useRef<HTMLDivElement>(null);
+
+  // Pull to refresh functionality
+  const handleRefresh = async () => {
+    try {
+      await Promise.all([
+        refreshDeals(),
+        // Add a small delay to show the refresh indicator
+        new Promise(resolve => setTimeout(resolve, 500))
+      ]);
+      toast.success("Map refreshed", {
+        description: "Venue data and deals updated"
+      });
+    } catch (error) {
+      console.error("Error refreshing:", error);
+      toast.error("Failed to refresh");
+    }
+  };
+
+  const { containerRef, isRefreshing, pullDistance, pullThreshold } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    pullThreshold: 80,
+    maxPullDistance: 150,
+  });
 
   // Check onboarding status
   useEffect(() => {
@@ -187,9 +211,36 @@ const Index = () => {
       {/* Main Content */}
       <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6'} space-y-3 sm:space-y-4 md:space-y-6`}>
         {activeTab === "map" && (
-          <>
+          <div 
+            ref={containerRef}
+            className="h-[calc(100vh-8rem)] sm:h-[calc(100vh-10rem)] md:h-[calc(100vh-12rem)] overflow-y-auto overflow-x-hidden -mx-3 sm:mx-0"
+          >
+            {/* Pull to Refresh Indicator */}
+            {(pullDistance > 0 || isRefreshing) && (
+              <div 
+                className="sticky top-0 left-0 right-0 z-50 flex justify-center pointer-events-none mb-2"
+                style={{
+                  transform: `translateY(${Math.min(pullDistance - 40, 0)}px)`,
+                  opacity: Math.min(pullDistance / pullThreshold, 1),
+                  transition: pullDistance === 0 ? 'all 0.3s ease-out' : 'none'
+                }}
+              >
+                <div className="bg-card/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
+                  <RefreshCw 
+                    className={`w-4 h-4 text-primary ${isRefreshing ? 'animate-spin' : ''}`}
+                    style={{
+                      transform: isRefreshing ? 'none' : `rotate(${(pullDistance / pullThreshold) * 360}deg)`
+                    }}
+                  />
+                  <span className="text-xs font-medium text-foreground">
+                    {isRefreshing ? 'Refreshing...' : pullDistance >= pullThreshold ? 'Release to refresh' : 'Pull to refresh'}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Mapbox Heatmap - Full screen on mobile */}
-            <div className="h-[calc(100vh-8rem)] sm:h-[calc(100vh-10rem)] md:h-[450px] lg:h-[550px] xl:h-[600px] sm:rounded-2xl overflow-hidden animate-fade-in sm:mx-4 md:mx-6">
+            <div className="min-h-full sm:rounded-2xl overflow-hidden animate-fade-in sm:mx-4 md:mx-6">
               {mapboxLoading && (
                 <div className="h-full flex items-center justify-center bg-card">
                   <div className="text-center space-y-3 sm:space-y-4">
@@ -228,10 +279,10 @@ const Index = () => {
               </div>
             )}
 
-          </>
+          </div>
         )}
 
-        {activeTab === "notifications" && (
+         {activeTab === "notifications" && (
           <div className="space-y-3 sm:space-y-4 md:space-y-5 animate-fade-in px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
             <div>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2">Notifications</h2>
