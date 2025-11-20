@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
+import { OptimizedImage } from "./ui/optimized-image";
 import { Search, MapPin, Clock, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
@@ -189,13 +190,15 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
               <div className="flex gap-4 p-4">
                 {/* Image or Icon */}
                 {deal.image_url ? (
-                  <img
+                  <OptimizedImage
                     src={deal.image_url}
                     alt={deal.venue_name}
                     className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
+                    fallback={
+                      <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-lg flex-shrink-0">
+                        <span className="text-3xl">{getDealIcon(deal.deal_type)}</span>
+                      </div>
+                    }
                   />
                 ) : (
                   <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-lg flex-shrink-0">

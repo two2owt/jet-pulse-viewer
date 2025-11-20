@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock, MapPin, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "./ui/button";
+import { OptimizedImage } from "./ui/optimized-image";
 import { DealCardSkeleton } from "./skeletons/DealCardSkeleton";
 import { toast } from "sonner";
 import type { City } from "@/types/cities";
@@ -196,13 +197,15 @@ export const ActiveDeals = ({ selectedCity }: ActiveDealsProps) => {
             >
               <div className="flex items-start gap-3 p-3">
                 {deal.image_url ? (
-                  <img 
+                  <OptimizedImage
                     src={deal.image_url} 
                     alt={deal.venue_name}
                     className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
+                    fallback={
+                      <div className="w-16 h-16 flex items-center justify-center text-3xl flex-shrink-0">
+                        {getDealIcon(deal.deal_type)}
+                      </div>
+                    }
                   />
                 ) : (
                   <div className="w-16 h-16 flex items-center justify-center text-3xl flex-shrink-0">

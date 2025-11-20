@@ -1,5 +1,6 @@
 import { Clock, MapPin, Users, Star, TrendingUp, X } from "lucide-react";
 import { Button } from "./ui/button";
+import { OptimizedImage } from "./ui/optimized-image";
 import type { Venue } from "./Heatmap";
 
 interface JetCardProps {
@@ -34,12 +35,11 @@ export const JetCard = ({ venue, onGetDirections, onClose }: JetCardProps) => {
       {/* Image Header with Gradient Overlay */}
       <div className="relative h-40 sm:h-48 md:h-56 bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 overflow-hidden">
         {venue.imageUrl ? (
-          <img 
+          <OptimizedImage
             src={venue.imageUrl} 
             alt={venue.name}
             className="absolute inset-0 w-full h-full object-cover"
             onError={(e) => {
-              // Fallback to emoji if image fails to load
               e.currentTarget.style.display = 'none';
             }}
           />
