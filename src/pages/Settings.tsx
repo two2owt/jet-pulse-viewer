@@ -9,6 +9,7 @@ import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor } fro
 import { toast } from "sonner";
 import { z } from "zod";
 import { useTheme } from "next-themes";
+import { ReportIssueDialog } from "@/components/ReportIssueDialog";
 
 const preferencesSchema = z.object({
   notifications_enabled: z.boolean(),
@@ -376,6 +377,22 @@ const Settings = () => {
                 We never share your data with third parties without your explicit consent.
               </p>
             </div>
+          </div>
+        </Card>
+
+        {/* Support Section */}
+        <Card className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-foreground">Support</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              Need help or found an issue?
+            </p>
+          </div>
+
+          <Separator />
+
+          <div className="flex justify-center">
+            <ReportIssueDialog />
           </div>
         </Card>
 
