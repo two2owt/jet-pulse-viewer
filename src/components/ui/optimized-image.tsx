@@ -1,12 +1,27 @@
 import { useState, ImgHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import { 
+  generateSrcSet, 
+  generateSizesAttribute, 
+  getSupabaseImageUrl,
+  isSupabaseStorageUrl,
+  ImageSize 
+} from "@/lib/image-utils";
 
-interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'loading'> {
+interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'loading' | 'sizes'> {
   src: string;
   alt: string;
   className?: string;
   fallback?: React.ReactNode;
   eager?: boolean;
+  responsive?: boolean;
+  responsiveSizes?: ImageSize[];
+  sizesConfig?: {
+    mobile?: string;
+    tablet?: string;
+    desktop?: string;
+  };
+  quality?: number;
 }
 
 export const OptimizedImage = ({ 
@@ -15,6 +30,10 @@ export const OptimizedImage = ({
   className, 
   fallback,
   eager = false,
+  responsive = true,
+  responsiveSizes = ['thumbnail', 'small', 'medium', 'large'],
+  sizesConfig,
+  quality = 80,
   onError,
   ...props 
 }: OptimizedImageProps) => {
@@ -34,9 +53,17 @@ export const OptimizedImage = ({
     return <>{fallback}</>;
   }
 
+  // Generate responsive attributes for Supabase images
+  const isSupabase = isSupabaseStorageUrl(src);
+  const optimizedSrc = isSupabase ? getSupabaseImageUrl(src, 640, quality) : src;
+  const srcSet = responsive && isSupabase ? generateSrcSet(src, responsiveSizes, quality) : undefined;
+  const sizes = responsive && isSupabase ? generateSizesAttribute(sizesConfig) : undefined;
+
   return (
     <img
-      src={src}
+      src={optimizedSrc}
+      srcSet={srcSet}
+      sizes={sizes}
       alt={alt}
       loading={eager ? "eager" : "lazy"}
       decoding="async"

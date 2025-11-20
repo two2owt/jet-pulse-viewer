@@ -39,6 +39,10 @@ export const JetCard = ({ venue, onGetDirections, onClose }: JetCardProps) => {
             src={venue.imageUrl} 
             alt={venue.name}
             className="absolute inset-0 w-full h-full object-cover"
+            responsive={true}
+            responsiveSizes={['small', 'medium', 'large']}
+            sizesConfig={{ mobile: '100vw', tablet: '640px', desktop: '800px' }}
+            quality={85}
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}

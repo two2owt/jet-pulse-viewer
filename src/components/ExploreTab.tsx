@@ -194,6 +194,9 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
                     src={deal.image_url}
                     alt={deal.venue_name}
                     className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                    responsive={true}
+                    responsiveSizes={['thumbnail', 'small']}
+                    sizesConfig={{ mobile: '80px', tablet: '80px', desktop: '80px' }}
                     fallback={
                       <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-lg flex-shrink-0">
                         <span className="text-3xl">{getDealIcon(deal.deal_type)}</span>
