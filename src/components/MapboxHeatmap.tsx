@@ -800,7 +800,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     <div className="relative w-full h-full min-h-[500px]">
       <div 
         ref={mapContainer} 
-        className="absolute inset-0 rounded-none sm:rounded-2xl overflow-hidden"
+        className="absolute inset-0 overflow-hidden"
         style={{ 
           width: '100%', 
           height: '100%',
@@ -810,7 +810,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       />
 
       {/* City Selector */}
-      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 max-w-[calc(100vw-100px)] sm:max-w-[280px]">
+      <div className="absolute top-4 left-4 sm:top-5 sm:left-5 z-10 max-w-[calc(100vw-120px)] sm:max-w-[280px]">
         <Select
           value={selectedCity.id}
           onValueChange={(cityId) => {
@@ -835,7 +835,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Live Indicator - Top Right with spacing from nav controls */}
-      <div className="absolute top-28 right-3 sm:top-32 sm:right-4 z-10">
+      <div className="absolute top-28 right-4 sm:top-32 sm:right-5 z-10">
         <div className="bg-card/95 backdrop-blur-xl px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-border flex items-center gap-1.5 sm:gap-2 shadow-lg">
           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full pulse-glow" />
           <p className="text-xs sm:text-sm font-semibold text-foreground">Live</p>
@@ -843,7 +843,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Density Layer Controls */}
-      <div className="absolute bottom-24 right-3 sm:bottom-4 sm:right-4 z-10 space-y-2 max-w-[calc(100vw-24px)] sm:max-w-[280px]">
+      <div className="absolute bottom-24 right-4 sm:bottom-5 sm:right-5 z-10 space-y-2 max-w-[calc(100vw-32px)] sm:max-w-[280px]">
         <Button
           onClick={() => setShowDensityLayer(!showDensityLayer)}
           variant={showDensityLayer ? "default" : "secondary"}

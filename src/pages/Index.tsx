@@ -217,7 +217,7 @@ const Index = () => {
         {activeTab === "map" && (
           <div 
             ref={containerRef}
-            className="relative h-[calc(100vh-8rem)] sm:h-[calc(100vh-10rem)] md:h-[calc(100vh-12rem)] overflow-y-auto overflow-x-hidden -mx-3 sm:mx-0"
+            className="relative h-[calc(100vh-8rem)] sm:h-[calc(100vh-10rem)] md:h-[calc(100vh-12rem)] overflow-y-auto overflow-x-hidden -mx-3 sm:-mx-4 md:-mx-6"
           >
             {/* Pull to Refresh Indicator */}
             {(pullDistance > 0 || isRefreshing) && (
@@ -243,8 +243,8 @@ const Index = () => {
               </div>
             )}
 
-            {/* Mapbox Heatmap - Full screen on mobile */}
-            <div className="h-full w-full sm:rounded-2xl overflow-hidden animate-fade-in sm:mx-4 md:mx-6">
+            {/* Mapbox Heatmap - Edge to edge */}
+            <div className="h-full w-full overflow-hidden animate-fade-in">
               {mapboxLoading && (
                 <div className="h-full flex items-center justify-center bg-card">
                   <div className="text-center space-y-3 sm:space-y-4">
@@ -281,11 +281,11 @@ const Index = () => {
               )}
             </div>
 
-            {/* Selected Venue Card - Positioned at bottom with spacing */}
+            {/* Selected Venue Card - Positioned at bottom with optimal spacing */}
             {selectedVenue && (
               <div 
                 ref={jetCardRef} 
-                className="absolute bottom-4 left-3 right-3 sm:left-6 sm:right-6 md:left-8 md:right-8 z-20 animate-fade-in animate-scale-in"
+                className="absolute bottom-4 left-4 right-4 sm:left-6 sm:right-6 md:left-8 md:right-8 lg:left-12 lg:right-12 z-20 animate-fade-in animate-scale-in max-w-2xl mx-auto"
               >
                 <JetCard 
                   venue={selectedVenue} 
