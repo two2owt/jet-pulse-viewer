@@ -217,7 +217,7 @@ const Index = () => {
         {activeTab === "map" && (
           <div 
             ref={containerRef}
-            className="h-[calc(100vh-8rem)] sm:h-[calc(100vh-10rem)] md:h-[calc(100vh-12rem)] overflow-y-auto overflow-x-hidden -mx-3 sm:mx-0"
+            className="relative h-[calc(100vh-8rem)] sm:h-[calc(100vh-10rem)] md:h-[calc(100vh-12rem)] overflow-y-auto overflow-x-hidden -mx-3 sm:mx-0"
           >
             {/* Pull to Refresh Indicator */}
             {(pullDistance > 0 || isRefreshing) && (
@@ -281,9 +281,12 @@ const Index = () => {
               )}
             </div>
 
-            {/* Selected Venue Card */}
+            {/* Selected Venue Card - Positioned at bottom with spacing */}
             {selectedVenue && (
-              <div ref={jetCardRef} className="animate-fade-in animate-scale-in relative">
+              <div 
+                ref={jetCardRef} 
+                className="absolute bottom-4 left-3 right-3 sm:left-6 sm:right-6 md:left-8 md:right-8 z-20 animate-fade-in animate-scale-in"
+              >
                 <JetCard 
                   venue={selectedVenue} 
                   onGetDirections={handleGetDirections}
