@@ -80,6 +80,22 @@ export const useGeofencing = (enabled: boolean = true) => {
             duration: 5000,
           });
         }, 1000);
+
+        // Send push notification for new neighborhood entry
+        try {
+          await supabase.functions.invoke('send-push-notification', {
+            body: {
+              title: `Welcome to ${data.current_neighborhood?.name}!`,
+              body: `${data.deals.length} active ${data.deals.length === 1 ? 'deal' : 'deals'} nearby`,
+              data: {
+                neighborhoodId: data.current_neighborhood?.id,
+                dealId: firstDeal.id,
+              },
+            },
+          });
+        } catch (error) {
+          console.error('Error sending push notification:', error);
+        }
       }
 
       return data;
