@@ -446,17 +446,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
         // Add click handler for neighborhoods
         mapInstance.on('click', fillLayerId, (e: any) => {
-          if (e.features && e.features[0] && map.current) {
-            new mapboxgl.Popup()
-              .setLngLat(e.lngLat)
-              .setHTML(`
-                <div style="padding: 8px; background: #1f2937; border-radius: 8px;">
-                  <h3 style="margin: 0 0 4px 0; font-size: 14px; font-weight: bold; color: white;">${neighborhood.name}</h3>
-                  <p style="margin: 0; font-size: 12px; color: #9ca3af;">${neighborhood.description}</p>
-                </div>
-              `)
-              .addTo(map.current);
-          }
+          // Click handling without popup
         });
 
         // Change cursor on hover
@@ -592,19 +582,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         el.style.zIndex = "10";
       });
 
-      // Create popup
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
-        <div style="padding: 8px; background: #1f2937; border-radius: 8px;">
-          <h3 style="margin: 0 0 4px 0; font-size: 14px; font-weight: bold; color: white;">${venue.name}</h3>
-          <p style="margin: 0; font-size: 12px; color: #9ca3af;">${venue.neighborhood}</p>
-          <p style="margin: 4px 0 0 0; font-size: 12px; color: ${color}; font-weight: bold;">${venue.activity}% active</p>
-        </div>
-      `);
-
       // Create marker using stored map instance
       const marker = new mapboxgl.Marker(container)
         .setLngLat([venue.lng, venue.lat])
-        .setPopup(popup)
         .addTo(mapInstance);
 
       // Handle click on the whole container
@@ -685,34 +665,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
           markerEl.appendChild(mainMarker);
 
-          // Create popup
-          const popup = new mapboxgl.Popup({ 
-            offset: 30,
-            className: 'deal-popup'
-          }).setHTML(`
-            <div style="padding: 12px; background: linear-gradient(135deg, #1f2937 0%, #111827 100%); border-radius: 12px; border: 2px solid ${dealColor}; min-width: 200px;">
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <span style="background: ${dealColor}30; color: ${dealColor}; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; text-transform: uppercase;">${deal.deal_type}</span>
-              </div>
-              <h3 style="margin: 0 0 6px 0; font-size: 15px; font-weight: bold; color: white;">${deal.title}</h3>
-              <p style="margin: 0 0 8px 0; font-size: 12px; color: #9ca3af; line-height: 1.4;">${deal.description}</p>
-              <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${dealColor}" stroke-width="2">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                  <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <p style="margin: 0; font-size: 11px; color: #6b7280; font-weight: 600;">${deal.venue_name} • ${neighborhood.name}</p>
-              </div>
-            </div>
-          `);
-
           // Create and add marker
           const marker = new mapboxgl.Marker({ 
             element: markerEl,
             anchor: 'center'
           })
             .setLngLat([Number(neighborhood.center_lng), Number(neighborhood.center_lat)])
-            .setPopup(popup)
             .addTo(mapInstance);
 
           dealMarkersRef.current.push(marker);
