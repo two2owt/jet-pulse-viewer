@@ -50,35 +50,35 @@ export const NotificationCard = ({ notification, onVenueClick, onRead }: Notific
 
   return (
     <div 
-      className={`bg-gradient-to-r ${getGradient()} rounded-xl p-4 border border-border/50 hover-scale transition-all ${
+      className={`bg-gradient-to-r ${getGradient()} rounded-lg sm:rounded-xl p-3 sm:p-4 border border-border/50 hover-scale transition-all ${
         onVenueClick ? 'cursor-pointer' : ''
       } ${notification.read ? 'opacity-60' : ''}`}
       onClick={handleClick}
     >
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 bg-card rounded-full flex items-center justify-center flex-shrink-0 border border-border">
+      <div className="flex items-start gap-2 sm:gap-3">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-card rounded-full flex items-center justify-center flex-shrink-0 border border-border">
           {getIcon()}
         </div>
         
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-bold text-foreground mb-1">{notification.title}</h4>
-          <p className="text-xs text-muted-foreground mb-2">{notification.message}</p>
+          <h4 className="text-xs sm:text-sm font-bold text-foreground mb-0.5 sm:mb-1">{notification.title}</h4>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">{notification.message}</p>
           
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-muted-foreground">
             {notification.venue && (
-              <div className="flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                <span>{notification.venue}</span>
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <span className="truncate">{notification.venue}</span>
               </div>
             )}
             
             {notification.distance && (
-              <span className="text-primary font-medium">{notification.distance}</span>
+              <span className="text-primary font-medium flex-shrink-0">{notification.distance}</span>
             )}
           </div>
         </div>
         
-        <div className="text-xs text-muted-foreground flex-shrink-0">
+        <div className="text-[10px] sm:text-xs text-muted-foreground flex-shrink-0">
           {notification.timestamp}
         </div>
       </div>

@@ -159,7 +159,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-24">
+    <div className="min-h-screen bg-background pb-16 sm:pb-20 md:pb-24">
       {/* Header */}
       <Header 
         venues={mockVenues}
@@ -168,24 +168,24 @@ const Index = () => {
       />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 space-y-3 sm:space-y-4 md:space-y-6">
         {activeTab === "map" && (
           <>
             {/* Mapbox Heatmap */}
-            <div className="h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden animate-fade-in">
+            <div className="h-[280px] sm:h-[350px] md:h-[450px] lg:h-[550px] xl:h-[600px] rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in">
               {mapboxLoading && (
                 <div className="h-full flex items-center justify-center bg-card">
-                  <div className="text-center space-y-4">
-                    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-sm text-muted-foreground">Loading map...</p>
+                  <div className="text-center space-y-3 sm:space-y-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-xs sm:text-sm text-muted-foreground">Loading map...</p>
                   </div>
                 </div>
               )}
               {mapboxError && (
                 <div className="h-full flex items-center justify-center bg-card animate-fade-in">
-                  <div className="text-center space-y-2">
-                    <p className="text-sm text-destructive font-medium">Failed to load map</p>
-                    <p className="text-xs text-muted-foreground">{mapboxError}</p>
+                  <div className="text-center space-y-1.5 sm:space-y-2">
+                    <p className="text-xs sm:text-sm text-destructive font-medium">Failed to load map</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">{mapboxError}</p>
                   </div>
                 </div>
               )}
@@ -217,7 +217,7 @@ const Index = () => {
          {activeTab === "notifications" && (
           <div className="space-y-3 sm:space-y-4 md:space-y-5 animate-fade-in">
             <div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2">Notifications</h2>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2">Notifications</h2>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Stay updated with nearby deals and events</p>
             </div>
             
@@ -228,9 +228,9 @@ const Index = () => {
                 <NotificationSkeleton />
               </>
             ) : notifications.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <p>No notifications yet</p>
-                <p className="text-sm mt-2">Enable location tracking to receive deal alerts</p>
+              <div className="text-center py-8 sm:py-10 md:py-12 text-muted-foreground">
+                <p className="text-sm sm:text-base">No notifications yet</p>
+                <p className="text-xs sm:text-sm mt-1 sm:mt-2">Enable location tracking to receive deal alerts</p>
               </div>
             ) : (
               notifications.map((notification, index) => (
@@ -255,7 +255,7 @@ const Index = () => {
         )}
 
         {activeTab === "profile" && (
-          <div className="space-y-4 sm:space-y-5 md:space-y-6 animate-fade-in">
+          <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 animate-fade-in">
             <UserProfile />
           </div>
         )}
@@ -270,53 +270,53 @@ const Index = () => {
 
       {/* Directions Dialog */}
       <Dialog open={showDirectionsDialog} onOpenChange={setShowDirectionsDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md mx-4 sm:mx-0">
           <DialogHeader>
-            <DialogTitle>Choose Navigation App</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-base sm:text-lg">Choose Navigation App</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               Select your preferred navigation app to get directions to {selectedVenue?.name}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-3 py-4">
+          <div className="grid gap-2 sm:gap-3 py-3 sm:py-4">
             <Button
               onClick={() => openDirections('google')}
               variant="outline"
-              className="h-auto py-4 justify-start gap-3 hover:bg-accent transition-colors"
+              className="h-auto py-3 sm:py-4 justify-start gap-2 sm:gap-3 hover:bg-accent transition-colors"
             >
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                <MapIcon className="w-6 h-6 text-white" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                <MapIcon className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
               </div>
               <div className="text-left">
-                <p className="font-semibold">Google Maps</p>
-                <p className="text-xs text-muted-foreground">Navigate with Google</p>
+                <p className="text-sm sm:text-base font-semibold">Google Maps</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Navigate with Google</p>
               </div>
             </Button>
             
             <Button
               onClick={() => openDirections('apple')}
               variant="outline"
-              className="h-auto py-4 justify-start gap-3 hover:bg-accent transition-colors"
+              className="h-auto py-3 sm:py-4 justify-start gap-2 sm:gap-3 hover:bg-accent transition-colors"
             >
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center flex-shrink-0">
-                <Navigation className="w-6 h-6 text-white" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center flex-shrink-0">
+                <Navigation className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
               </div>
               <div className="text-left">
-                <p className="font-semibold">Apple Maps</p>
-                <p className="text-xs text-muted-foreground">Navigate with Apple</p>
+                <p className="text-sm sm:text-base font-semibold">Apple Maps</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Navigate with Apple</p>
               </div>
             </Button>
             
             <Button
               onClick={() => openDirections('waze')}
               variant="outline"
-              className="h-auto py-4 justify-start gap-3 hover:bg-accent transition-colors"
+              className="h-auto py-3 sm:py-4 justify-start gap-2 sm:gap-3 hover:bg-accent transition-colors"
             >
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0">
-                <Zap className="w-6 h-6 text-white" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0">
+                <Zap className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
               </div>
               <div className="text-left">
-                <p className="font-semibold">Waze</p>
-                <p className="text-xs text-muted-foreground">Navigate with Waze</p>
+                <p className="text-sm sm:text-base font-semibold">Waze</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Navigate with Waze</p>
               </div>
             </Button>
           </div>
