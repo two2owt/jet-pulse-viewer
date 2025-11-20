@@ -565,10 +565,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           inset 0 1px 1px rgba(255, 255, 255, 0.3),
           inset 0 -1px 1px rgba(0, 0, 0, 0.2);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 10;
-        rotate: -45deg;
         filter: drop-shadow(0 4px 12px ${color}40);
         cursor: pointer;
+        transform: rotate(-45deg);
       `;
 
       // Add pulsing animation for high activity
@@ -586,7 +585,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       // Enhanced hover effects
       el.addEventListener("mouseenter", () => {
-        el.style.transform = "scale(1.2) rotate(-45deg)";
+        el.style.transform = "rotate(-45deg) scale(1.2)";
         el.style.boxShadow = `
           0 12px 48px ${color}50,
           0 0 0 6px ${color}20,
@@ -594,11 +593,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           inset 0 -2px 2px rgba(0, 0, 0, 0.2)
         `;
         el.style.filter = `drop-shadow(0 6px 20px ${color}60)`;
-        el.style.zIndex = "1000";
       });
 
       el.addEventListener("mouseleave", () => {
-        el.style.transform = "rotate(-45deg) scale(1)";
+        el.style.transform = "rotate(-45deg)";
         el.style.boxShadow = `
           0 8px 32px ${color}30,
           0 0 0 4px ${color}10,
@@ -606,13 +604,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           inset 0 -1px 1px rgba(0, 0, 0, 0.2)
         `;
         el.style.filter = `drop-shadow(0 4px 12px ${color}40)`;
-        el.style.zIndex = "10";
       });
 
-      // Create marker using stored map instance with proper anchor at bottom
+      // Create marker using stored map instance with center anchor for precise positioning
       const marker = new mapboxgl.Marker({
         element: el,
-        anchor: 'bottom'
+        anchor: 'center'
       })
         .setLngLat([venue.lng, venue.lat])
         .addTo(mapInstance);
