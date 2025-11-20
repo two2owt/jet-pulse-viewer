@@ -684,9 +684,42 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         .setLngLat([venue.lng, venue.lat])
         .addTo(mapInstance);
 
-      // Handle click on the marker element
-      el.addEventListener("click", () => {
+      // Create popup for the venue (like standard map pins)
+      const popup = new mapboxgl.Popup({
+        offset: 25,
+        closeButton: false,
+        closeOnClick: true,
+        maxWidth: '200px',
+        className: 'venue-popup'
+      }).setHTML(`
+        <div style="padding: 8px;">
+          <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 600; color: white;">${venue.name}</h4>
+          <p style="margin: 0 0 4px 0; font-size: 11px; color: rgba(255, 255, 255, 0.7);">${venue.category} • ${venue.neighborhood}</p>
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <div style="width: 8px; height: 8px; border-radius: 50%; background: ${color};"></div>
+            <span style="font-size: 11px; font-weight: 600; color: white;">${venue.activity}% Active</span>
+          </div>
+        </div>
+      `);
+
+      // Attach popup to marker
+      marker.setPopup(popup);
+
+      // Handle click on the marker element - bounce animation + open venue card
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        
+        // Bounce animation
+        pinEl.style.animation = "bounce 0.6s ease-out";
+        setTimeout(() => {
+          pinEl.style.animation = venue.activity >= 80 ? "pulse 2s ease-in-out infinite" : "";
+        }, 600);
+        
+        // Open venue card
         onVenueSelect(venue);
+        
+        // Show popup
+        popup.addTo(mapInstance);
       });
 
       markersRef.current.push(marker);
@@ -990,16 +1023,31 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </div>
       )}
 
-      {/* Add pulse and heatmap animations */}
+      {/* Add pulse, bounce and heatmap animations + popup styles */}
       <style>{`
         @keyframes pulse {
           0%, 100% {
-            transform: translate(-50%, -50%) scale(1);
+            transform: translate(-50%, 0) scale(1);
             opacity: 1;
           }
           50% {
-            transform: translate(-50%, -50%) scale(1.05);
+            transform: translate(-50%, 0) scale(1.05);
             opacity: 0.9;
+          }
+        }
+        
+        @keyframes bounce {
+          0%, 100% {
+            transform: translateX(-50%) translateY(0);
+          }
+          25% {
+            transform: translateX(-50%) translateY(-20px);
+          }
+          50% {
+            transform: translateX(-50%) translateY(-10px);
+          }
+          75% {
+            transform: translateX(-50%) translateY(-15px);
           }
         }
         
@@ -1031,6 +1079,35 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           50% {
             transform: translate(-50%, -50%) scale(1.2);
             opacity: 0.3;
+          }
+        }
+        
+        /* Popup styling */
+        .mapboxgl-popup-content {
+          background: rgba(20, 20, 30, 0.95) !important;
+          backdrop-filter: blur(10px) !important;
+          border-radius: 12px !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+          padding: 0 !important;
+        }
+        
+        .mapboxgl-popup-tip {
+          border-top-color: rgba(20, 20, 30, 0.95) !important;
+        }
+        
+        .venue-popup .mapboxgl-popup-content {
+          animation: popup-fade-in 0.3s ease-out;
+        }
+        
+        @keyframes popup-fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
       `}</style>
