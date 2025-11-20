@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -7,12 +8,27 @@ import { triggerHaptic } from '@/lib/haptics';
 export const usePushNotifications = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [isNative, setIsNative] = useState(false);
 
   useEffect(() => {
-    initializePushNotifications();
+    // Only initialize on native platforms (iOS/Android)
+    const nativePlatform = Capacitor.isNativePlatform();
+    setIsNative(nativePlatform);
+    
+    if (nativePlatform) {
+      initializePushNotifications();
+    } else {
+      console.log('Push notifications only available on native iOS/Android apps');
+    }
   }, []);
 
   const initializePushNotifications = async () => {
+    // Double-check we're on a native platform
+    if (!Capacitor.isNativePlatform()) {
+      console.log('Skipping push notification initialization on web');
+      return;
+    }
+
     try {
       // Request permission
       const result = await PushNotifications.requestPermissions();
@@ -34,6 +50,9 @@ export const usePushNotifications = () => {
   };
 
   const setupListeners = () => {
+    // Only set up listeners on native platforms
+    if (!Capacitor.isNativePlatform()) return;
+
     // On registration success, save the token
     PushNotifications.addListener('registration', async (tokenData: Token) => {
       console.log('Push registration success, token:', tokenData.value);
@@ -120,6 +139,11 @@ export const usePushNotifications = () => {
   };
 
   const unregister = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      console.log('Push notifications not available on web');
+      return;
+    }
+
     try {
       await PushNotifications.removeAllListeners();
       
@@ -144,6 +168,9 @@ export const usePushNotifications = () => {
   };
 
   const checkPermissions = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      return false;
+    }
     const result = await PushNotifications.checkPermissions();
     return result.receive === 'granted';
   };
@@ -151,6 +178,7 @@ export const usePushNotifications = () => {
   return {
     isRegistered,
     token,
+    isNative,
     initializePushNotifications,
     unregister,
     checkPermissions,

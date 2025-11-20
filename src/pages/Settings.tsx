@@ -29,7 +29,7 @@ interface UserPreferences {
 const Settings = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-  const { isRegistered: isPushRegistered, initializePushNotifications, unregister: unregisterPush } = usePushNotifications();
+  const { isRegistered: isPushRegistered, isNative, initializePushNotifications, unregister: unregisterPush } = usePushNotifications();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -259,23 +259,26 @@ const Settings = () => {
 
             <Separator className="my-2" />
 
-            <div className="flex items-center justify-between gap-3">
-              <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
-                <label htmlFor="push-notifications" className="text-xs sm:text-sm font-medium text-foreground flex items-center gap-1.5">
-                  <Smartphone className="w-3.5 h-3.5" />
-                  Native Push Notifications
-                </label>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">
-                  Receive notifications even when the app is closed
-                </p>
+            {/* Only show native push notifications on iOS/Android */}
+            {isNative && (
+              <div className="flex items-center justify-between gap-3">
+                <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
+                  <label htmlFor="push-notifications" className="text-xs sm:text-sm font-medium text-foreground flex items-center gap-1.5">
+                    <Smartphone className="w-3.5 h-3.5" />
+                    Native Push Notifications
+                  </label>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">
+                    Receive notifications even when the app is closed
+                  </p>
+                </div>
+                <Switch
+                  id="push-notifications"
+                  checked={pushNotificationsEnabled}
+                  onCheckedChange={handlePushNotificationToggle}
+                  className="flex-shrink-0"
+                />
               </div>
-              <Switch
-                id="push-notifications"
-                checked={pushNotificationsEnabled}
-                onCheckedChange={handlePushNotificationToggle}
-                className="flex-shrink-0"
-              />
-            </div>
+            )}
           </div>
         </Card>
 
