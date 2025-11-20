@@ -185,11 +185,11 @@ const Index = () => {
       />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 space-y-3 sm:space-y-4 md:space-y-6">
+      <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6'} space-y-3 sm:space-y-4 md:space-y-6`}>
         {activeTab === "map" && (
           <>
-            {/* Mapbox Heatmap */}
-            <div className="h-[280px] sm:h-[350px] md:h-[450px] lg:h-[550px] xl:h-[600px] rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in">
+            {/* Mapbox Heatmap - Full screen on mobile */}
+            <div className="h-[calc(100vh-8rem)] sm:h-[calc(100vh-10rem)] md:h-[450px] lg:h-[550px] xl:h-[600px] sm:rounded-2xl overflow-hidden animate-fade-in sm:mx-4 md:mx-6">
               {mapboxLoading && (
                 <div className="h-full flex items-center justify-center bg-card">
                   <div className="text-center space-y-3 sm:space-y-4">
@@ -231,8 +231,8 @@ const Index = () => {
           </>
         )}
 
-         {activeTab === "notifications" && (
-          <div className="space-y-3 sm:space-y-4 md:space-y-5 animate-fade-in">
+        {activeTab === "notifications" && (
+          <div className="space-y-3 sm:space-y-4 md:space-y-5 animate-fade-in px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
             <div>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2">Notifications</h2>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Stay updated with nearby deals and events</p>
@@ -268,11 +268,13 @@ const Index = () => {
         )}
 
         {activeTab === "explore" && (
-          <ExploreTab onVenueSelect={handleVenueSelect} />
+          <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
+            <ExploreTab onVenueSelect={handleVenueSelect} />
+          </div>
         )}
 
         {activeTab === "profile" && (
-          <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 animate-fade-in">
+          <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 animate-fade-in px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
             <UserProfile />
           </div>
         )}
