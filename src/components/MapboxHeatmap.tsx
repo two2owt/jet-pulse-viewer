@@ -543,19 +543,32 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     }
   };
 
-  useEffect(() => {
+  // Function to update markers based on current zoom level
+  const updateMarkers = () => {
     if (!map.current || !mapLoaded) return;
 
-    // Store map instance to prevent race conditions
     const mapInstance = map.current;
-
+    
     // Clear existing markers
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
     // Get current zoom level for dynamic sizing
     const currentZoom = mapInstance.getZoom();
-    const zoomFactor = Math.max(0.7, Math.min(1.3, currentZoom / 12)); // Scale between 0.7x and 1.3x
+    
+    // Improved zoom scaling formula for extreme zoom levels
+    let zoomFactor: number;
+    if (currentZoom < 8) {
+      // Very zoomed out - scale down aggressively
+      zoomFactor = Math.max(0.3, currentZoom / 20);
+    } else if (currentZoom < 12) {
+      // Medium zoom - moderate scaling
+      zoomFactor = 0.4 + ((currentZoom - 8) / 4) * 0.4; // 0.4 to 0.8
+    } else {
+      // Zoomed in - larger markers
+      zoomFactor = 0.8 + Math.min(0.5, (currentZoom - 12) / 8); // 0.8 to 1.3
+    }
+    
     const baseSize = 36 * zoomFactor;
 
     // Calculate distances between venues to detect clusters
@@ -678,38 +691,53 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       markersRef.current.push(marker);
     });
+  };
 
-    // Update marker sizes on zoom
-    const handleZoom = () => {
-      const newZoom = mapInstance.getZoom();
-      const newZoomFactor = Math.max(0.7, Math.min(1.3, newZoom / 12));
-      const newBaseSize = 36 * newZoomFactor;
-      
-      markersRef.current.forEach((marker) => {
-        const el = marker.getElement();
-        if (el) {
-          const pinEl = el.querySelector('div') as HTMLElement;
-          if (pinEl) {
-            el.style.width = `${newBaseSize}px`;
-            el.style.height = `${newBaseSize * 1.3}px`;
-            pinEl.style.width = `${newBaseSize}px`;
-            pinEl.style.height = `${newBaseSize}px`;
-            const svg = pinEl.querySelector('svg');
-            if (svg) {
-              svg.setAttribute('width', `${newBaseSize * 0.5}`);
-              svg.setAttribute('height', `${newBaseSize * 0.5}`);
-            }
-          }
-        }
-      });
+  // Call updateMarkers on initial load and when venues change
+  useEffect(() => {
+    updateMarkers();
+  }, [venues, mapLoaded]);
+
+  // Add zoom event listener to update markers dynamically
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    const mapInstance = map.current;
+    
+    // Debounce zoom updates to avoid too many re-renders
+    let zoomTimeout: NodeJS.Timeout;
+    const handleZoomEnd = () => {
+      clearTimeout(zoomTimeout);
+      zoomTimeout = setTimeout(() => {
+        updateMarkers();
+      }, 150);
     };
 
-    mapInstance.on('zoom', handleZoom);
-
+    mapInstance.on('zoomend', handleZoomEnd);
+    
     return () => {
-      mapInstance.off('zoom', handleZoom);
+      clearTimeout(zoomTimeout);
+      mapInstance.off('zoomend', handleZoomEnd);
     };
-  }, [venues, mapLoaded, onVenueSelect]);
+  }, [mapLoaded, venues]);
+
+  // Update map view when selected city changes
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    
+    map.current.flyTo({
+      center: [selectedCity.lng, selectedCity.lat],
+      zoom: selectedCity.zoom,
+      pitch: isMobile ? 30 : 50,
+      duration: 2000,
+      essential: true
+    });
+    
+    // Update markers after city change animation completes
+    setTimeout(() => {
+      updateMarkers();
+    }, 2100);
+  }, [selectedCity, mapLoaded, isMobile]);
 
   // Deal markers removed - no longer displaying colored circles on map
 
@@ -727,7 +755,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       />
 
       {/* City Selector */}
-      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 max-w-[calc(100vw-80px)] sm:max-w-none">
+      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 max-w-[calc(100vw-100px)] sm:max-w-[280px]">
         <Select
           value={selectedCity.id}
           onValueChange={(cityId) => {
@@ -752,7 +780,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Live Indicator */}
-      <div className="absolute top-16 left-3 sm:top-4 sm:left-auto sm:right-4 z-10">
+      <div className="absolute top-16 left-3 sm:top-16 sm:left-4 z-10">
         <div className="bg-card/95 backdrop-blur-xl px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-border flex items-center gap-1.5 sm:gap-2 shadow-lg">
           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full pulse-glow" />
           <p className="text-xs sm:text-sm font-semibold text-foreground">Live</p>
@@ -760,7 +788,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Density Layer Controls */}
-      <div className="absolute bottom-20 right-3 sm:bottom-4 sm:right-4 z-10 space-y-2 max-w-[calc(100vw-24px)] sm:max-w-[280px]">
+      <div className="absolute bottom-24 right-3 sm:bottom-4 sm:right-4 z-10 space-y-2 max-w-[calc(100vw-24px)] sm:max-w-[280px]">
         <Button
           onClick={() => setShowDensityLayer(!showDensityLayer)}
           variant={showDensityLayer ? "default" : "secondary"}
