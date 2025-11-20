@@ -6,12 +6,13 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Camera, Loader2, User, Settings, Edit2, X, Instagram, Twitter, Facebook, Linkedin, Video } from "lucide-react";
+import { Camera, Loader2, User, Settings, Edit2, X, Instagram, Twitter, Facebook, Linkedin, Video, Shield } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Separator } from "./ui/separator";
 import { Label } from "./ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const profileSchema = z.object({
   display_name: z.string().trim().min(1, "Display name is required").max(100, "Display name must be less than 100 characters"),
@@ -51,6 +52,7 @@ interface Profile {
 
 export const UserProfile = () => {
   const navigate = useNavigate();
+  const { isAdmin } = useIsAdmin();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -599,6 +601,17 @@ export const UserProfile = () => {
             <Settings className="w-4 h-4 mr-2" />
             Notification & Location Settings
           </Button>
+
+          {isAdmin && (
+            <Button
+              onClick={() => navigate('/admin')}
+              variant="default"
+              className="w-full"
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Admin Dashboard
+            </Button>
+          )}
         </div>
       </div>
     </Card>
