@@ -220,14 +220,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       el.style.transition = 'transform 0.3s ease';
       el.style.position = 'relative';
       
-      // Add pulsing ring effect
-      const pulseRing = document.createElement('div');
-      pulseRing.style.position = 'absolute';
-      pulseRing.style.inset = '-8px';
-      pulseRing.style.borderRadius = '50%';
-      pulseRing.style.backgroundColor = 'rgba(255, 69, 58, 0.2)';
-      pulseRing.style.animation = 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite';
-      
       // Glassmorphic container
       const glassContainer = document.createElement('div');
       glassContainer.style.width = '100%';
@@ -252,7 +244,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       img.style.filter = 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))';
       
       glassContainer.appendChild(img);
-      el.appendChild(pulseRing);
       el.appendChild(glassContainer);
       return el;
     };
