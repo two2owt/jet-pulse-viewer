@@ -182,47 +182,47 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-16 sm:pb-20">
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-40">
-        <div className="max-w-lg mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate("/")}
-              className="hover:bg-muted"
+              className="hover:bg-muted w-8 h-8 sm:w-9 sm:h-9"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
-            <h1 className="text-xl font-bold text-foreground">Settings</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-foreground">Settings</h1>
           </div>
         </div>
       </header>
 
       {/* Content */}
-      <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Notifications Section */}
-        <Card className="p-6 space-y-6">
+        <Card className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Bell className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-bold text-foreground">Notifications</h2>
+            <div className="flex items-center gap-2 mb-1 sm:mb-2">
+              <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              <h2 className="text-base sm:text-lg font-bold text-foreground">Notifications</h2>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Manage how you receive alerts and updates
             </p>
           </div>
 
           <Separator />
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1 flex-1">
-                <label htmlFor="notifications" className="text-sm font-medium text-foreground">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
+                <label htmlFor="notifications" className="text-xs sm:text-sm font-medium text-foreground block">
                   Push Notifications
                 </label>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Receive notifications about deals and events near you
                 </p>
               </div>
@@ -230,109 +230,110 @@ const Settings = () => {
                 id="notifications"
                 checked={notificationsEnabled}
                 onCheckedChange={setNotificationsEnabled}
+                className="flex-shrink-0"
               />
             </div>
           </div>
         </Card>
 
         {/* Theme Section */}
-        <Card className="p-6 space-y-6">
+        <Card className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Sun className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-bold text-foreground">Appearance</h2>
+            <div className="flex items-center gap-2 mb-1 sm:mb-2">
+              <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              <h2 className="text-base sm:text-lg font-bold text-foreground">Appearance</h2>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Choose how the app looks
             </p>
           </div>
 
           <Separator />
 
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <button
               onClick={() => setTheme("light")}
-              className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+              className={`w-full flex items-center justify-between p-3 sm:p-4 rounded-lg border-2 transition-all ${
                 theme === "light" 
                   ? "border-primary bg-primary/5" 
                   : "border-border hover:border-primary/50"
               }`}
             >
-              <div className="flex items-center gap-3">
-                <Sun className="w-5 h-5" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Sun className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                 <div className="text-left">
-                  <div className="font-medium text-foreground">Light</div>
-                  <div className="text-xs text-muted-foreground">Bright theme for daytime</div>
+                  <div className="text-sm sm:text-base font-medium text-foreground">Light</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">Bright theme for daytime</div>
                 </div>
               </div>
               {theme === "light" && (
-                <div className="w-4 h-4 rounded-full bg-primary" />
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-primary flex-shrink-0" />
               )}
             </button>
 
             <button
               onClick={() => setTheme("dark")}
-              className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+              className={`w-full flex items-center justify-between p-3 sm:p-4 rounded-lg border-2 transition-all ${
                 theme === "dark" 
                   ? "border-primary bg-primary/5" 
                   : "border-border hover:border-primary/50"
               }`}
             >
-              <div className="flex items-center gap-3">
-                <Moon className="w-5 h-5" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Moon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                 <div className="text-left">
-                  <div className="font-medium text-foreground">Dark</div>
-                  <div className="text-xs text-muted-foreground">Dark theme for nighttime</div>
+                  <div className="text-sm sm:text-base font-medium text-foreground">Dark</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">Dark theme for nighttime</div>
                 </div>
               </div>
               {theme === "dark" && (
-                <div className="w-4 h-4 rounded-full bg-primary" />
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-primary flex-shrink-0" />
               )}
             </button>
 
             <button
               onClick={() => setTheme("system")}
-              className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+              className={`w-full flex items-center justify-between p-3 sm:p-4 rounded-lg border-2 transition-all ${
                 theme === "system" 
                   ? "border-primary bg-primary/5" 
                   : "border-border hover:border-primary/50"
               }`}
             >
-              <div className="flex items-center gap-3">
-                <Monitor className="w-5 h-5" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Monitor className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                 <div className="text-left">
-                  <div className="font-medium text-foreground">Auto</div>
-                  <div className="text-xs text-muted-foreground">Matches your device theme</div>
+                  <div className="text-sm sm:text-base font-medium text-foreground">Auto</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">Matches your device theme</div>
                 </div>
               </div>
               {theme === "system" && (
-                <div className="w-4 h-4 rounded-full bg-primary" />
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-primary flex-shrink-0" />
               )}
             </button>
           </div>
         </Card>
 
         {/* Location Section */}
-        <Card className="p-6 space-y-6">
+        <Card className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <MapPin className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-bold text-foreground">Location</h2>
+            <div className="flex items-center gap-2 mb-1 sm:mb-2">
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              <h2 className="text-base sm:text-lg font-bold text-foreground">Location</h2>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Control how the app uses your location
             </p>
           </div>
 
           <Separator />
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1 flex-1">
-                <label htmlFor="location-tracking" className="text-sm font-medium text-foreground">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
+                <label htmlFor="location-tracking" className="text-xs sm:text-sm font-medium text-foreground block">
                   Location Tracking
                 </label>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Allow the app to track your location for nearby deals
                 </p>
               </div>
@@ -340,15 +341,16 @@ const Settings = () => {
                 id="location-tracking"
                 checked={locationTrackingEnabled}
                 onCheckedChange={setLocationTrackingEnabled}
+                className="flex-shrink-0"
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-1 flex-1">
-                <label htmlFor="background-tracking" className="text-sm font-medium text-foreground">
+            <div className="flex items-center justify-between gap-3">
+              <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
+                <label htmlFor="background-tracking" className="text-xs sm:text-sm font-medium text-foreground block">
                   Background Tracking
                 </label>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Continue tracking location when app is in background
                 </p>
               </div>
@@ -357,18 +359,19 @@ const Settings = () => {
                 checked={backgroundTrackingEnabled}
                 onCheckedChange={setBackgroundTrackingEnabled}
                 disabled={!locationTrackingEnabled}
+                className="flex-shrink-0"
               />
             </div>
           </div>
         </Card>
 
         {/* Privacy Info */}
-        <Card className="p-6 bg-muted">
-          <div className="flex items-start gap-3">
-            <Radio className="w-5 h-5 text-muted-foreground mt-0.5" />
-            <div className="space-y-2 flex-1">
-              <h3 className="text-sm font-medium text-foreground">Privacy Notice</h3>
-              <p className="text-xs text-muted-foreground">
+        <Card className="p-4 sm:p-5 md:p-6 bg-muted">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <div className="space-y-1 sm:space-y-2 flex-1 min-w-0">
+              <h3 className="text-xs sm:text-sm font-medium text-foreground">Privacy Notice</h3>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">
                 Your location data is used solely to provide personalized recommendations and notifications. 
                 We never share your data with third parties without your explicit consent.
               </p>
@@ -380,17 +383,17 @@ const Settings = () => {
         <Button
           onClick={handleSaveSettings}
           disabled={isSaving}
-          className="w-full"
+          className="w-full text-sm sm:text-base"
           size="lg"
         >
           {isSaving ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 animate-spin" />
               Saving...
             </>
           ) : (
             <>
-              <Save className="w-4 h-4 mr-2" />
+              <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
               Save Settings
             </>
           )}
