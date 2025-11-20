@@ -436,288 +436,66 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       const mapInstance = map.current;
 
-      // Calculate center points for all neighborhoods to detect overlaps
-      const neighborhoodCenters = neighborhoods.map(n => ({
-        neighborhood: n,
-        center: [n.center_lng, n.center_lat] as [number, number],
-      }));
-
-      // Group neighborhoods that are too close together (within ~1km at zoom level)
-      const OVERLAP_THRESHOLD = 0.01; // ~1km in degrees
-      const neighborhoodGroups: Array<typeof neighborhoods> = [];
-      const processed = new Set<string>();
-
-      neighborhoods.forEach((neighborhood) => {
-        if (processed.has(neighborhood.id)) return;
-
-        const group = [neighborhood];
-        processed.add(neighborhood.id);
-
-        // Find other neighborhoods close to this one
-        neighborhoodCenters.forEach(({ neighborhood: other, center: otherCenter }) => {
-          if (processed.has(other.id)) return;
-          
-          const distance = Math.sqrt(
-            Math.pow(neighborhood.center_lng - other.center_lng, 2) +
-            Math.pow(neighborhood.center_lat - other.center_lat, 2)
-          );
-
-          if (distance < OVERLAP_THRESHOLD) {
-            group.push(other);
-            processed.add(other.id);
-          }
-        });
-
-        neighborhoodGroups.push(group);
-      });
-
-      // Add neighborhood boundaries and labels by group
-      neighborhoodGroups.forEach((group, groupIndex) => {
-        // For groups, create a single unified boundary combining all neighborhoods
-        // For single neighborhoods, show their original boundary
+      // Add neighborhood boundaries as polygons
+      neighborhoods.forEach((neighborhood, index) => {
+        const boundaryPoints = neighborhood.boundary_points as number[][];
         
-        if (group.length === 1) {
-          // Single neighborhood - show its original boundary
-          const neighborhood = group[0];
-          const boundaryPoints = neighborhood.boundary_points as number[][];
-          
-          // Convert to GeoJSON format (lng, lat)
-          const coordinates = boundaryPoints.map(point => [point[1], point[0]]);
-          // Close the polygon
-          coordinates.push(coordinates[0]);
+        // Convert to GeoJSON format (lng, lat)
+        const coordinates = boundaryPoints.map(point => [point[1], point[0]]);
+        // Close the polygon
+        coordinates.push(coordinates[0]);
 
-          const sourceId = `neighborhood-group-${groupIndex}`;
-          const fillLayerId = `neighborhood-fill-group-${groupIndex}`;
-          const lineLayerId = `neighborhood-line-group-${groupIndex}`;
+        const sourceId = `neighborhood-${neighborhood.id}`;
+        const fillLayerId = `neighborhood-fill-${neighborhood.id}`;
+        const lineLayerId = `neighborhood-line-${neighborhood.id}`;
 
-          // Add source
-          mapInstance.addSource(sourceId, {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              properties: {
-                name: neighborhood.name,
-                description: neighborhood.description,
-                groupIndex,
-                neighborhoods: [neighborhood.name],
-              },
-              geometry: {
-                type: 'Polygon',
-                coordinates: [coordinates],
-              },
-            },
-          });
-
-          // Add fill layer
-          mapInstance.addLayer({
-            id: fillLayerId,
-            type: 'fill',
-            source: sourceId,
-            paint: {
-              'fill-color': '#FF5722',
-              'fill-opacity': 0.1,
-            },
-          });
-
-          // Add border layer
-          mapInstance.addLayer({
-            id: lineLayerId,
-            type: 'line',
-            source: sourceId,
-            paint: {
-              'line-color': '#FF5722',
-              'line-width': 2,
-              'line-opacity': 0.5,
-            },
-          });
-
-          // Add click handler with popup
-          mapInstance.on('click', fillLayerId, (e: any) => {
-            const popupContent = `
-              <div style="padding: 8px; min-width: 200px;">
-                <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #FFFFFF;">
-                  ${neighborhood.name}
-                </h3>
-                ${neighborhood.description ? `
-                  <p style="margin: 0; font-size: 14px; color: #E0E0E0; line-height: 1.5;">
-                    ${neighborhood.description}
-                  </p>
-                ` : ''}
-              </div>
-            `;
-
-            new mapboxgl.Popup({
-              closeButton: true,
-              closeOnClick: true,
-              className: 'neighborhood-popup',
-              maxWidth: '300px'
-            })
-              .setLngLat(e.lngLat)
-              .setHTML(popupContent)
-              .addTo(mapInstance);
-          });
-
-          // Change cursor on hover
-          mapInstance.on('mouseenter', fillLayerId, () => {
-            if (map.current) {
-              map.current.getCanvas().style.cursor = 'pointer';
-            }
-          });
-
-          mapInstance.on('mouseleave', fillLayerId, () => {
-            if (map.current) {
-              map.current.getCanvas().style.cursor = '';
-            }
-          });
-        } else {
-          // Multiple neighborhoods - create a unified boundary from all points
-          const allPoints: [number, number][] = [];
-          
-          // Collect all boundary points from all neighborhoods in the group
-          group.forEach(neighborhood => {
-            const boundaryPoints = neighborhood.boundary_points as number[][];
-            boundaryPoints.forEach(point => {
-              allPoints.push([point[1], point[0]]); // [lng, lat]
-            });
-          });
-
-          // Create a convex hull of all points for a unified boundary
-          // Simple implementation: find the outermost points
-          const minLng = Math.min(...allPoints.map(p => p[0]));
-          const maxLng = Math.max(...allPoints.map(p => p[0]));
-          const minLat = Math.min(...allPoints.map(p => p[1]));
-          const maxLat = Math.max(...allPoints.map(p => p[1]));
-          
-          // Create a simple bounding polygon
-          const unifiedBoundary: [number, number][] = [
-            [minLng, minLat],
-            [maxLng, minLat],
-            [maxLng, maxLat],
-            [minLng, maxLat],
-            [minLng, minLat], // Close the polygon
-          ];
-
-          const sourceId = `neighborhood-group-${groupIndex}`;
-          const fillLayerId = `neighborhood-fill-group-${groupIndex}`;
-          const lineLayerId = `neighborhood-line-group-${groupIndex}`;
-
-          // Add source for unified boundary
-          mapInstance.addSource(sourceId, {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              properties: {
-                groupIndex,
-                neighborhoods: group.map(n => n.name),
-              },
-              geometry: {
-                type: 'Polygon',
-                coordinates: [unifiedBoundary],
-              },
-            },
-          });
-
-          // Add fill layer
-          mapInstance.addLayer({
-            id: fillLayerId,
-            type: 'fill',
-            source: sourceId,
-            paint: {
-              'fill-color': '#FF5722',
-              'fill-opacity': 0.1,
-            },
-          });
-
-          // Add border layer
-          mapInstance.addLayer({
-            id: lineLayerId,
-            type: 'line',
-            source: sourceId,
-            paint: {
-              'line-color': '#FF5722',
-              'line-width': 2,
-              'line-opacity': 0.5,
-            },
-          });
-
-          // Add click handler showing all neighborhoods in the group
-          mapInstance.on('click', fillLayerId, (e: any) => {
-            const groupNeighborhoods = group.map(n => `<li style="margin: 4px 0;">${n.name}</li>`).join('');
-
-            const popupContent = `
-              <div style="padding: 8px; min-width: 200px;">
-                <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #FFFFFF;">
-                  ${group.length} Neighborhoods
-                </h3>
-                <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #E0E0E0;">
-                  ${groupNeighborhoods}
-                </ul>
-              </div>
-            `;
-
-            new mapboxgl.Popup({
-              closeButton: true,
-              closeOnClick: true,
-              className: 'neighborhood-popup',
-              maxWidth: '300px'
-            })
-              .setLngLat(e.lngLat)
-              .setHTML(popupContent)
-              .addTo(mapInstance);
-          });
-
-          // Change cursor on hover
-          mapInstance.on('mouseenter', fillLayerId, () => {
-            if (map.current) {
-              map.current.getCanvas().style.cursor = 'pointer';
-            }
-          });
-
-          mapInstance.on('mouseleave', fillLayerId, () => {
-            if (map.current) {
-              map.current.getCanvas().style.cursor = '';
-            }
-          });
-        }
-
-        // Add a single label for the group at the centroid
-        const groupCenter = group.reduce(
-          (acc, n) => {
-            acc.lng += n.center_lng;
-            acc.lat += n.center_lat;
-            return acc;
-          },
-          { lng: 0, lat: 0 }
-        );
-        groupCenter.lng /= group.length;
-        groupCenter.lat /= group.length;
-
-        // Create a point source for the group label
-        const groupLabelSourceId = `neighborhood-group-label-${groupIndex}`;
-        mapInstance.addSource(groupLabelSourceId, {
+        // Add source
+        mapInstance.addSource(sourceId, {
           type: 'geojson',
           data: {
             type: 'Feature',
             properties: {
-              name: group.length > 1 
-                ? `${group.length} Neighborhoods`
-                : group[0].name,
+              name: neighborhood.name,
+              description: neighborhood.description,
             },
             geometry: {
-              type: 'Point',
-              coordinates: [groupCenter.lng, groupCenter.lat],
+              type: 'Polygon',
+              coordinates: [coordinates],
             },
           },
         });
 
-        // Add the label layer
+        // Add fill layer
         mapInstance.addLayer({
-          id: `neighborhood-label-group-${groupIndex}`,
+          id: fillLayerId,
+          type: 'fill',
+          source: sourceId,
+          paint: {
+            'fill-color': '#FF5722',
+            'fill-opacity': 0.1,
+          },
+        });
+
+        // Add border layer
+        mapInstance.addLayer({
+          id: lineLayerId,
+          type: 'line',
+          source: sourceId,
+          paint: {
+            'line-color': '#FF5722',
+            'line-width': 2,
+            'line-opacity': 0.5,
+          },
+        });
+
+        // Add neighborhood label
+        mapInstance.addLayer({
+          id: `neighborhood-label-${neighborhood.id}`,
           type: 'symbol',
-          source: groupLabelSourceId,
+          source: sourceId,
           layout: {
-            'text-field': ['get', 'name'],
-            'text-size': group.length > 1 ? 15 : 14,
+            'text-field': neighborhood.name,
+            'text-size': 14,
             'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
           },
           paint: {
@@ -725,6 +503,24 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             'text-halo-color': '#1a1f2e',
             'text-halo-width': 2,
           },
+        });
+
+        // Add click handler for neighborhoods
+        mapInstance.on('click', fillLayerId, (e: any) => {
+          // Click handling without popup
+        });
+
+        // Change cursor on hover
+        mapInstance.on('mouseenter', fillLayerId, () => {
+          if (map.current) {
+            map.current.getCanvas().style.cursor = 'pointer';
+          }
+        });
+
+        mapInstance.on('mouseleave', fillLayerId, () => {
+          if (map.current) {
+            map.current.getCanvas().style.cursor = '';
+          }
         });
       });
     } catch (error) {
@@ -761,7 +557,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         justify-content: center;
       `;
 
-      // Create inner pin element - vertical, no rotation
+      // Create inner pin element that will be rotated
       const pinEl = document.createElement('div');
       pinEl.style.cssText = `
         width: 44px;
@@ -781,6 +577,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           inset 0 -1px 1px rgba(0, 0, 0, 0.2);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         filter: drop-shadow(0 4px 12px ${color}40);
+        transform: rotate(-45deg);
       `;
 
       // Add pulsing animation for high activity
@@ -788,9 +585,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         pinEl.style.animation = "pulse 2s ease-in-out infinite";
       }
 
-      // Add modern location pin icon (no rotation needed)
+      // Add modern location pin icon
       pinEl.innerHTML = `
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg);">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
@@ -800,7 +597,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       // Enhanced hover effects on the pin element
       el.addEventListener("mouseenter", () => {
-        pinEl.style.transform = "scale(1.2)";
+        pinEl.style.transform = "rotate(-45deg) scale(1.2)";
         pinEl.style.boxShadow = `
           0 12px 48px ${color}50,
           0 0 0 6px ${color}20,
@@ -811,7 +608,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       });
 
       el.addEventListener("mouseleave", () => {
-        pinEl.style.transform = "scale(1)";
+        pinEl.style.transform = "rotate(-45deg)";
         pinEl.style.boxShadow = `
           0 8px 32px ${color}30,
           0 0 0 4px ${color}10,
