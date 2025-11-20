@@ -9,10 +9,20 @@ export const useMapboxToken = () => {
   useEffect(() => {
     const fetchToken = async () => {
       try {
+        console.log('Fetching Mapbox token...');
         const { data, error } = await supabase.functions.invoke("get-mapbox-token");
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching Mapbox token:', error);
+          throw error;
+        }
         
+        if (!data || !data.token) {
+          console.error('No token received from edge function');
+          throw new Error('No token received');
+        }
+        
+        console.log('Mapbox token fetched successfully');
         setToken(data.token);
       } catch (err) {
         console.error("Error fetching Mapbox token:", err);
