@@ -9,6 +9,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import type { Venue } from "./Heatmap";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
+import jetIcon from "@/assets/jet-icon.png";
 
 type Deal = Database['public']['Tables']['deals']['Row'];
 
@@ -51,7 +52,12 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Logo */}
-          <div className="flex items-center flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <img 
+              src={jetIcon} 
+              alt="JET" 
+              className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 object-contain"
+            />
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-wider">
               JET
             </h1>
