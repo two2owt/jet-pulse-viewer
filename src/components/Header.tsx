@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { SearchResults } from "./SearchResults";
+import { ThemeToggle } from "./ThemeToggle";
 import type { Venue } from "./Heatmap";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
@@ -81,6 +82,7 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-3 flex-shrink-0">
+            <ThemeToggle />
             <Avatar className="w-10 h-10 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all">
               <AvatarImage src="" />
               <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold">
