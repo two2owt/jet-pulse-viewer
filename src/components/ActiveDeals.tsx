@@ -201,6 +201,9 @@ export const ActiveDeals = ({ selectedCity }: ActiveDealsProps) => {
                     src={deal.image_url} 
                     alt={deal.venue_name}
                     className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                    responsive={true}
+                    responsiveSizes={['thumbnail', 'small']}
+                    sizesConfig={{ mobile: '64px', tablet: '64px', desktop: '64px' }}
                     fallback={
                       <div className="w-16 h-16 flex items-center justify-center text-3xl flex-shrink-0">
                         {getDealIcon(deal.deal_type)}
