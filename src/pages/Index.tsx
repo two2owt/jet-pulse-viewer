@@ -21,7 +21,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { CITIES, type City } from "@/types/cities";
 import { Zap, Navigation, Map as MapIcon, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import jetLogo from "@/assets/jet-logo.png";
+import jetLogo from "@/assets/jet-logo.webp";
 import {
   Dialog,
   DialogContent,
