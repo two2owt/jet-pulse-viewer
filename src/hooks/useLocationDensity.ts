@@ -31,9 +31,10 @@ export const useLocationDensity = (filters: DensityFilters = {}) => {
       if (filters.hourOfDay !== undefined) params.append('hour_of_day', filters.hourOfDay.toString());
       if (filters.dayOfWeek !== undefined) params.append('day_of_week', filters.dayOfWeek.toString());
 
-      const { data, error: functionError } = await supabase.functions.invoke('get-location-density', {
-        method: 'GET',
-      });
+      const queryString = params.toString();
+      const path = queryString ? `get-location-density?${queryString}` : 'get-location-density';
+
+      const { data, error: functionError } = await supabase.functions.invoke(path);
 
       if (functionError) throw functionError;
       
