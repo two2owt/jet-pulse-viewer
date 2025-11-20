@@ -654,9 +654,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                            deal.deal_type === 'drink' ? '#4ECDC4' : 
                            deal.deal_type === 'event' ? '#9B59B6' : 
                            '#F7B731';
-          const icon = deal.deal_type === 'food' ? '🍕' :
-                       deal.deal_type === 'drink' ? '🍹' :
-                       deal.deal_type === 'event' ? '🎉' : '⭐';
 
           // Create marker element with animations
           const markerEl = document.createElement('div');
@@ -681,12 +678,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             z-index: 10;
             position: relative;
           `;
-          mainMarker.innerHTML = icon;
 
           markerEl.appendChild(mainMarker);
 
@@ -697,7 +692,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           }).setHTML(`
             <div style="padding: 12px; background: linear-gradient(135deg, #1f2937 0%, #111827 100%); border-radius: 12px; border: 2px solid ${dealColor}; min-width: 200px;">
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <span style="font-size: 24px;">${icon}</span>
                 <span style="background: ${dealColor}30; color: ${dealColor}; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; text-transform: uppercase;">${deal.deal_type}</span>
               </div>
               <h3 style="margin: 0 0 6px 0; font-size: 15px; font-weight: bold; color: white;">${deal.title}</h3>
