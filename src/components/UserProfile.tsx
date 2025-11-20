@@ -417,93 +417,158 @@ export const UserProfile = () => {
           <h3 className="text-lg font-semibold text-foreground">Social Media</h3>
         </div>
 
-        <div className="space-y-3 sm:space-y-4">
-          <div className="space-y-1.5 sm:space-y-2">
-            <Label htmlFor="instagram" className="flex items-center gap-2 text-xs sm:text-sm">
-              <Instagram className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Instagram
-            </Label>
-            <Input
-              id="instagram"
-              type="url"
-              value={instagramUrl}
-              onChange={(e) => setInstagramUrl(e.target.value)}
-              placeholder="https://instagram.com/yourprofile"
-              className="bg-background text-xs sm:text-sm"
-              disabled={!isEditing}
-            />
+        {!isEditing && (instagramUrl || twitterUrl || facebookUrl || linkedinUrl || tiktokUrl) && (
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            {instagramUrl && (
+              <a
+                href={instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 text-white hover:opacity-90 transition-opacity text-xs sm:text-sm font-medium"
+              >
+                <Instagram className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                Instagram
+              </a>
+            )}
+            
+            {twitterUrl && (
+              <a
+                href={twitterUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white hover:opacity-90 transition-opacity text-xs sm:text-sm font-medium"
+              >
+                <Twitter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                Twitter/X
+              </a>
+            )}
+            
+            {facebookUrl && (
+              <a
+                href={facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 text-white hover:opacity-90 transition-opacity text-xs sm:text-sm font-medium"
+              >
+                <Facebook className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                Facebook
+              </a>
+            )}
+            
+            {linkedinUrl && (
+              <a
+                href={linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 text-white hover:opacity-90 transition-opacity text-xs sm:text-sm font-medium"
+              >
+                <Linkedin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                LinkedIn
+              </a>
+            )}
+            
+            {tiktokUrl && (
+              <a
+                href={tiktokUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-gradient-to-br from-black to-gray-900 text-white hover:opacity-90 transition-opacity text-xs sm:text-sm font-medium"
+              >
+                <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                TikTok
+              </a>
+            )}
           </div>
+        )}
 
-          <div className="space-y-1.5 sm:space-y-2">
-            <Label htmlFor="twitter" className="flex items-center gap-2 text-xs sm:text-sm">
-              <Twitter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Twitter/X
-            </Label>
-            <Input
-              id="twitter"
-              type="url"
-              value={twitterUrl}
-              onChange={(e) => setTwitterUrl(e.target.value)}
-              placeholder="https://twitter.com/yourprofile"
-              className="bg-background text-xs sm:text-sm"
-              disabled={!isEditing}
-            />
-          </div>
+        {!isEditing && !(instagramUrl || twitterUrl || facebookUrl || linkedinUrl || tiktokUrl) && (
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            No social media accounts connected yet. Click Edit to add your profiles.
+          </p>
+        )}
 
-          <div className="space-y-1.5 sm:space-y-2">
-            <Label htmlFor="facebook" className="flex items-center gap-2 text-xs sm:text-sm">
-              <Facebook className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Facebook
-            </Label>
-            <Input
-              id="facebook"
-              type="url"
-              value={facebookUrl}
-              onChange={(e) => setFacebookUrl(e.target.value)}
-              placeholder="https://facebook.com/yourprofile"
-              className="bg-background text-xs sm:text-sm"
-              disabled={!isEditing}
-            />
-          </div>
+        {isEditing && (
+          <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="instagram" className="flex items-center gap-2 text-xs sm:text-sm">
+                <Instagram className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                Instagram
+              </Label>
+              <Input
+                id="instagram"
+                type="url"
+                value={instagramUrl}
+                onChange={(e) => setInstagramUrl(e.target.value)}
+                placeholder="https://instagram.com/yourprofile"
+                className="bg-background text-xs sm:text-sm"
+              />
+            </div>
 
-          <div className="space-y-1.5 sm:space-y-2">
-            <Label htmlFor="linkedin" className="flex items-center gap-2 text-xs sm:text-sm">
-              <Linkedin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              LinkedIn
-            </Label>
-            <Input
-              id="linkedin"
-              type="url"
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              placeholder="https://linkedin.com/in/yourprofile"
-              className="bg-background text-xs sm:text-sm"
-              disabled={!isEditing}
-            />
-          </div>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="twitter" className="flex items-center gap-2 text-xs sm:text-sm">
+                <Twitter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                Twitter/X
+              </Label>
+              <Input
+                id="twitter"
+                type="url"
+                value={twitterUrl}
+                onChange={(e) => setTwitterUrl(e.target.value)}
+                placeholder="https://twitter.com/yourprofile"
+                className="bg-background text-xs sm:text-sm"
+              />
+            </div>
 
-          <div className="space-y-1.5 sm:space-y-2">
-            <Label htmlFor="tiktok" className="flex items-center gap-2 text-xs sm:text-sm">
-              <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              TikTok
-            </Label>
-            <Input
-              id="tiktok"
-              type="url"
-              value={tiktokUrl}
-              onChange={(e) => setTiktokUrl(e.target.value)}
-              placeholder="https://tiktok.com/@yourprofile"
-              className="bg-background text-xs sm:text-sm"
-              disabled={!isEditing}
-            />
-          </div>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="facebook" className="flex items-center gap-2 text-xs sm:text-sm">
+                <Facebook className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                Facebook
+              </Label>
+              <Input
+                id="facebook"
+                type="url"
+                value={facebookUrl}
+                onChange={(e) => setFacebookUrl(e.target.value)}
+                placeholder="https://facebook.com/yourprofile"
+                className="bg-background text-xs sm:text-sm"
+              />
+            </div>
 
-          {isEditing && (
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="linkedin" className="flex items-center gap-2 text-xs sm:text-sm">
+                <Linkedin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                LinkedIn
+              </Label>
+              <Input
+                id="linkedin"
+                type="url"
+                value={linkedinUrl}
+                onChange={(e) => setLinkedinUrl(e.target.value)}
+                placeholder="https://linkedin.com/in/yourprofile"
+                className="bg-background text-xs sm:text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="tiktok" className="flex items-center gap-2 text-xs sm:text-sm">
+                <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                TikTok
+              </Label>
+              <Input
+                id="tiktok"
+                type="url"
+                value={tiktokUrl}
+                onChange={(e) => setTiktokUrl(e.target.value)}
+                placeholder="https://tiktok.com/@yourprofile"
+                className="bg-background text-xs sm:text-sm"
+              />
+            </div>
+
             <p className="text-[10px] sm:text-xs text-muted-foreground">
               Enter the full URL to your social media profiles (optional)
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <Separator />
