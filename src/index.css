@@ -99,6 +99,61 @@ All colors MUST be HSL.
 
     --shadow-card: 0 15px 40px -15px hsl(0 0% 0% / 0.7);
   }
+
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 0 0% 6%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 6%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 6%;
+
+    --primary: 24 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 320 80% 55%;
+
+    --secondary: 0 0% 92%;
+    --secondary-foreground: 0 0% 10%;
+
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 320 80% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 88%;
+    --input: 0 0% 92%;
+    --ring: 24 100% 50%;
+
+    --hot: 24 100% 50%;
+    --warm: 14 100% 52%;
+    --cool: 0 0% 55%;
+    --cold: 0 0% 70%;
+
+    --gradient-hot: linear-gradient(135deg, hsl(24 100% 50%), hsl(320 80% 55%));
+    --gradient-warm: linear-gradient(135deg, hsl(14 100% 52%), hsl(24 100% 50%));
+    --gradient-cool: linear-gradient(135deg, hsl(0 0% 55%), hsl(0 0% 70%));
+    --gradient-primary: linear-gradient(135deg, hsl(24 100% 50%), hsl(320 80% 55%));
+    --gradient-jet: linear-gradient(135deg, hsl(0 0% 98%), hsl(0 0% 92%));
+    
+    --shadow-glow: 0 0 45px hsl(24 100% 50% / 0.25);
+    --shadow-card: 0 8px 24px -8px hsl(0 0% 0% / 0.15);
+    --shadow-jet: 0 8px 32px hsl(320 80% 55% / 0.15);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 6%;
+    --sidebar-primary: 24 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 92%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-ring: 24 100% 50%;
+  }
 }
 
 @layer base {
