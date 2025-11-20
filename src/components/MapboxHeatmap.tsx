@@ -103,32 +103,30 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       'bottom-right'
     );
 
-    // Add navigation control for desktop
-    if (!isMobile) {
-      map.current.addControl(
-        new mapboxgl.NavigationControl({
-          visualizePitch: true,
-          showCompass: true,
-        }),
-        'top-right'
-      );
-    }
+    // Add navigation control
+    map.current.addControl(
+      new mapboxgl.NavigationControl({
+        visualizePitch: true,
+        showCompass: true,
+      }),
+      'top-right'
+    );
 
-      // Ensure map resizes to container after initialization
-      map.current.on('load', () => {
-        console.log('MapboxHeatmap: Map loaded successfully');
-        setTimeout(() => {
-          if (map.current) {
-            map.current.resize();
-            setMapLoaded(true);
-          }
-        }, 100);
-      });
+    // Ensure map resizes to container after initialization
+    map.current.on('load', () => {
+      console.log('MapboxHeatmap: Map loaded successfully');
+      setTimeout(() => {
+        if (map.current) {
+          map.current.resize();
+          setMapLoaded(true);
+        }
+      }, 100);
+    });
 
-      // Add error handler
-      map.current.on('error', (e) => {
-        console.error('MapboxHeatmap: Map error', e.error);
-      });
+    // Add error handler
+    map.current.on('error', (e) => {
+      console.error('MapboxHeatmap: Map error', e.error);
+    });
     } catch (error) {
       console.error('MapboxHeatmap: Failed to initialize map', error);
     }
@@ -668,7 +666,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       />
 
       {/* City Selector */}
-      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 md:top-4 md:left-4 z-10">
+      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 max-w-[calc(100vw-80px)] sm:max-w-none">
         <Select
           value={selectedCity.id}
           onValueChange={(cityId) => {
@@ -676,13 +674,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             if (city) onCityChange(city);
           }}
         >
-          <SelectTrigger className="bg-card/90 backdrop-blur-xl border-border w-auto text-xs sm:text-sm">
+          <SelectTrigger className="bg-card/95 backdrop-blur-xl border-border w-auto text-xs sm:text-sm shadow-lg">
             <div className="flex items-center gap-1.5 sm:gap-2">
               <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
               <span className="font-semibold">{selectedCity.name}, {selectedCity.state}</span>
             </div>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="z-50">
             {CITIES.map((city) => (
               <SelectItem key={city.id} value={city.id}>
                 {city.name}, {city.state}
@@ -693,20 +691,20 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Live Indicator */}
-      <div className="absolute top-2 right-2 sm:top-3 sm:right-14 md:top-4 md:right-16 z-10">
-        <div className="bg-card/90 backdrop-blur-xl px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 rounded-full border border-border flex items-center gap-1.5 sm:gap-2">
+      <div className="absolute top-16 left-3 sm:top-4 sm:left-auto sm:right-4 z-10">
+        <div className="bg-card/95 backdrop-blur-xl px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-border flex items-center gap-1.5 sm:gap-2 shadow-lg">
           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full pulse-glow" />
           <p className="text-xs sm:text-sm font-semibold text-foreground">Live</p>
         </div>
       </div>
 
       {/* Density Layer Controls */}
-      <div className="absolute bottom-16 right-2 sm:bottom-20 sm:right-3 md:bottom-4 md:right-16 z-10 space-y-2">
+      <div className="absolute bottom-20 right-3 sm:bottom-4 sm:right-4 z-10 space-y-2 max-w-[calc(100vw-24px)] sm:max-w-[280px]">
         <Button
           onClick={() => setShowDensityLayer(!showDensityLayer)}
           variant={showDensityLayer ? "default" : "secondary"}
           size="sm"
-          className="bg-card/90 backdrop-blur-xl border border-border text-xs sm:text-sm"
+          className="bg-card/95 backdrop-blur-xl border border-border text-xs sm:text-sm shadow-lg w-full"
         >
           <Layers className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
           <span className="hidden sm:inline">{showDensityLayer ? "Hide" : "Show"} Heat Layer</span>
@@ -714,7 +712,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Button>
 
         {showDensityLayer && (
-          <div className="bg-card/90 backdrop-blur-xl rounded-xl border border-border p-2 sm:p-3 space-y-2 max-w-[180px] sm:max-w-none">
+          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-3 sm:p-4 space-y-2 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-semibold text-foreground">Heat Filters</p>
               {densityLoading && (
@@ -805,7 +803,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Legend */}
-      <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 md:bottom-4 md:left-4 bg-card/90 backdrop-blur-xl px-2 py-2 sm:px-3 sm:py-2.5 md:px-4 md:py-3 rounded-xl border border-border z-10">
+      <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-card/95 backdrop-blur-xl px-3 py-2 sm:px-4 sm:py-3 rounded-xl border border-border z-10 shadow-lg max-w-[calc(100vw-24px)] sm:max-w-none">
         {showDensityLayer ? (
           <>
             <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground mb-1.5 sm:mb-2">User Density</p>
