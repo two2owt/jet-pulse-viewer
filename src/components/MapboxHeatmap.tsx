@@ -607,6 +607,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         align-items: center;
         justify-content: center;
         position: relative;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform, opacity;
       `;
 
       // Create vertical pin element
@@ -627,13 +629,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           0 0 0 4px ${color}10,
           inset 0 1px 1px rgba(255, 255, 255, 0.3),
           inset 0 -1px 1px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.4s ease-out, height 0.4s ease-out;
         filter: drop-shadow(0 4px 12px ${color}40);
         transform: rotate(0deg);
         position: absolute;
         top: 0;
         left: 50%;
         transform: translateX(-50%);
+        will-change: transform, width, height;
       `;
 
       // Add pulsing animation for high activity
@@ -641,9 +644,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         pinEl.style.animation = "pulse 2s ease-in-out infinite";
       }
 
-      // Add vertical location pin icon
+      // Add vertical location pin icon with transition
       pinEl.innerHTML = `
-        <svg width="${markerSize * 0.5}" height="${markerSize * 0.5}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="${markerSize * 0.5}" height="${markerSize * 0.5}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.4s ease-out;">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
@@ -698,26 +701,78 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     updateMarkers();
   }, [venues, mapLoaded]);
 
-  // Add zoom event listener to update markers dynamically
+  // Add smooth zoom and pan transitions
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
     const mapInstance = map.current;
     
-    // Debounce zoom updates to avoid too many re-renders
-    let zoomTimeout: NodeJS.Timeout;
-    const handleZoomEnd = () => {
-      clearTimeout(zoomTimeout);
-      zoomTimeout = setTimeout(() => {
-        updateMarkers();
-      }, 150);
+    // Smooth resize during zoom with staggered animation
+    const handleZoom = () => {
+      const currentZoom = mapInstance.getZoom();
+      
+      let zoomFactor: number;
+      if (currentZoom < 8) {
+        zoomFactor = Math.max(0.3, currentZoom / 20);
+      } else if (currentZoom < 12) {
+        zoomFactor = 0.4 + ((currentZoom - 8) / 4) * 0.4;
+      } else {
+        zoomFactor = 0.8 + Math.min(0.5, (currentZoom - 12) / 8);
+      }
+      
+      const newBaseSize = 36 * zoomFactor;
+      
+      markersRef.current.forEach((marker, index) => {
+        const el = marker.getElement();
+        if (el) {
+          // Add staggered delay for smoother animation
+          const delay = (index % 20) * 10; // Stagger in groups
+          setTimeout(() => {
+            const pinEl = el.querySelector('div') as HTMLElement;
+            if (pinEl) {
+              el.style.width = `${newBaseSize}px`;
+              el.style.height = `${newBaseSize * 1.3}px`;
+              pinEl.style.width = `${newBaseSize}px`;
+              pinEl.style.height = `${newBaseSize}px`;
+              
+              const svg = pinEl.querySelector('svg');
+              if (svg) {
+                svg.setAttribute('width', `${newBaseSize * 0.5}`);
+                svg.setAttribute('height', `${newBaseSize * 0.5}`);
+              }
+            }
+          }, delay);
+        }
+      });
     };
 
-    mapInstance.on('zoomend', handleZoomEnd);
+    // Add fade effect during move
+    const handleMoveStart = () => {
+      markersRef.current.forEach((marker) => {
+        const el = marker.getElement();
+        if (el) {
+          el.style.opacity = '0.7';
+        }
+      });
+    };
+
+    const handleMoveEnd = () => {
+      markersRef.current.forEach((marker) => {
+        const el = marker.getElement();
+        if (el) {
+          el.style.opacity = '1';
+        }
+      });
+    };
+
+    mapInstance.on('zoom', handleZoom);
+    mapInstance.on('movestart', handleMoveStart);
+    mapInstance.on('moveend', handleMoveEnd);
     
     return () => {
-      clearTimeout(zoomTimeout);
-      mapInstance.off('zoomend', handleZoomEnd);
+      mapInstance.off('zoom', handleZoom);
+      mapInstance.off('movestart', handleMoveStart);
+      mapInstance.off('moveend', handleMoveEnd);
     };
   }, [mapLoaded, venues]);
 
