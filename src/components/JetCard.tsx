@@ -1,8 +1,9 @@
 import { memo } from "react";
-import { Clock, MapPin, Users, Star, TrendingUp, X } from "lucide-react";
+import { Clock, MapPin, Users, Star, TrendingUp, X, Share2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { OptimizedImage } from "./ui/optimized-image";
 import { glideHaptic } from "@/lib/haptics";
+import { toast } from "sonner";
 import type { Venue } from "./Heatmap";
 
 interface JetCardProps {
@@ -23,6 +24,44 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
   const handleGetDirections = async () => {
     await glideHaptic(); // Smooth gliding haptic feedback
     onGetDirections();
+  };
+
+  const handleShare = async () => {
+    await glideHaptic(); // Smooth gliding haptic feedback
+    
+    const shareData = {
+      title: venue.name,
+      text: venue.address 
+        ? `Check out ${venue.name} at ${venue.address}!`
+        : `Check out ${venue.name} in ${venue.neighborhood}!`,
+      url: venue.address
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}`
+        : `https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`
+    };
+
+    try {
+      if (navigator.share) {
+        // Use native share API on mobile devices
+        await navigator.share(shareData);
+        toast.success("Shared successfully!", {
+          description: `${venue.name} shared with others`
+        });
+      } else {
+        // Fallback for desktop - copy to clipboard
+        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+        await navigator.clipboard.writeText(shareText);
+        toast.success("Copied to clipboard!", {
+          description: "Share link copied - paste it anywhere"
+        });
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Error sharing:', error);
+        toast.error("Couldn't share", {
+          description: "Please try again"
+        });
+      }
+    }
   };
 
 
@@ -121,13 +160,23 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
           </div>
         </div>
 
-        {/* Action Button */}
-        <Button 
-          onClick={handleGetDirections}
-          className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 text-primary-foreground font-semibold py-6 rounded-xl shadow-[var(--shadow-glow)] transition-all duration-300 hover-scale"
-        >
-          Get Directions
-        </Button>
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button 
+            onClick={handleShare}
+            variant="outline"
+            className="w-full border-border/60 hover:border-primary/60 hover:bg-primary/5 font-semibold py-6 rounded-xl transition-all duration-300 hover-scale"
+          >
+            <Share2 className="w-4 h-4 mr-2" />
+            Share
+          </Button>
+          <Button 
+            onClick={handleGetDirections}
+            className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 text-primary-foreground font-semibold py-6 rounded-xl shadow-[var(--shadow-glow)] transition-all duration-300 hover-scale"
+          >
+            Get Directions
+          </Button>
+        </div>
       </div>
     </div>
   );
