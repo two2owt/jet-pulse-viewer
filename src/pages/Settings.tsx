@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor } from "lucide-react";
+import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useTheme } from "next-themes";
 import { ReportIssueDialog } from "@/components/ReportIssueDialog";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const preferencesSchema = z.object({
   notifications_enabled: z.boolean(),
@@ -28,17 +29,21 @@ interface UserPreferences {
 const Settings = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { isRegistered: isPushRegistered, initializePushNotifications, unregister: unregisterPush } = usePushNotifications();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(false);
   const [locationTrackingEnabled, setLocationTrackingEnabled] = useState(false);
   const [backgroundTrackingEnabled, setBackgroundTrackingEnabled] = useState(true);
 
   useEffect(() => {
     loadPreferences();
-  }, []);
+    // Check if push notifications are already registered
+    setPushNotificationsEnabled(isPushRegistered);
+  }, [isPushRegistered]);
 
   const loadPreferences = async () => {
     try {
@@ -142,6 +147,23 @@ const Settings = () => {
     }
   };
 
+  const handlePushNotificationToggle = async (enabled: boolean) => {
+    try {
+      if (enabled) {
+        await initializePushNotifications();
+        setPushNotificationsEnabled(true);
+        toast.success('Push notifications enabled');
+      } else {
+        await unregisterPush();
+        setPushNotificationsEnabled(false);
+        toast.success('Push notifications disabled');
+      }
+    } catch (error) {
+      console.error('Error toggling push notifications:', error);
+      toast.error('Failed to update push notification settings');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -221,16 +243,36 @@ const Settings = () => {
             <div className="flex items-center justify-between gap-3">
               <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
                 <label htmlFor="notifications" className="text-xs sm:text-sm font-medium text-foreground block">
-                  Push Notifications
+                  App Notifications
                 </label>
                 <p className="text-[10px] sm:text-xs text-muted-foreground">
-                  Receive notifications about deals and events near you
+                  Show in-app notifications about deals and events
                 </p>
               </div>
               <Switch
                 id="notifications"
                 checked={notificationsEnabled}
                 onCheckedChange={setNotificationsEnabled}
+                className="flex-shrink-0"
+              />
+            </div>
+
+            <Separator className="my-2" />
+
+            <div className="flex items-center justify-between gap-3">
+              <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
+                <label htmlFor="push-notifications" className="text-xs sm:text-sm font-medium text-foreground flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5" />
+                  Native Push Notifications
+                </label>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
+                  Receive notifications even when the app is closed
+                </p>
+              </div>
+              <Switch
+                id="push-notifications"
+                checked={pushNotificationsEnabled}
+                onCheckedChange={handlePushNotificationToggle}
                 className="flex-shrink-0"
               />
             </div>
