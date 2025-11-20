@@ -93,6 +93,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       bearing: 0,
       antialias: true,
       attributionControl: false, // We'll add it back with custom position
+      // Optimize touch handling for better scroll compatibility
+      cooperativeGestures: isMobile, // Require ctrl/cmd + scroll to zoom on mobile
+      touchZoomRotate: true,
+      touchPitch: !isMobile, // Disable pitch gestures on mobile to reduce conflicts
+      dragRotate: !isMobile, // Disable rotation drag on mobile
     });
 
     // Add attribution control in a better position
@@ -797,7 +802,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           width: '100%', 
           height: '100%',
           minHeight: isMobile ? '100%' : '500px',
-          touchAction: 'pan-x pan-y'
+          // Optimize touch handling - allow map pan but don't block page scroll
+          touchAction: isMobile ? 'pan-y pinch-zoom' : 'none',
         }} 
       />
 

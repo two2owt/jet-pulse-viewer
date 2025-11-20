@@ -218,6 +218,10 @@ const Index = () => {
           <div 
             ref={containerRef}
             className="relative h-[calc(100vh-8rem)] sm:h-[calc(100vh-10rem)] md:h-[calc(100vh-12rem)] overflow-y-auto overflow-x-hidden -mx-3 sm:-mx-4 md:-mx-6"
+            style={{ 
+              WebkitOverflowScrolling: 'touch',
+              touchAction: 'pan-y',
+            }}
           >
             {/* Pull to Refresh Indicator */}
             {(pullDistance > 0 || isRefreshing) && (
