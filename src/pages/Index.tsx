@@ -1,17 +1,16 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Heatmap, type Venue } from "@/components/Heatmap";
-import { MapboxHeatmap } from "@/components/MapboxHeatmap";
+import { type Venue } from "@/components/Heatmap";
 import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationCard, type Notification } from "@/components/NotificationCard";
-import { AuthButton } from "@/components/AuthButton";
-import { ActiveDeals } from "@/components/ActiveDeals";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { UserProfile } from "@/components/UserProfile";
-import { ExploreTab } from "@/components/ExploreTab";
 import { Header } from "@/components/Header";
+
+// Lazy load heavy components
+const MapboxHeatmap = lazy(() => import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap })));
+const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
+const ExploreTab = lazy(() => import("@/components/ExploreTab").then(m => ({ default: m.ExploreTab })));
 
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
@@ -32,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { NotificationSkeleton } from "@/components/skeletons/NotificationSkeleton";
+import { MapSkeleton } from "@/components/skeletons/MapSkeleton";
 
 const mockVenues: Venue[] = [
   { id: "1", name: "Rooftop 210", lat: 35.220, lng: -80.840, activity: 92, category: "Bar", neighborhood: "South End" },
@@ -258,13 +258,22 @@ const Index = () => {
                 </div>
               )}
               {!mapboxLoading && !mapboxError && mapboxToken && (
-              <MapboxHeatmap 
-                onVenueSelect={handleVenueSelect} 
-                venues={mockVenues} 
-                mapboxToken={mapboxToken}
-                selectedCity={selectedCity}
-                onCityChange={handleCityChange}
-              />
+              <Suspense fallback={
+                <div className="h-full flex items-center justify-center bg-card">
+                  <div className="text-center space-y-3 sm:space-y-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-xs sm:text-sm text-muted-foreground">Loading map...</p>
+                  </div>
+                </div>
+              }>
+                <MapboxHeatmap 
+                  onVenueSelect={handleVenueSelect} 
+                  venues={mockVenues} 
+                  mapboxToken={mapboxToken}
+                  selectedCity={selectedCity}
+                  onCityChange={handleCityChange}
+                />
+              </Suspense>
               )}
             </div>
 
@@ -320,13 +329,31 @@ const Index = () => {
 
         {activeTab === "explore" && (
           <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
-            <ExploreTab onVenueSelect={handleVenueSelect} />
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-96">
+                <div className="text-center space-y-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+                  <p className="text-sm text-muted-foreground">Loading explore...</p>
+                </div>
+              </div>
+            }>
+              <ExploreTab onVenueSelect={handleVenueSelect} />
+            </Suspense>
           </div>
         )}
 
         {activeTab === "profile" && (
           <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 animate-fade-in px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
-            <UserProfile />
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-96">
+                <div className="text-center space-y-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+                  <p className="text-sm text-muted-foreground">Loading profile...</p>
+                </div>
+              </div>
+            }>
+              <UserProfile />
+            </Suspense>
           </div>
         )}
       </main>
