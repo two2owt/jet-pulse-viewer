@@ -505,9 +505,32 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           },
         });
 
-        // Add click handler for neighborhoods
+        // Add click handler for neighborhoods with popup
         mapInstance.on('click', fillLayerId, (e: any) => {
-          // Click handling without popup
+          // Create popup content
+          const popupContent = `
+            <div style="padding: 8px; min-width: 200px;">
+              <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #FFFFFF;">
+                ${neighborhood.name}
+              </h3>
+              ${neighborhood.description ? `
+                <p style="margin: 0; font-size: 14px; color: #E0E0E0; line-height: 1.5;">
+                  ${neighborhood.description}
+                </p>
+              ` : ''}
+            </div>
+          `;
+
+          // Create and show popup
+          new mapboxgl.Popup({
+            closeButton: true,
+            closeOnClick: true,
+            className: 'neighborhood-popup',
+            maxWidth: '300px'
+          })
+            .setLngLat(e.lngLat)
+            .setHTML(popupContent)
+            .addTo(mapInstance);
         });
 
         // Change cursor on hover
@@ -557,7 +580,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         justify-content: center;
       `;
 
-      // Create inner pin element that will be rotated
+      // Create inner pin element - vertical, no rotation
       const pinEl = document.createElement('div');
       pinEl.style.cssText = `
         width: 44px;
@@ -577,7 +600,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           inset 0 -1px 1px rgba(0, 0, 0, 0.2);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         filter: drop-shadow(0 4px 12px ${color}40);
-        transform: rotate(-45deg);
       `;
 
       // Add pulsing animation for high activity
@@ -585,9 +607,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         pinEl.style.animation = "pulse 2s ease-in-out infinite";
       }
 
-      // Add modern location pin icon
+      // Add modern location pin icon (no rotation needed)
       pinEl.innerHTML = `
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
@@ -597,7 +619,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       // Enhanced hover effects on the pin element
       el.addEventListener("mouseenter", () => {
-        pinEl.style.transform = "rotate(-45deg) scale(1.2)";
+        pinEl.style.transform = "scale(1.2)";
         pinEl.style.boxShadow = `
           0 12px 48px ${color}50,
           0 0 0 6px ${color}20,
@@ -608,7 +630,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       });
 
       el.addEventListener("mouseleave", () => {
-        pinEl.style.transform = "rotate(-45deg)";
+        pinEl.style.transform = "scale(1)";
         pinEl.style.boxShadow = `
           0 8px 32px ${color}30,
           0 0 0 4px ${color}10,
