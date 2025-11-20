@@ -834,8 +834,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Select>
       </div>
 
-      {/* Live Indicator - Top Right below nav controls */}
-      <div className="absolute top-20 right-3 sm:top-20 sm:right-4 z-10">
+      {/* Live Indicator - Top Right above nav controls */}
+      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
         <div className="bg-card/95 backdrop-blur-xl px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-border flex items-center gap-1.5 sm:gap-2 shadow-lg">
           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full pulse-glow" />
           <p className="text-xs sm:text-sm font-semibold text-foreground">Live</p>
