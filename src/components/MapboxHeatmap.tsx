@@ -545,16 +545,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       
       const color = getActivityColor(venue.activity);
 
-      // Create marker container
-      const container = document.createElement("div");
-      container.className = "venue-marker-container";
-      container.style.cssText = `
-        width: 44px;
-        height: 44px;
-        cursor: pointer;
-      `;
-
-      // Create main marker with glassmorphic pin shape
+      // Create marker element with glassmorphic pin shape
       const el = document.createElement("div");
       el.className = "venue-marker";
       el.style.cssText = `
@@ -577,6 +568,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         z-index: 10;
         rotate: -45deg;
         filter: drop-shadow(0 4px 12px ${color}40);
+        cursor: pointer;
       `;
 
       // Add pulsing animation for high activity
@@ -592,11 +584,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </svg>
       `;
 
-      container.appendChild(el);
-
       // Enhanced hover effects
-      container.addEventListener("mouseenter", () => {
-        el.style.transform = "scale(1.2)";
+      el.addEventListener("mouseenter", () => {
+        el.style.transform = "scale(1.2) rotate(-45deg)";
         el.style.boxShadow = `
           0 12px 48px ${color}50,
           0 0 0 6px ${color}20,
@@ -607,8 +597,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         el.style.zIndex = "1000";
       });
 
-      container.addEventListener("mouseleave", () => {
-        el.style.transform = "scale(1)";
+      el.addEventListener("mouseleave", () => {
+        el.style.transform = "rotate(-45deg) scale(1)";
         el.style.boxShadow = `
           0 8px 32px ${color}30,
           0 0 0 4px ${color}10,
@@ -619,16 +609,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         el.style.zIndex = "10";
       });
 
-      // Create marker using stored map instance with proper anchor
+      // Create marker using stored map instance with proper anchor at bottom
       const marker = new mapboxgl.Marker({
-        element: container,
-        anchor: 'bottom' // Anchor at the bottom point of the pin
+        element: el,
+        anchor: 'bottom'
       })
         .setLngLat([venue.lng, venue.lat])
         .addTo(mapInstance);
 
-      // Handle click on the whole container
-      container.addEventListener("click", () => {
+      // Handle click on the marker element
+      el.addEventListener("click", () => {
         onVenueSelect(venue);
       });
 
