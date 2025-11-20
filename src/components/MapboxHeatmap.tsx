@@ -212,8 +212,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     const createUserMarker = () => {
       const el = document.createElement('div');
       el.className = 'user-location-marker';
-      el.style.width = '44px';
-      el.style.height = '44px';
+      el.style.width = '56px';
+      el.style.height = '56px';
       el.style.display = 'flex';
       el.style.alignItems = 'center';
       el.style.justifyContent = 'center';
@@ -223,22 +223,37 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       // Add pulsing ring effect
       const pulseRing = document.createElement('div');
       pulseRing.style.position = 'absolute';
-      pulseRing.style.inset = '0';
+      pulseRing.style.inset = '-8px';
       pulseRing.style.borderRadius = '50%';
-      pulseRing.style.backgroundColor = 'rgba(255, 69, 58, 0.3)';
+      pulseRing.style.backgroundColor = 'rgba(255, 69, 58, 0.2)';
       pulseRing.style.animation = 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite';
+      
+      // Glassmorphic container
+      const glassContainer = document.createElement('div');
+      glassContainer.style.width = '100%';
+      glassContainer.style.height = '100%';
+      glassContainer.style.borderRadius = '50%';
+      glassContainer.style.background = 'linear-gradient(135deg, rgba(255, 69, 58, 0.15), rgba(255, 105, 97, 0.1))';
+      glassContainer.style.backdropFilter = 'blur(12px)';
+      (glassContainer.style as any).WebkitBackdropFilter = 'blur(12px)';
+      glassContainer.style.border = '1.5px solid rgba(255, 255, 255, 0.2)';
+      glassContainer.style.boxShadow = '0 8px 32px 0 rgba(255, 69, 58, 0.37), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1)';
+      glassContainer.style.display = 'flex';
+      glassContainer.style.alignItems = 'center';
+      glassContainer.style.justifyContent = 'center';
+      glassContainer.style.position = 'relative';
+      glassContainer.style.zIndex = '1';
       
       const img = document.createElement('img');
       img.src = locationTrackerIcon;
-      img.style.width = '100%';
-      img.style.height = '100%';
+      img.style.width = '60%';
+      img.style.height = '60%';
       img.style.objectFit = 'contain';
-      img.style.filter = 'drop-shadow(0 4px 12px rgba(255, 69, 58, 0.5))';
-      img.style.position = 'relative';
-      img.style.zIndex = '1';
+      img.style.filter = 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))';
       
+      glassContainer.appendChild(img);
       el.appendChild(pulseRing);
-      el.appendChild(img);
+      el.appendChild(glassContainer);
       return el;
     };
     
