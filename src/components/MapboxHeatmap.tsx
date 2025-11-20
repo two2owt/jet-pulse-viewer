@@ -484,7 +484,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       
       const color = getActivityColor(venue.activity);
 
-      // Create marker container with heatmap effect
+      // Create marker container
       const container = document.createElement("div");
       container.className = "venue-marker-container";
       container.style.cssText = `
@@ -493,33 +493,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         height: 60px;
         cursor: pointer;
       `;
-
-      // Create heatmap glow layers (3 expanding rings)
-      const glowLayers = [
-        { size: 80, opacity: 0.3, blur: 30 },
-        { size: 120, opacity: 0.2, blur: 40 },
-        { size: 160, opacity: 0.1, blur: 50 },
-      ];
-
-      glowLayers.forEach((layer, index) => {
-        const glow = document.createElement("div");
-        glow.className = `heatmap-glow heatmap-glow-${index}`;
-        glow.style.cssText = `
-          position: absolute;
-          width: ${layer.size}px;
-          height: ${layer.size}px;
-          left: 50%;
-          top: 40%;
-          transform: translate(-50%, -50%);
-          background: radial-gradient(circle, ${color}${Math.round(layer.opacity * 255).toString(16).padStart(2, '0')} 0%, transparent 70%);
-          border-radius: 50%;
-          pointer-events: none;
-          opacity: 0;
-          transition: opacity 0.5s ease, transform 0.5s ease;
-          filter: blur(${layer.blur}px);
-        `;
-        container.appendChild(glow);
-      });
 
       // Create main marker with glassmorphic pin shape
       const el = document.createElement("div");
@@ -565,14 +538,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       container.appendChild(el);
 
-      // Enhanced hover effects - show heatmap layers
+      // Enhanced hover effects
       container.addEventListener("mouseenter", () => {
-        const glows = container.querySelectorAll('.heatmap-glow');
-        glows.forEach((glow, index) => {
-          const glowElement = glow as HTMLElement;
-          glowElement.style.opacity = '1';
-          glowElement.style.transform = `translate(-50%, -50%) scale(${1 + index * 0.1})`;
-        });
         el.style.transform = "translate(-50%, -100%) scale(1.2)";
         el.style.boxShadow = `
           0 12px 48px ${color}50,
@@ -585,12 +552,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       });
 
       container.addEventListener("mouseleave", () => {
-        const glows = container.querySelectorAll('.heatmap-glow');
-        glows.forEach((glow) => {
-          const glowElement = glow as HTMLElement;
-          glowElement.style.opacity = '0';
-          glowElement.style.transform = 'translate(-50%, -50%) scale(1)';
-        });
         el.style.transform = "translate(-50%, -100%) scale(1)";
         el.style.boxShadow = `
           0 8px 32px ${color}30,
