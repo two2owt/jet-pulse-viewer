@@ -240,7 +240,7 @@ const Index = () => {
             )}
 
             {/* Mapbox Heatmap - Full screen on mobile */}
-            <div className="min-h-full sm:rounded-2xl overflow-hidden animate-fade-in sm:mx-4 md:mx-6">
+            <div className="h-full w-full sm:rounded-2xl overflow-hidden animate-fade-in sm:mx-4 md:mx-6">
               {mapboxLoading && (
                 <div className="h-full flex items-center justify-center bg-card">
                   <div className="text-center space-y-3 sm:space-y-4">
