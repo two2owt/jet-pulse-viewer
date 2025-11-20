@@ -4,6 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { MapPin, TrendingUp, Layers, X, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocationDensity } from "@/hooks/useLocationDensity";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import type { Venue } from "./Heatmap";
@@ -31,6 +32,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const userMarker = useRef<mapboxgl.Marker | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const dealMarkersRef = useRef<mapboxgl.Marker[]>([]);
+  const isMobile = useIsMobile();
   
   // Density heatmap state
   const [showDensityLayer, setShowDensityLayer] = useState(false);
@@ -44,6 +46,30 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     dayOfWeek: dayFilter,
   });
 
+  // Handle map resize on viewport changes
+  useEffect(() => {
+    const handleResize = () => {
+      if (map.current) {
+        map.current.resize();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    
+    // Also handle visibility changes (e.g., when switching tabs)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && map.current) {
+        setTimeout(() => map.current?.resize(), 100);
+      }
+    });
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, []);
+
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
@@ -55,9 +81,39 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       style: "mapbox://styles/mapbox/dark-v11",
       center: [selectedCity.lng, selectedCity.lat],
       zoom: selectedCity.zoom,
-      pitch: 50,
+      pitch: isMobile ? 30 : 50, // Lower pitch on mobile for better usability
       bearing: 0,
       antialias: true,
+      attributionControl: false, // We'll add it back with custom position
+    });
+
+    // Add attribution control in a better position
+    map.current.addControl(
+      new mapboxgl.AttributionControl({
+        compact: true,
+      }),
+      'bottom-right'
+    );
+
+    // Add navigation control for desktop
+    if (!isMobile) {
+      map.current.addControl(
+        new mapboxgl.NavigationControl({
+          visualizePitch: true,
+          showCompass: true,
+        }),
+        'top-right'
+      );
+    }
+
+    // Ensure map resizes to container after initialization
+    map.current.on('load', () => {
+      setTimeout(() => {
+        if (map.current) {
+          map.current.resize();
+          setMapLoaded(true);
+        }
+      }, 100);
     });
 
     // Add atmospheric effects when style loads
@@ -585,8 +641,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   // Deal markers removed - no longer displaying colored circles on map
 
   return (
-    <div className="relative w-full h-full">
-      <div ref={mapContainer} className="absolute inset-0 rounded-2xl overflow-hidden" />
+    <div className="relative w-full h-full min-h-[500px]">
+      <div 
+        ref={mapContainer} 
+        className="absolute inset-0 rounded-none sm:rounded-2xl overflow-hidden"
+        style={{ 
+          width: '100%', 
+          height: '100%',
+          minHeight: isMobile ? '100%' : '500px' 
+        }} 
+      />
 
       {/* City Selector */}
       <div className="absolute top-2 left-2 sm:top-3 sm:left-3 md:top-4 md:left-4 z-10">
