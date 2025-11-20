@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { AuthButton } from "./AuthButton";
 import { Input } from "./ui/input";
@@ -9,6 +9,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import type { Venue } from "./Heatmap";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 type Deal = Database['public']['Tables']['deals']['Row'];
 
@@ -24,6 +25,27 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string>("");
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('avatar_url, display_name')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          setAvatarUrl(profile.avatar_url);
+          setDisplayName(profile.display_name || user.email?.substring(0, 2).toUpperCase() || "JT");
+        }
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -83,10 +105,13 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
           {/* Right Actions */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <ThemeToggle />
-            <Avatar className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all">
-              <AvatarImage src="" />
+            <Avatar 
+              className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all"
+              onClick={() => navigate('/settings')}
+            >
+              <AvatarImage src={avatarUrl || ""} />
               <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-xs sm:text-sm">
-                JT
+                {displayName.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </div>
