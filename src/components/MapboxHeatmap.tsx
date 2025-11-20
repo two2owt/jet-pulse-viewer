@@ -297,8 +297,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     map.current.on("load", () => {
       setMapLoaded(true);
       
-      // Load neighborhoods and add them to map
-      loadNeighborhoods();
     });
 
     return () => {
@@ -452,112 +450,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     console.log('Density heatmap layer added with', densityData.stats.grid_cells, 'points');
   }, [mapLoaded, densityData, showDensityLayer]);
 
-  // Load neighborhoods and display them on the map
-  const loadNeighborhoods = async () => {
-    if (!map.current) return;
-    
-    try {
-      const { data: neighborhoods, error } = await supabase
-        .from('neighborhoods')
-        .select('*')
-        .eq('active', true);
-
-      if (error) throw error;
-      if (!neighborhoods || !map.current) return;
-
-      const mapInstance = map.current;
-
-      // Add neighborhood boundaries as polygons
-      neighborhoods.forEach((neighborhood, index) => {
-        const boundaryPoints = neighborhood.boundary_points as number[][];
-        
-        // Convert to GeoJSON format (lng, lat)
-        const coordinates = boundaryPoints.map(point => [point[1], point[0]]);
-        // Close the polygon
-        coordinates.push(coordinates[0]);
-
-        const sourceId = `neighborhood-${neighborhood.id}`;
-        const fillLayerId = `neighborhood-fill-${neighborhood.id}`;
-        const lineLayerId = `neighborhood-line-${neighborhood.id}`;
-
-        // Add source
-        mapInstance.addSource(sourceId, {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            properties: {
-              name: neighborhood.name,
-              description: neighborhood.description,
-            },
-            geometry: {
-              type: 'Polygon',
-              coordinates: [coordinates],
-            },
-          },
-        });
-
-        // Add fill layer
-        mapInstance.addLayer({
-          id: fillLayerId,
-          type: 'fill',
-          source: sourceId,
-          paint: {
-            'fill-color': '#FF5722',
-            'fill-opacity': 0.1,
-          },
-        });
-
-        // Add border layer
-        mapInstance.addLayer({
-          id: lineLayerId,
-          type: 'line',
-          source: sourceId,
-          paint: {
-            'line-color': '#FF5722',
-            'line-width': 2,
-            'line-opacity': 0.5,
-          },
-        });
-
-        // Add neighborhood label
-        mapInstance.addLayer({
-          id: `neighborhood-label-${neighborhood.id}`,
-          type: 'symbol',
-          source: sourceId,
-          layout: {
-            'text-field': neighborhood.name,
-            'text-size': 14,
-            'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-          },
-          paint: {
-            'text-color': '#FFFFFF',
-            'text-halo-color': '#1a1f2e',
-            'text-halo-width': 2,
-          },
-        });
-
-        // Add click handler for neighborhoods
-        mapInstance.on('click', fillLayerId, (e: any) => {
-          // Click handling without popup
-        });
-
-        // Change cursor on hover
-        mapInstance.on('mouseenter', fillLayerId, () => {
-          if (map.current) {
-            map.current.getCanvas().style.cursor = 'pointer';
-          }
-        });
-
-        mapInstance.on('mouseleave', fillLayerId, () => {
-          if (map.current) {
-            map.current.getCanvas().style.cursor = '';
-          }
-        });
-      });
-    } catch (error) {
-      console.error('Error loading neighborhoods:', error);
-    }
-  };
 
   // Function to update markers based on current zoom level
   const updateMarkers = () => {
