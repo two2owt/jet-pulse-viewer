@@ -490,7 +490,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       container.style.cssText = `
         position: relative;
         width: 50px;
-        height: 50px;
+        height: 60px;
         cursor: pointer;
       `;
 
@@ -509,7 +509,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           width: ${layer.size}px;
           height: ${layer.size}px;
           left: 50%;
-          top: 50%;
+          top: 40%;
           transform: translate(-50%, -50%);
           background: radial-gradient(circle, ${color}${Math.round(layer.opacity * 255).toString(16).padStart(2, '0')} 0%, transparent 70%);
           border-radius: 50%;
@@ -521,25 +521,33 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         container.appendChild(glow);
       });
 
-      // Create main marker
+      // Create main marker with glassmorphic pin shape
       const el = document.createElement("div");
       el.className = "venue-marker";
       el.style.cssText = `
         position: absolute;
         left: 50%;
         top: 50%;
-        transform: translate(-50%, -50%);
-        width: 40px;
-        height: 40px;
-        background: ${color};
-        border: 3px solid #1a1f2e;
-        border-radius: 50%;
+        transform: translate(-50%, -100%);
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, ${color}40, ${color}80);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 2px solid ${color}60;
+        border-radius: 50% 50% 50% 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 0 20px ${color}CC, 0 0 40px ${color}66;
-        transition: all 0.3s ease;
+        box-shadow: 
+          0 8px 32px ${color}30,
+          0 0 0 4px ${color}10,
+          inset 0 1px 1px rgba(255, 255, 255, 0.3),
+          inset 0 -1px 1px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 10;
+        rotate: -45deg;
+        filter: drop-shadow(0 4px 12px ${color}40);
       `;
 
       // Add pulsing animation for high activity
@@ -547,11 +555,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         el.style.animation = "pulse 2s ease-in-out infinite";
       }
 
-      // Add icon
+      // Add modern location pin icon
       el.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
-          <polyline points="16 7 22 7 22 13"></polyline>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg);">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
         </svg>
       `;
 
@@ -565,8 +573,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           glowElement.style.opacity = '1';
           glowElement.style.transform = `translate(-50%, -50%) scale(${1 + index * 0.1})`;
         });
-        el.style.transform = "translate(-50%, -50%) scale(1.15)";
-        el.style.boxShadow = `0 0 30px ${color}FF, 0 0 60px ${color}99, 0 0 90px ${color}66`;
+        el.style.transform = "translate(-50%, -100%) scale(1.2)";
+        el.style.boxShadow = `
+          0 12px 48px ${color}50,
+          0 0 0 6px ${color}20,
+          inset 0 2px 2px rgba(255, 255, 255, 0.4),
+          inset 0 -2px 2px rgba(0, 0, 0, 0.2)
+        `;
+        el.style.filter = `drop-shadow(0 6px 20px ${color}60)`;
         el.style.zIndex = "1000";
       });
 
@@ -577,8 +591,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           glowElement.style.opacity = '0';
           glowElement.style.transform = 'translate(-50%, -50%) scale(1)';
         });
-        el.style.transform = "translate(-50%, -50%) scale(1)";
-        el.style.boxShadow = `0 0 20px ${color}CC, 0 0 40px ${color}66`;
+        el.style.transform = "translate(-50%, -100%) scale(1)";
+        el.style.boxShadow = `
+          0 8px 32px ${color}30,
+          0 0 0 4px ${color}10,
+          inset 0 1px 1px rgba(255, 255, 255, 0.3),
+          inset 0 -1px 1px rgba(0, 0, 0, 0.2)
+        `;
+        el.style.filter = `drop-shadow(0 4px 12px ${color}40)`;
         el.style.zIndex = "10";
       });
 
