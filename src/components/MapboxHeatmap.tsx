@@ -593,47 +593,44 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       const proximityFactor = nearbyCount > 0 ? Math.max(0.75, 1 - (nearbyCount * 0.1)) : 1;
       const markerSize = baseSize * proximityFactor;
 
-      // Create marker element with vertical pin
+      // Create custom glassmorphic marker element via JavaScript
       const el = document.createElement("div");
       el.className = "venue-marker";
       el.style.cssText = `
         width: ${markerSize}px;
-        height: ${markerSize * 1.3}px;
+        height: ${markerSize * 1.5}px;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         position: relative;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         will-change: transform, opacity;
       `;
 
-      // Create vertical pin element
+      // Create glassmorphic pin element
       const pinEl = document.createElement('div');
       pinEl.style.cssText = `
         width: ${markerSize}px;
         height: ${markerSize}px;
-        background: linear-gradient(135deg, ${color}40, ${color}80);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 2px solid ${color}60;
+        background: linear-gradient(135deg, ${color}25, ${color}45);
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
+        border: 1.5px solid rgba(255, 255, 255, 0.18);
         border-radius: 50% 50% 50% 0;
         display: flex;
         align-items: center;
         justify-content: center;
         box-shadow: 
-          0 8px 32px ${color}30,
-          0 0 0 4px ${color}10,
-          inset 0 1px 1px rgba(255, 255, 255, 0.3),
-          inset 0 -1px 1px rgba(0, 0, 0, 0.2);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.4s ease-out, height 0.4s ease-out;
-        filter: drop-shadow(0 4px 12px ${color}40);
-        transform: rotate(0deg);
+          0 8px 32px ${color}40,
+          0 0 0 1px rgba(255, 255, 255, 0.1),
+          inset 0 1px 2px rgba(255, 255, 255, 0.4),
+          inset 0 -1px 2px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        filter: drop-shadow(0 4px 12px ${color}30);
+        transform: rotate(-45deg);
         position: absolute;
         top: 0;
         left: 50%;
-        transform: translateX(-50%);
-        will-change: transform, width, height;
+        margin-left: -${markerSize / 2}px;
+        will-change: transform;
       `;
 
       // Add pulsing animation for high activity
@@ -641,39 +638,53 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         pinEl.style.animation = "pulse 2s ease-in-out infinite";
       }
 
-      // Add vertical location pin icon with transition
-      pinEl.innerHTML = `
-        <svg width="${markerSize * 0.5}" height="${markerSize * 0.5}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.4s ease-out;">
+      // Create inner content container (rotated back to normal)
+      const innerEl = document.createElement('div');
+      innerEl.style.cssText = `
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: rotate(45deg);
+      `;
+
+      // Add pin icon
+      innerEl.innerHTML = `
+        <svg width="${markerSize * 0.5}" height="${markerSize * 0.5}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.4s ease-out; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
       `;
 
+      pinEl.appendChild(innerEl);
       el.appendChild(pinEl);
 
-      // Enhanced hover effects on the pin element
+      // Enhanced glassmorphic hover effects
       el.addEventListener("mouseenter", () => {
-        pinEl.style.transform = "translateX(-50%) scale(1.2)";
+        pinEl.style.transform = "rotate(-45deg) scale(1.15)";
+        pinEl.style.background = `linear-gradient(135deg, ${color}35, ${color}55)`;
         pinEl.style.boxShadow = `
-          0 12px 48px ${color}50,
-          0 0 0 6px ${color}20,
-          inset 0 2px 2px rgba(255, 255, 255, 0.4),
-          inset 0 -2px 2px rgba(0, 0, 0, 0.2)
+          0 12px 48px ${color}60,
+          0 0 0 2px rgba(255, 255, 255, 0.2),
+          inset 0 2px 3px rgba(255, 255, 255, 0.5),
+          inset 0 -2px 3px rgba(0, 0, 0, 0.15)
         `;
-        pinEl.style.filter = `drop-shadow(0 6px 20px ${color}60)`;
-        pinEl.style.zIndex = "1000";
+        pinEl.style.filter = `drop-shadow(0 6px 20px ${color}50)`;
+        pinEl.style.borderColor = "rgba(255, 255, 255, 0.3)";
       });
 
       el.addEventListener("mouseleave", () => {
-        pinEl.style.transform = "translateX(-50%)";
+        pinEl.style.transform = "rotate(-45deg)";
+        pinEl.style.background = `linear-gradient(135deg, ${color}25, ${color}45)`;
         pinEl.style.boxShadow = `
-          0 8px 32px ${color}30,
-          0 0 0 4px ${color}10,
-          inset 0 1px 1px rgba(255, 255, 255, 0.3),
-          inset 0 -1px 1px rgba(0, 0, 0, 0.2)
+          0 8px 32px ${color}40,
+          0 0 0 1px rgba(255, 255, 255, 0.1),
+          inset 0 1px 2px rgba(255, 255, 255, 0.4),
+          inset 0 -1px 2px rgba(0, 0, 0, 0.1)
         `;
-        pinEl.style.filter = `drop-shadow(0 4px 12px ${color}40)`;
-        pinEl.style.zIndex = "auto";
+        pinEl.style.filter = `drop-shadow(0 4px 12px ${color}30)`;
+        pinEl.style.borderColor = "rgba(255, 255, 255, 0.18)";
       });
 
       // Create marker with bottom anchor so pin tip points to exact coordinate
@@ -761,14 +772,18 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             const pinEl = el.querySelector('div') as HTMLElement;
             if (pinEl) {
               el.style.width = `${newBaseSize}px`;
-              el.style.height = `${newBaseSize * 1.3}px`;
+              el.style.height = `${newBaseSize * 1.5}px`;
               pinEl.style.width = `${newBaseSize}px`;
               pinEl.style.height = `${newBaseSize}px`;
+              pinEl.style.marginLeft = `-${newBaseSize / 2}px`;
               
-              const svg = pinEl.querySelector('svg');
-              if (svg) {
-                svg.setAttribute('width', `${newBaseSize * 0.5}`);
-                svg.setAttribute('height', `${newBaseSize * 0.5}`);
+              const innerEl = pinEl.querySelector('div') as HTMLElement;
+              if (innerEl) {
+                const svg = innerEl.querySelector('svg');
+                if (svg) {
+                  svg.setAttribute('width', `${newBaseSize * 0.5}`);
+                  svg.setAttribute('height', `${newBaseSize * 0.5}`);
+                }
               }
             }
           }, delay);
