@@ -172,9 +172,14 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          facebook_url: string | null
           id: string
+          instagram_url: string | null
+          linkedin_url: string | null
           onboarding_completed: boolean | null
           preferences: Json | null
+          tiktok_url: string | null
+          twitter_url: string | null
           updated_at: string
         }
         Insert: {
@@ -182,9 +187,14 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          facebook_url?: string | null
           id: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
           onboarding_completed?: boolean | null
           preferences?: Json | null
+          tiktok_url?: string | null
+          twitter_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -192,9 +202,14 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          facebook_url?: string | null
           id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
           onboarding_completed?: boolean | null
           preferences?: Json | null
+          tiktok_url?: string | null
+          twitter_url?: string | null
           updated_at?: string
         }
         Relationships: []
