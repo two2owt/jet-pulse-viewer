@@ -6,7 +6,7 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Camera, Loader2, User, Settings, Edit2, X } from "lucide-react";
+import { Camera, Loader2, User, Settings, Edit2, X, Instagram, Twitter, Facebook, Linkedin, Video } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Separator } from "./ui/separator";
 import { Label } from "./ui/label";
@@ -16,6 +16,14 @@ import { z } from "zod";
 const profileSchema = z.object({
   display_name: z.string().trim().min(1, "Display name is required").max(100, "Display name must be less than 100 characters"),
   bio: z.string().trim().max(500, "Bio must be less than 500 characters").optional(),
+});
+
+const socialMediaSchema = z.object({
+  instagram_url: z.string().trim().url("Invalid Instagram URL").optional().or(z.literal('')),
+  twitter_url: z.string().trim().url("Invalid Twitter/X URL").optional().or(z.literal('')),
+  facebook_url: z.string().trim().url("Invalid Facebook URL").optional().or(z.literal('')),
+  linkedin_url: z.string().trim().url("Invalid LinkedIn URL").optional().or(z.literal('')),
+  tiktok_url: z.string().trim().url("Invalid TikTok URL").optional().or(z.literal('')),
 });
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'] as const;
@@ -34,6 +42,11 @@ interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  instagram_url: string | null;
+  twitter_url: string | null;
+  facebook_url: string | null;
+  linkedin_url: string | null;
+  tiktok_url: string | null;
 }
 
 export const UserProfile = () => {
@@ -41,6 +54,11 @@ export const UserProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [twitterUrl, setTwitterUrl] = useState("");
+  const [facebookUrl, setFacebookUrl] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [tiktokUrl, setTiktokUrl] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -78,6 +96,11 @@ export const UserProfile = () => {
         setProfile(data);
         setDisplayName(data.display_name || "");
         setBio(data.bio || "");
+        setInstagramUrl(data.instagram_url || "");
+        setTwitterUrl(data.twitter_url || "");
+        setFacebookUrl(data.facebook_url || "");
+        setLinkedinUrl(data.linkedin_url || "");
+        setTiktokUrl(data.tiktok_url || "");
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -183,6 +206,15 @@ export const UserProfile = () => {
         bio: bio || undefined,
       });
 
+      // Validate social media URLs
+      const validatedSocial = socialMediaSchema.parse({
+        instagram_url: instagramUrl || '',
+        twitter_url: twitterUrl || '',
+        facebook_url: facebookUrl || '',
+        linkedin_url: linkedinUrl || '',
+        tiktok_url: tiktokUrl || '',
+      });
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         toast.error('Please sign in to update your profile');
@@ -196,6 +228,11 @@ export const UserProfile = () => {
         .update({
           display_name: validatedData.display_name,
           bio: validatedData.bio || null,
+          instagram_url: validatedSocial.instagram_url || null,
+          twitter_url: validatedSocial.twitter_url || null,
+          facebook_url: validatedSocial.facebook_url || null,
+          linkedin_url: validatedSocial.linkedin_url || null,
+          tiktok_url: validatedSocial.tiktok_url || null,
         })
         .eq('id', session.user.id);
 
@@ -355,6 +392,11 @@ export const UserProfile = () => {
                 setIsEditing(false);
                 setDisplayName(profile.display_name || "");
                 setBio(profile.bio || "");
+                setInstagramUrl(profile.instagram_url || "");
+                setTwitterUrl(profile.twitter_url || "");
+                setFacebookUrl(profile.facebook_url || "");
+                setLinkedinUrl(profile.linkedin_url || "");
+                setTiktokUrl(profile.tiktok_url || "");
               }}
               variant="outline"
               disabled={isSaving}
@@ -364,6 +406,104 @@ export const UserProfile = () => {
             </Button>
           </div>
         )}
+      </div>
+
+      <Separator />
+
+      {/* Social Media Section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Instagram className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">Social Media</h3>
+        </div>
+
+        <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="instagram" className="flex items-center gap-2 text-xs sm:text-sm">
+              <Instagram className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Instagram
+            </Label>
+            <Input
+              id="instagram"
+              type="url"
+              value={instagramUrl}
+              onChange={(e) => setInstagramUrl(e.target.value)}
+              placeholder="https://instagram.com/yourprofile"
+              className="bg-background text-xs sm:text-sm"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="twitter" className="flex items-center gap-2 text-xs sm:text-sm">
+              <Twitter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Twitter/X
+            </Label>
+            <Input
+              id="twitter"
+              type="url"
+              value={twitterUrl}
+              onChange={(e) => setTwitterUrl(e.target.value)}
+              placeholder="https://twitter.com/yourprofile"
+              className="bg-background text-xs sm:text-sm"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="facebook" className="flex items-center gap-2 text-xs sm:text-sm">
+              <Facebook className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Facebook
+            </Label>
+            <Input
+              id="facebook"
+              type="url"
+              value={facebookUrl}
+              onChange={(e) => setFacebookUrl(e.target.value)}
+              placeholder="https://facebook.com/yourprofile"
+              className="bg-background text-xs sm:text-sm"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="linkedin" className="flex items-center gap-2 text-xs sm:text-sm">
+              <Linkedin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              LinkedIn
+            </Label>
+            <Input
+              id="linkedin"
+              type="url"
+              value={linkedinUrl}
+              onChange={(e) => setLinkedinUrl(e.target.value)}
+              placeholder="https://linkedin.com/in/yourprofile"
+              className="bg-background text-xs sm:text-sm"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="tiktok" className="flex items-center gap-2 text-xs sm:text-sm">
+              <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              TikTok
+            </Label>
+            <Input
+              id="tiktok"
+              type="url"
+              value={tiktokUrl}
+              onChange={(e) => setTiktokUrl(e.target.value)}
+              placeholder="https://tiktok.com/@yourprofile"
+              className="bg-background text-xs sm:text-sm"
+              disabled={!isEditing}
+            />
+          </div>
+
+          {isEditing && (
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              Enter the full URL to your social media profiles (optional)
+            </p>
+          )}
+        </div>
       </div>
 
       <Separator />
