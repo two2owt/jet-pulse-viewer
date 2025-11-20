@@ -6,7 +6,7 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Camera, Loader2, User, Settings, Edit2, X, Instagram, Twitter, Facebook, Linkedin, Video, Shield } from "lucide-react";
+import { Camera, Loader2, User, Settings, Edit2, X, Instagram, Twitter, Facebook, Linkedin, Video, Shield, LogOut } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Separator } from "./ui/separator";
 import { Label } from "./ui/label";
@@ -252,6 +252,19 @@ export const UserProfile = () => {
       }
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast.success('Signed out successfully');
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error('Failed to sign out. Please try again.');
     }
   };
 
@@ -612,6 +625,15 @@ export const UserProfile = () => {
               Admin Dashboard
             </Button>
           )}
+
+          <Button
+            onClick={handleSignOut}
+            variant="destructive"
+            className="w-full"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
       </div>
     </Card>
