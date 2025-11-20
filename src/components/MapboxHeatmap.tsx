@@ -72,11 +72,19 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
+    
+    // Validate token before initialization
+    if (!mapboxToken || mapboxToken.trim() === '') {
+      console.error('MapboxHeatmap: Invalid or missing Mapbox token');
+      return;
+    }
 
-    mapboxgl.accessToken = mapboxToken;
+    try {
+      mapboxgl.accessToken = mapboxToken;
+      console.log('MapboxHeatmap: Initializing map for', selectedCity.name);
 
-    // Initialize map centered on selected city
-    map.current = new mapboxgl.Map({
+      // Initialize map centered on selected city
+      map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/dark-v11",
       center: [selectedCity.lng, selectedCity.lat],
@@ -106,15 +114,24 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       );
     }
 
-    // Ensure map resizes to container after initialization
-    map.current.on('load', () => {
-      setTimeout(() => {
-        if (map.current) {
-          map.current.resize();
-          setMapLoaded(true);
-        }
-      }, 100);
-    });
+      // Ensure map resizes to container after initialization
+      map.current.on('load', () => {
+        console.log('MapboxHeatmap: Map loaded successfully');
+        setTimeout(() => {
+          if (map.current) {
+            map.current.resize();
+            setMapLoaded(true);
+          }
+        }, 100);
+      });
+
+      // Add error handler
+      map.current.on('error', (e) => {
+        console.error('MapboxHeatmap: Map error', e.error);
+      });
+    } catch (error) {
+      console.error('MapboxHeatmap: Failed to initialize map', error);
+    }
 
     // Add atmospheric effects when style loads
     map.current.on('style.load', () => {
@@ -645,7 +662,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         style={{ 
           width: '100%', 
           height: '100%',
-          minHeight: isMobile ? '100%' : '500px' 
+          minHeight: isMobile ? '100%' : '500px',
+          touchAction: 'pan-x pan-y'
         }} 
       />
 
