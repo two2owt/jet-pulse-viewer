@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useTheme } from "next-themes";
 
 const preferencesSchema = z.object({
   notifications_enabled: z.boolean(),
@@ -25,6 +26,7 @@ interface UserPreferences {
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -230,6 +232,83 @@ const Settings = () => {
                 onCheckedChange={setNotificationsEnabled}
               />
             </div>
+          </div>
+        </Card>
+
+        {/* Theme Section */}
+        <Card className="p-6 space-y-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Sun className="w-5 h-5 text-primary" />
+              <h2 className="text-lg font-bold text-foreground">Appearance</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Choose how the app looks
+            </p>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-3">
+            <button
+              onClick={() => setTheme("light")}
+              className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                theme === "light" 
+                  ? "border-primary bg-primary/5" 
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Sun className="w-5 h-5" />
+                <div className="text-left">
+                  <div className="font-medium text-foreground">Light</div>
+                  <div className="text-xs text-muted-foreground">Bright theme for daytime</div>
+                </div>
+              </div>
+              {theme === "light" && (
+                <div className="w-4 h-4 rounded-full bg-primary" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setTheme("dark")}
+              className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                theme === "dark" 
+                  ? "border-primary bg-primary/5" 
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Moon className="w-5 h-5" />
+                <div className="text-left">
+                  <div className="font-medium text-foreground">Dark</div>
+                  <div className="text-xs text-muted-foreground">Dark theme for nighttime</div>
+                </div>
+              </div>
+              {theme === "dark" && (
+                <div className="w-4 h-4 rounded-full bg-primary" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setTheme("system")}
+              className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                theme === "system" 
+                  ? "border-primary bg-primary/5" 
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Monitor className="w-5 h-5" />
+                <div className="text-left">
+                  <div className="font-medium text-foreground">Auto</div>
+                  <div className="text-xs text-muted-foreground">Matches your device theme</div>
+                </div>
+              </div>
+              {theme === "system" && (
+                <div className="w-4 h-4 rounded-full bg-primary" />
+              )}
+            </button>
           </div>
         </Card>
 
