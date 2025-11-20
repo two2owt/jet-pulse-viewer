@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Heatmap, type Venue } from "@/components/Heatmap";
@@ -54,6 +54,7 @@ const Index = () => {
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
   const { isScrapingActive } = useAutoScrapeVenueImages(true);
   const { deals } = useDeals();
+  const jetCardRef = useRef<HTMLDivElement>(null);
 
   // Check onboarding status
   useEffect(() => {
@@ -108,6 +109,14 @@ const Index = () => {
         toast.success(`Selected ${foundVenue.name}`, {
           description: `${foundVenue.activity}% active in ${foundVenue.neighborhood}`
         });
+        
+        // Scroll to JetCard
+        setTimeout(() => {
+          jetCardRef.current?.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }, 100);
       }
     } else {
       // Original venue object handling
@@ -119,6 +128,14 @@ const Index = () => {
       toast.success(`Selected ${venue.name}`, {
         description: `${venue.activity}% active in ${venue.neighborhood}`
       });
+      
+      // Scroll to JetCard
+      setTimeout(() => {
+        jetCardRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 100);
     }
   };
 
@@ -202,7 +219,7 @@ const Index = () => {
 
             {/* Selected Venue Card */}
             {selectedVenue && (
-              <div className="animate-fade-in animate-scale-in relative">
+              <div ref={jetCardRef} className="animate-fade-in animate-scale-in relative">
                 <JetCard 
                   venue={selectedVenue} 
                   onGetDirections={handleGetDirections}
