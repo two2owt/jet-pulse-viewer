@@ -28,6 +28,7 @@ export type Database = {
           starts_at: string
           title: string
           updated_at: string | null
+          venue_address: string | null
           venue_id: string
           venue_name: string
           website_url: string | null
@@ -45,6 +46,7 @@ export type Database = {
           starts_at: string
           title: string
           updated_at?: string | null
+          venue_address?: string | null
           venue_id: string
           venue_name: string
           website_url?: string | null
@@ -62,6 +64,7 @@ export type Database = {
           starts_at?: string
           title?: string
           updated_at?: string | null
+          venue_address?: string | null
           venue_id?: string
           venue_name?: string
           website_url?: string | null

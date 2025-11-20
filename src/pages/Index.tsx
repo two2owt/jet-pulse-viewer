@@ -119,16 +119,25 @@ const Index = () => {
     });
   };
 
-  const handleVenueSelect = (venue: Venue | string) => {
+  const handleVenueSelect = async (venue: Venue | string) => {
     // Handle both Venue object and venue name string
     if (typeof venue === 'string') {
       // Find the venue by name in mockVenues
       const foundVenue = mockVenues.find(v => v.name === venue);
       if (foundVenue) {
-      const venueWithImage = {
-        ...foundVenue,
-        imageUrl: getVenueImage(foundVenue.name) || foundVenue.imageUrl
-      };
+        // Fetch address from deals table
+        const { data: dealData } = await supabase
+          .from('deals')
+          .select('venue_address')
+          .eq('venue_name', foundVenue.name)
+          .limit(1)
+          .maybeSingle();
+        
+        const venueWithImage = {
+          ...foundVenue,
+          imageUrl: getVenueImage(foundVenue.name) || foundVenue.imageUrl,
+          address: dealData?.venue_address || undefined
+        };
         setSelectedVenue(venueWithImage);
         setActiveTab('map'); // Switch to map tab
         toast.success(`Selected ${foundVenue.name}`, {
@@ -144,10 +153,19 @@ const Index = () => {
         }, 100);
       }
     } else {
+      // Fetch address from deals table for venue object
+      const { data: dealData } = await supabase
+        .from('deals')
+        .select('venue_address')
+        .eq('venue_name', venue.name)
+        .limit(1)
+        .maybeSingle();
+      
       // Original venue object handling
       const venueWithImage = {
         ...venue,
-        imageUrl: getVenueImage(venue.name) || venue.imageUrl
+        imageUrl: getVenueImage(venue.name) || venue.imageUrl,
+        address: dealData?.venue_address || venue.address
       };
       setSelectedVenue(venueWithImage);
       toast.success(`Selected ${venue.name}`, {
@@ -175,23 +193,36 @@ const Index = () => {
     
     await soarHaptic(); // Soaring haptic when selecting navigation app
     
-    const { lat, lng } = selectedVenue;
-    const destination = encodeURIComponent(selectedVenue.name);
+    const { lat, lng, address, name } = selectedVenue;
+    // Use address if available, otherwise fall back to coordinates
+    const destination = encodeURIComponent(address || name);
     
     let url = '';
     
     switch (app) {
       case 'google':
-        // Google Maps
-        url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${destination}`;
+        // Google Maps - prefer address for better routing
+        if (address) {
+          url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+        } else {
+          url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${destination}`;
+        }
         break;
       case 'apple':
-        // Apple Maps
-        url = `http://maps.apple.com/?daddr=${lat},${lng}&q=${destination}`;
+        // Apple Maps - prefer address for better routing
+        if (address) {
+          url = `http://maps.apple.com/?daddr=${destination}`;
+        } else {
+          url = `http://maps.apple.com/?daddr=${lat},${lng}&q=${destination}`;
+        }
         break;
       case 'waze':
-        // Waze
-        url = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes&q=${destination}`;
+        // Waze - prefer address for better routing
+        if (address) {
+          url = `https://waze.com/ul?q=${destination}&navigate=yes`;
+        } else {
+          url = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes&q=${destination}`;
+        }
         break;
     }
     
@@ -199,7 +230,7 @@ const Index = () => {
     setShowDirectionsDialog(false);
     
     toast.success(`Opening ${app === 'google' ? 'Google Maps' : app === 'apple' ? 'Apple Maps' : 'Waze'}`, {
-      description: `Navigate to ${selectedVenue.name}`
+      description: `Navigate to ${address || name}`
     });
   };
 
