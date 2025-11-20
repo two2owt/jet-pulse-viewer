@@ -218,6 +218,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       el.style.alignItems = 'center';
       el.style.justifyContent = 'center';
       el.style.transition = 'transform 0.3s ease';
+      el.style.position = 'relative';
+      
+      // Add pulsing ring effect
+      const pulseRing = document.createElement('div');
+      pulseRing.style.position = 'absolute';
+      pulseRing.style.inset = '0';
+      pulseRing.style.borderRadius = '50%';
+      pulseRing.style.backgroundColor = 'rgba(255, 69, 58, 0.3)';
+      pulseRing.style.animation = 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite';
       
       const img = document.createElement('img');
       img.src = locationTrackerIcon;
@@ -225,7 +234,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       img.style.height = '100%';
       img.style.objectFit = 'contain';
       img.style.filter = 'drop-shadow(0 4px 12px rgba(255, 69, 58, 0.5))';
+      img.style.position = 'relative';
+      img.style.zIndex = '1';
       
+      el.appendChild(pulseRing);
       el.appendChild(img);
       return el;
     };
