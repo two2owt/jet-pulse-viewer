@@ -549,9 +549,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       const container = document.createElement("div");
       container.className = "venue-marker-container";
       container.style.cssText = `
-        position: relative;
-        width: 50px;
-        height: 60px;
+        width: 44px;
+        height: 44px;
         cursor: pointer;
       `;
 
@@ -559,10 +558,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       const el = document.createElement("div");
       el.className = "venue-marker";
       el.style.cssText = `
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -100%);
         width: 44px;
         height: 44px;
         background: linear-gradient(135deg, ${color}40, ${color}80);
@@ -601,7 +596,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       // Enhanced hover effects
       container.addEventListener("mouseenter", () => {
-        el.style.transform = "translate(-50%, -100%) scale(1.2)";
+        el.style.transform = "scale(1.2)";
         el.style.boxShadow = `
           0 12px 48px ${color}50,
           0 0 0 6px ${color}20,
@@ -613,7 +608,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       });
 
       container.addEventListener("mouseleave", () => {
-        el.style.transform = "translate(-50%, -100%) scale(1)";
+        el.style.transform = "scale(1)";
         el.style.boxShadow = `
           0 8px 32px ${color}30,
           0 0 0 4px ${color}10,
@@ -624,8 +619,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         el.style.zIndex = "10";
       });
 
-      // Create marker using stored map instance
-      const marker = new mapboxgl.Marker(container)
+      // Create marker using stored map instance with proper anchor
+      const marker = new mapboxgl.Marker({
+        element: container,
+        anchor: 'bottom' // Anchor at the bottom point of the pin
+      })
         .setLngLat([venue.lng, venue.lat])
         .addTo(mapInstance);
 
