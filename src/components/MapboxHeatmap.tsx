@@ -775,13 +775,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             if (city) onCityChange(city);
           }}
         >
-          <SelectTrigger className="bg-card/95 backdrop-blur-xl border-border w-auto text-xs sm:text-sm shadow-lg">
+          <SelectTrigger className="w-auto text-xs sm:text-sm">
             <div className="flex items-center gap-1.5 sm:gap-2">
               <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
               <span className="font-semibold">{selectedCity.name}, {selectedCity.state}</span>
             </div>
           </SelectTrigger>
-          <SelectContent className="z-50">
+          <SelectContent>
             {CITIES.map((city) => (
               <SelectItem key={city.id} value={city.id}>
                 {city.name}, {city.state}
