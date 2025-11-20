@@ -6,13 +6,20 @@ interface VenueImage {
   image_url: string | null;
 }
 
-export const useVenueImages = () => {
+export const useVenueImages = (enabled = true) => {
   const [venueImages, setVenueImages] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadVenueImages();
-  }, []);
+    if (!enabled) return;
+    
+    // Defer loading venue images to not block initial render
+    const timer = setTimeout(() => {
+      loadVenueImages();
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [enabled]);
 
   const loadVenueImages = async () => {
     try {

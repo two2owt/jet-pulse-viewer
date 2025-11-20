@@ -46,8 +46,6 @@ export const useNotifications = () => {
 
   const loadNotifications = async () => {
     try {
-      setLoading(true);
-      
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user) {
@@ -96,7 +94,12 @@ export const useNotifications = () => {
   };
 
   useEffect(() => {
-    loadNotifications();
+    // Defer loading notifications slightly to prioritize critical content
+    const timer = setTimeout(() => {
+      loadNotifications();
+    }, 300);
+    
+    const cleanup = () => clearTimeout(timer);
 
     // Set up real-time subscription
     const channel = supabase
@@ -121,6 +124,7 @@ export const useNotifications = () => {
     });
 
     return () => {
+      cleanup();
       supabase.removeChannel(channel);
       subscription.unsubscribe();
     };

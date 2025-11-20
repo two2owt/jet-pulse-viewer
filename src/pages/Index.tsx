@@ -52,7 +52,8 @@ const Index = () => {
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
-  const { getVenueImage } = useVenueImages();
+  // Defer non-critical data loads to improve initial load time
+  const { getVenueImage } = useVenueImages(activeTab === 'map');
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
   const { isScrapingActive } = useAutoScrapeVenueImages(true);
   const { deals, refresh: refreshDeals } = useDeals();
