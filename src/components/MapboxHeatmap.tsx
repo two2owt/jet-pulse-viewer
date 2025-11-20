@@ -709,6 +709,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       el.addEventListener("click", (e) => {
         e.stopPropagation();
         
+        // Smooth fly to the marker location
+        mapInstance.flyTo({
+          center: [venue.lng, venue.lat],
+          zoom: Math.max(mapInstance.getZoom(), 14),
+          duration: 1000,
+          essential: true
+        });
+        
         // Bounce animation
         pinEl.style.animation = "bounce 0.6s ease-out";
         setTimeout(() => {
