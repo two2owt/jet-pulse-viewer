@@ -702,33 +702,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       });
     };
 
-    // Add fade effect during move
-    const handleMoveStart = () => {
-      markersRef.current.forEach((marker) => {
-        const el = marker.getElement();
-        if (el) {
-          el.style.opacity = '0.7';
-        }
-      });
-    };
-
-    const handleMoveEnd = () => {
-      markersRef.current.forEach((marker) => {
-        const el = marker.getElement();
-        if (el) {
-          el.style.opacity = '1';
-        }
-      });
-    };
+    // Removed fade effect during panning - markers now stay fully visible and anchored
 
     mapInstance.on('zoom', handleZoom);
-    mapInstance.on('movestart', handleMoveStart);
-    mapInstance.on('moveend', handleMoveEnd);
     
     return () => {
       mapInstance.off('zoom', handleZoom);
-      mapInstance.off('movestart', handleMoveStart);
-      mapInstance.off('moveend', handleMoveEnd);
     };
   }, [mapLoaded, venues]);
 
