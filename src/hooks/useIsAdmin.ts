@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+const ADMIN_EMAIL = "creativebreakroominfo@gmail.com";
+
 export const useIsAdmin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -10,6 +12,13 @@ export const useIsAdmin = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
+          setIsAdmin(false);
+          setLoading(false);
+          return;
+        }
+
+        // Check if user email matches admin email
+        if (user.email !== ADMIN_EMAIL) {
           setIsAdmin(false);
           setLoading(false);
           return;
