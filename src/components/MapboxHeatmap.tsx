@@ -553,30 +553,54 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
+    // Get current zoom level for dynamic sizing
+    const currentZoom = mapInstance.getZoom();
+    const zoomFactor = Math.max(0.7, Math.min(1.3, currentZoom / 12)); // Scale between 0.7x and 1.3x
+    const baseSize = 36 * zoomFactor;
+
+    // Calculate distances between venues to detect clusters
+    const getDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+      return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2));
+    };
+
     // Add venue markers
-    venues.forEach((venue) => {
+    venues.forEach((venue, index) => {
       // Guard against map becoming null during iteration
       if (!mapInstance) return;
       
       const color = getActivityColor(venue.activity);
 
-      // Create marker element with glassmorphic pin shape
+      // Check proximity to other venues
+      let nearbyCount = 0;
+      venues.forEach((otherVenue, otherIndex) => {
+        if (index !== otherIndex) {
+          const distance = getDistance(venue.lat, venue.lng, otherVenue.lat, otherVenue.lng);
+          if (distance < 0.001) nearbyCount++; // Very close proximity
+        }
+      });
+
+      // Adjust size based on proximity
+      const proximityFactor = nearbyCount > 0 ? Math.max(0.75, 1 - (nearbyCount * 0.1)) : 1;
+      const markerSize = baseSize * proximityFactor;
+
+      // Create marker element with vertical pin
       const el = document.createElement("div");
       el.className = "venue-marker";
       el.style.cssText = `
-        width: 44px;
-        height: 44px;
+        width: ${markerSize}px;
+        height: ${markerSize * 1.3}px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
+        position: relative;
       `;
 
-      // Create inner pin element that will be rotated
+      // Create vertical pin element
       const pinEl = document.createElement('div');
       pinEl.style.cssText = `
-        width: 44px;
-        height: 44px;
+        width: ${markerSize}px;
+        height: ${markerSize}px;
         background: linear-gradient(135deg, ${color}40, ${color}80);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
@@ -592,7 +616,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           inset 0 -1px 1px rgba(0, 0, 0, 0.2);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         filter: drop-shadow(0 4px 12px ${color}40);
-        transform: rotate(-45deg);
+        transform: rotate(0deg);
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
       `;
 
       // Add pulsing animation for high activity
@@ -600,9 +628,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         pinEl.style.animation = "pulse 2s ease-in-out infinite";
       }
 
-      // Add modern location pin icon
+      // Add vertical location pin icon
       pinEl.innerHTML = `
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg);">
+        <svg width="${markerSize * 0.5}" height="${markerSize * 0.5}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
@@ -612,7 +640,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       // Enhanced hover effects on the pin element
       el.addEventListener("mouseenter", () => {
-        pinEl.style.transform = "rotate(-45deg) scale(1.2)";
+        pinEl.style.transform = "translateX(-50%) scale(1.2)";
         pinEl.style.boxShadow = `
           0 12px 48px ${color}50,
           0 0 0 6px ${color}20,
@@ -620,10 +648,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           inset 0 -2px 2px rgba(0, 0, 0, 0.2)
         `;
         pinEl.style.filter = `drop-shadow(0 6px 20px ${color}60)`;
+        pinEl.style.zIndex = "1000";
       });
 
       el.addEventListener("mouseleave", () => {
-        pinEl.style.transform = "rotate(-45deg)";
+        pinEl.style.transform = "translateX(-50%)";
         pinEl.style.boxShadow = `
           0 8px 32px ${color}30,
           0 0 0 4px ${color}10,
@@ -631,6 +660,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           inset 0 -1px 1px rgba(0, 0, 0, 0.2)
         `;
         pinEl.style.filter = `drop-shadow(0 4px 12px ${color}40)`;
+        pinEl.style.zIndex = "auto";
       });
 
       // Create marker with bottom anchor so pin tip points to exact coordinate
@@ -648,6 +678,37 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       markersRef.current.push(marker);
     });
+
+    // Update marker sizes on zoom
+    const handleZoom = () => {
+      const newZoom = mapInstance.getZoom();
+      const newZoomFactor = Math.max(0.7, Math.min(1.3, newZoom / 12));
+      const newBaseSize = 36 * newZoomFactor;
+      
+      markersRef.current.forEach((marker) => {
+        const el = marker.getElement();
+        if (el) {
+          const pinEl = el.querySelector('div') as HTMLElement;
+          if (pinEl) {
+            el.style.width = `${newBaseSize}px`;
+            el.style.height = `${newBaseSize * 1.3}px`;
+            pinEl.style.width = `${newBaseSize}px`;
+            pinEl.style.height = `${newBaseSize}px`;
+            const svg = pinEl.querySelector('svg');
+            if (svg) {
+              svg.setAttribute('width', `${newBaseSize * 0.5}`);
+              svg.setAttribute('height', `${newBaseSize * 0.5}`);
+            }
+          }
+        }
+      });
+    };
+
+    mapInstance.on('zoom', handleZoom);
+
+    return () => {
+      mapInstance.off('zoom', handleZoom);
+    };
   }, [venues, mapLoaded, onVenueSelect]);
 
   // Deal markers removed - no longer displaying colored circles on map
