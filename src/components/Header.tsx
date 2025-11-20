@@ -51,6 +51,13 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
     <header className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+          {/* Logo */}
+          <div className="flex items-center flex-shrink-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-wider">
+              JET
+            </h1>
+          </div>
+          
           {/* Search Bar */}
           <div className="flex-1 max-w-2xl relative">
             <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground pointer-events-none" />
@@ -75,7 +82,7 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <ThemeToggle />
             <Avatar className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all">
               <AvatarImage src="" />
@@ -84,17 +91,12 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
               </AvatarFallback>
             </Avatar>
             
-            {/* Logo */}
-            <div className="flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-3 border-l border-border/50">
-              <img 
-                src={jetIcon} 
-                alt="JET" 
-                className="w-7 h-7 sm:w-9 sm:h-9 md:w-11 md:h-11 object-contain"
-              />
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-wider">
-                JET
-              </h1>
-            </div>
+            {/* Jet Icon */}
+            <img 
+              src={jetIcon} 
+              alt="JET Icon" 
+              className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 object-contain"
+            />
           </div>
         </div>
       </div>
