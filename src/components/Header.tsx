@@ -92,7 +92,7 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
             </Avatar>
             
             {/* Jet Icon */}
-            <div className="relative p-2 sm:p-2.5 md:p-3 bg-gradient-primary rounded-xl shadow-lg hover-scale transition-all duration-300">
+            <div className="relative p-2 sm:p-2.5 md:p-3 bg-gradient-primary rounded-xl shadow-lg hover-scale transition-all duration-300 animate-pulse">
               <img 
                 src={jetIcon} 
                 alt="JET Icon" 
