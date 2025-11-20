@@ -3,7 +3,6 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapPin, TrendingUp, Layers, X, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useLocationDensity } from "@/hooks/useLocationDensity";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -34,17 +33,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const dealMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const isMobile = useIsMobile();
   
-  // Density heatmap state
-  const [showDensityLayer, setShowDensityLayer] = useState(false);
-  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
-  const [hourFilter, setHourFilter] = useState<number | undefined>();
-  const [dayFilter, setDayFilter] = useState<number | undefined>();
-  
-  const { densityData, loading: densityLoading, error: densityError, refresh: refreshDensity } = useLocationDensity({
-    timeFilter,
-    hourOfDay: hourFilter,
-    dayOfWeek: dayFilter,
-  });
+  // Movement heatmap state
+  const [showMovementLayer, setShowMovementLayer] = useState(false);
 
   // Handle map resize on viewport changes
   useEffect(() => {
@@ -304,19 +294,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     });
   }, [selectedCity, mapLoaded]);
 
-  // Add/update density heatmap layer
+  // Add/update Mapbox Movement heatmap layer
   useEffect(() => {
-    if (!map.current || !mapLoaded || !densityData) return;
+    if (!map.current || !mapLoaded) return;
 
-    const sourceId = 'location-density';
-    const layerId = 'location-density-heat';
-    const pointLayerId = `${layerId}-point`;
+    const sourceId = 'mapbox-movement';
+    const layerId = 'movement-heat';
 
     try {
-      // Remove existing layers and source if they exist
-      if (map.current.getLayer(pointLayerId)) {
-        map.current.removeLayer(pointLayerId);
-      }
+      // Remove existing layer if it exists
       if (map.current.getLayer(layerId)) {
         map.current.removeLayer(layerId);
       }
@@ -328,29 +314,30 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       return;
     }
 
-    if (!showDensityLayer) return;
+    if (!showMovementLayer) return;
 
-    // Add density data source
+    // Add Mapbox Movement source
     map.current.addSource(sourceId, {
-      type: 'geojson',
-      data: densityData.geojson,
+      type: 'vector',
+      url: 'mapbox://mapbox.mapbox-traffic-v1'
     });
 
-    // Add heatmap layer
+    // Add heatmap layer using Movement data
     map.current.addLayer({
       id: layerId,
       type: 'heatmap',
       source: sourceId,
+      'source-layer': 'traffic',
       paint: {
-        // Increase weight as density increases
+        // Weight based on traffic activity
         'heatmap-weight': [
           'interpolate',
           ['linear'],
-          ['get', 'density'],
+          ['get', 'congestion'],
           0, 0,
           10, 1,
         ],
-        // Increase intensity as zoom level increases for vibrant colors
+        // Increase intensity as zoom level increases
         'heatmap-intensity': [
           'interpolate',
           ['linear'],
@@ -358,21 +345,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           0, 1.5,
           15, 4,
         ],
-        // Vibrant color ramp: blue → cyan → green → yellow → orange → red
+        // Privacy-forward color ramp
         'heatmap-color': [
           'interpolate',
           ['linear'],
           ['heatmap-density'],
-          0, 'rgba(0, 0, 255, 0)',          // transparent blue
-          0.15, 'rgb(0, 191, 255)',          // cyan
-          0.3, 'rgb(0, 255, 127)',           // spring green
-          0.45, 'rgb(173, 255, 47)',         // green-yellow
-          0.6, 'rgb(255, 255, 0)',           // yellow
-          0.75, 'rgb(255, 165, 0)',          // orange
-          0.9, 'rgb(255, 69, 0)',            // orange-red
-          1, 'rgb(255, 0, 0)',               // red
+          0, 'rgba(0, 0, 255, 0)',
+          0.15, 'rgb(0, 191, 255)',
+          0.3, 'rgb(0, 255, 127)',
+          0.45, 'rgb(173, 255, 47)',
+          0.6, 'rgb(255, 255, 0)',
+          0.75, 'rgb(255, 165, 0)',
+          0.9, 'rgb(255, 69, 0)',
+          1, 'rgb(255, 0, 0)',
         ],
-        // Larger radius for smooth, blob-like appearance
+        // 100-meter resolution tiles
         'heatmap-radius': [
           'interpolate',
           ['linear'],
@@ -381,7 +368,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           9, 40,
           15, 80,
         ],
-        // High opacity for vibrant appearance with smooth fade-in
         'heatmap-opacity': [
           'interpolate',
           ['linear'],
@@ -389,7 +375,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           7, 0.9,
           15, 0.85,
         ],
-        // Add smooth opacity transition
         'heatmap-opacity-transition': {
           duration: 800,
           delay: 0
@@ -397,41 +382,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       },
     });
 
-    // Add circle layer for detailed view at high zoom
-    map.current.addLayer({
-      id: `${layerId}-point`,
-      type: 'circle',
-      source: sourceId,
-      minzoom: 14,
-      paint: {
-        'circle-radius': [
-          'interpolate',
-          ['linear'],
-          ['get', 'density'],
-          0, 4,
-          10, 20,
-        ],
-        'circle-color': [
-          'interpolate',
-          ['linear'],
-          ['get', 'density'],
-          0, 'rgb(103, 169, 207)',
-          5, 'rgb(239, 138, 98)',
-          10, 'rgb(178, 24, 43)',
-        ],
-        'circle-opacity': 0.6,
-        'circle-stroke-width': 1,
-        'circle-stroke-color': '#fff',
-        // Add smooth opacity transition
-        'circle-opacity-transition': {
-          duration: 800,
-          delay: 100
-        }
-      },
-    });
-
-    console.log('Density heatmap layer added with', densityData.stats.grid_cells, 'points');
-  }, [mapLoaded, densityData, showDensityLayer]);
+    console.log('Mapbox Movement layer added - global privacy-forward aggregated activity data');
+  }, [mapLoaded, showMovementLayer]);
 
   // Load neighborhoods and display them on the map
   const loadNeighborhoods = async () => {
@@ -881,118 +833,37 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </div>
       </div>
 
-      {/* Density Layer Controls - Bottom right inline with Activity Level legend */}
+      {/* Movement Layer Controls */}
       <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10 space-y-2 max-w-[calc(100vw-32px)] sm:max-w-[280px]">
         <Button
-          onClick={() => setShowDensityLayer(!showDensityLayer)}
-          variant={showDensityLayer ? "default" : "secondary"}
+          onClick={() => setShowMovementLayer(!showMovementLayer)}
+          variant={showMovementLayer ? "default" : "secondary"}
           size="sm"
           className="bg-card/95 backdrop-blur-xl border border-border text-xs sm:text-sm shadow-lg w-full"
         >
           <Layers className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-          <span className="hidden sm:inline">{showDensityLayer ? "Hide" : "Show"} Heat Layer</span>
-          <span className="sm:hidden">Heat</span>
+          <span className="hidden sm:inline">{showMovementLayer ? "Hide" : "Show"} Movement Heat</span>
+          <span className="sm:hidden">Movement</span>
         </Button>
 
-        {showDensityLayer && (
+        {showMovementLayer && (
           <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-3 sm:p-4 space-y-2 shadow-lg">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-foreground">Heat Filters</p>
-              {densityLoading && (
-                <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              )}
-            </div>
-
-            {/* Error UI */}
-            {densityError && (
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-2 space-y-2">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-destructive" />
-                  <p className="text-xs text-destructive font-medium">Failed to load heat data</p>
-                </div>
-                <Button
-                  onClick={refreshDensity}
-                  variant="outline"
-                  size="sm"
-                  className="w-full h-7 text-xs border-destructive/30 hover:bg-destructive/20"
-                >
-                  Retry
-                </Button>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
-                <SelectTrigger className="h-8 text-xs bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="this_week">This Week</SelectItem>
-                  <SelectItem value="this_hour">This Hour</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={hourFilter?.toString() || "all"}
-                onValueChange={(v) => setHourFilter(v === "all" ? undefined : parseInt(v))}
-              >
-                <SelectTrigger className="h-8 text-xs bg-background">
-                  <SelectValue placeholder="Hour of day" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Hours</SelectItem>
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <SelectItem key={i} value={i.toString()}>
-                      {i}:00 - {i + 1}:00
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={dayFilter?.toString() || "all"}
-                onValueChange={(v) => setDayFilter(v === "all" ? undefined : parseInt(v))}
-              >
-                <SelectTrigger className="h-8 text-xs bg-background">
-                  <SelectValue placeholder="Day of week" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Days</SelectItem>
-                  <SelectItem value="0">Sunday</SelectItem>
-                  <SelectItem value="1">Monday</SelectItem>
-                  <SelectItem value="2">Tuesday</SelectItem>
-                  <SelectItem value="3">Wednesday</SelectItem>
-                  <SelectItem value="4">Thursday</SelectItem>
-                  <SelectItem value="5">Friday</SelectItem>
-                  <SelectItem value="6">Saturday</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {densityData && (
-              <div className="pt-2 border-t border-border/50 space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  {densityData.stats.total_points.toLocaleString()} visits
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Max density: {densityData.stats.max_density}
-                </p>
-              </div>
-            )}
+            <p className="text-xs font-semibold text-foreground">Global Activity Data</p>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              Privacy-forward de-identified mobile activity aggregated into 100m resolution tiles
+            </p>
           </div>
         )}
       </div>
 
       {/* Legend */}
       <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-card/95 backdrop-blur-xl px-3 py-2 sm:px-4 sm:py-3 rounded-xl border border-border z-10 shadow-lg max-w-[calc(100vw-24px)] sm:max-w-none">
-        {showDensityLayer ? (
+        {showMovementLayer ? (
           <>
-            <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground mb-1.5 sm:mb-2">User Density</p>
+            <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground mb-1.5 sm:mb-2">Movement Activity</p>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
               <div className="w-16 sm:w-20 h-3 sm:h-4 rounded" style={{
-                background: 'linear-gradient(to right, rgb(103, 169, 207), rgb(209, 229, 240), rgb(253, 219, 199), rgb(239, 138, 98), rgb(178, 24, 43))'
+                background: 'linear-gradient(to right, rgb(0, 191, 255), rgb(0, 255, 127), rgb(255, 255, 0), rgb(255, 165, 0), rgb(255, 0, 0))'
               }} />
               <div className="flex justify-between w-full text-[10px] sm:text-xs text-muted-foreground">
                 <span>Low</span>
@@ -1020,16 +891,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </>
         )}
       </div>
-
-      {/* Heatmap Loading Overlay */}
-      {showDensityLayer && densityLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-sm z-20">
-          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-4 flex flex-col items-center gap-3 shadow-lg">
-            <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm font-medium text-foreground">Loading heatmap data...</p>
-          </div>
-        </div>
-      )}
 
       {/* Add pulse, bounce and heatmap animations + popup styles */}
       <style>{`
