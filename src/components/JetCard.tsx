@@ -76,9 +76,14 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
         {/* Title */}
         <div>
           <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-1">{venue.name}</h3>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="text-xs sm:text-sm">{venue.neighborhood}</span>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="text-xs sm:text-sm">{venue.neighborhood}</span>
+            </div>
+            {venue.address && (
+              <p className="text-xs text-muted-foreground/80 pl-5 sm:pl-6">{venue.address}</p>
+            )}
           </div>
         </div>
 
