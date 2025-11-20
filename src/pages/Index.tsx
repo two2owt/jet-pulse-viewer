@@ -52,8 +52,7 @@ const Index = () => {
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
-  // Defer non-critical data loads to improve initial load time
-  const { getVenueImage } = useVenueImages(activeTab === 'map');
+  const { getVenueImage } = useVenueImages();
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
   const { isScrapingActive } = useAutoScrapeVenueImages(true);
   const { deals, refresh: refreshDeals } = useDeals();
@@ -126,10 +125,10 @@ const Index = () => {
       // Find the venue by name in mockVenues
       const foundVenue = mockVenues.find(v => v.name === venue);
       if (foundVenue) {
-        const venueWithImage = {
-          ...foundVenue,
-          imageUrl: getVenueImage(foundVenue.name)
-        };
+      const venueWithImage = {
+        ...foundVenue,
+        imageUrl: getVenueImage(foundVenue.name) || foundVenue.imageUrl
+      };
         setSelectedVenue(venueWithImage);
         setActiveTab('map'); // Switch to map tab
         toast.success(`Selected ${foundVenue.name}`, {
@@ -148,7 +147,7 @@ const Index = () => {
       // Original venue object handling
       const venueWithImage = {
         ...venue,
-        imageUrl: getVenueImage(venue.name)
+        imageUrl: getVenueImage(venue.name) || venue.imageUrl
       };
       setSelectedVenue(venueWithImage);
       toast.success(`Selected ${venue.name}`, {
