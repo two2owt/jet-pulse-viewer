@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import type { Venue } from "./Heatmap";
 import { CITIES, type City } from "@/types/cities";
+import locationTrackerIcon from "@/assets/location-tracker.png";
 
 interface MapboxHeatmapProps {
   onVenueSelect: (venue: Venue) => void;
@@ -202,6 +203,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       },
       trackUserLocation: true,
       showUserHeading: true,
+      showUserLocation: false, // Hide default marker, we'll use custom
     });
     
     map.current.addControl(geolocateControl, "top-right");
@@ -210,22 +212,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     const createUserMarker = () => {
       const el = document.createElement('div');
       el.className = 'user-location-marker';
-      el.style.width = '40px';
-      el.style.height = '40px';
+      el.style.width = '44px';
+      el.style.height = '44px';
       el.style.display = 'flex';
       el.style.alignItems = 'center';
       el.style.justifyContent = 'center';
-      el.innerHTML = `
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#sunsetGradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <defs>
-            <linearGradient id="sunsetGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:hsl(24, 100%, 60%);stop-opacity:1" />
-              <stop offset="100%" style="stop-color:hsl(320, 80%, 65%);stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
-        </svg>
-      `;
+      el.style.transition = 'transform 0.3s ease';
+      
+      const img = document.createElement('img');
+      img.src = locationTrackerIcon;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'contain';
+      img.style.filter = 'drop-shadow(0 4px 12px rgba(255, 69, 58, 0.5))';
+      
+      el.appendChild(img);
       return el;
     };
     
