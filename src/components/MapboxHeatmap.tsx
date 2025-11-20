@@ -4,6 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { MapPin, TrendingUp, Layers, X, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useVenueGeocoding } from "@/hooks/useVenueGeocoding";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import type { Venue } from "./Heatmap";
@@ -35,6 +36,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   
   // Movement heatmap state
   const [showMovementLayer, setShowMovementLayer] = useState(false);
+  
+  // Geocode venues for accurate marker placement
+  const { venues: geocodedVenues, isGeocoding, progress } = useVenueGeocoding(
+    venues,
+    mapboxToken,
+    [selectedCity.lng, selectedCity.lat]
+  );
 
   // Handle map resize on viewport changes
   useEffect(() => {
@@ -494,6 +502,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
   // Function to update markers based on current zoom level
   const updateMarkers = () => {
+    // Use geocoded venues for accurate placement
     if (!map.current || !mapLoaded) return;
 
     const mapInstance = map.current;
@@ -525,8 +534,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2));
     };
 
-    // Add venue markers
-    venues.forEach((venue, index) => {
+    // Add geocoded venue markers for accurate placement
+    geocodedVenues.forEach((venue, index) => {
       // Guard against map becoming null during iteration
       if (!mapInstance) return;
       
@@ -686,10 +695,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     });
   };
 
-  // Call updateMarkers on initial load and when venues change
+  // Call updateMarkers on initial load and when geocoded venues change
   useEffect(() => {
     updateMarkers();
-  }, [venues, mapLoaded]);
+  }, [geocodedVenues, mapLoaded]);
 
   // Add smooth zoom and pan transitions
   useEffect(() => {
@@ -825,12 +834,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Select>
       </div>
 
-      {/* Live Indicator - Top Right inline with City Selector */}
-      <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-10">
+      {/* Live Indicator and Geocoding Status - Top Right */}
+      <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-10 flex flex-col items-end gap-2">
         <div className="bg-card/95 backdrop-blur-xl px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-border flex items-center gap-1.5 sm:gap-2 shadow-lg">
           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-destructive rounded-full pulse-glow" />
           <p className="text-xs sm:text-sm font-semibold text-foreground">Live</p>
         </div>
+        
+        {isGeocoding && (
+          <div className="bg-card/95 backdrop-blur-xl px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border border-border flex items-center gap-2 shadow-lg">
+            <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs text-muted-foreground">
+              Geocoding {progress.completed}/{progress.total}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Movement Layer Controls */}
