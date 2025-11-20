@@ -1,17 +1,25 @@
 /**
  * Haptic feedback utilities for enhanced user experience
  * Uses Capacitor Haptics API for native iOS/Android support
+ * Gracefully degrades on web platforms
  */
+import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
 export type HapticPattern = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' | 'glide' | 'soar';
 
 /**
  * Check if native haptics are supported
+ * Returns false on web platforms
  */
 export const isHapticSupported = async (): Promise<boolean> => {
+  // Haptics only work on native platforms
+  if (!Capacitor.isNativePlatform()) {
+    return false;
+  }
+
   try {
-    // Capacitor Haptics is available on iOS and Android
+    // Test if Capacitor Haptics is available on iOS and Android
     await Haptics.impact({ style: ImpactStyle.Light });
     return true;
   } catch (error) {
@@ -22,8 +30,14 @@ export const isHapticSupported = async (): Promise<boolean> => {
 
 /**
  * Trigger haptic feedback with a predefined pattern
+ * Silently fails on web platforms
  */
 export const triggerHaptic = async (pattern: HapticPattern = 'light'): Promise<void> => {
+  // Skip on web platforms
+  if (!Capacitor.isNativePlatform()) {
+    return;
+  }
+
   try {
     switch (pattern) {
       case 'light':
@@ -60,8 +74,14 @@ export const triggerHaptic = async (pattern: HapticPattern = 'light'): Promise<v
 
 /**
  * Trigger custom haptic feedback with a custom intensity
+ * Silently fails on web platforms
  */
 export const triggerCustomHaptic = async (style: ImpactStyle = ImpactStyle.Medium): Promise<void> => {
+  // Skip on web platforms
+  if (!Capacitor.isNativePlatform()) {
+    return;
+  }
+
   try {
     await Haptics.impact({ style });
   } catch (error) {
@@ -72,8 +92,14 @@ export const triggerCustomHaptic = async (style: ImpactStyle = ImpactStyle.Mediu
 /**
  * Create a smooth gliding haptic pattern
  * Simulates a smooth, continuous gliding motion with graduated impacts
+ * Silently fails on web platforms
  */
 export const glideHaptic = async (): Promise<void> => {
+  // Skip on web platforms
+  if (!Capacitor.isNativePlatform()) {
+    return;
+  }
+
   try {
     // Create a smooth gliding sensation with increasing then decreasing intensity
     await Haptics.impact({ style: ImpactStyle.Light });
@@ -95,8 +121,14 @@ export const glideHaptic = async (): Promise<void> => {
 /**
  * Create a soaring haptic pattern
  * Simulates the sensation of soaring or taking flight with crescendo effect
+ * Silently fails on web platforms
  */
 export const soarHaptic = async (): Promise<void> => {
+  // Skip on web platforms
+  if (!Capacitor.isNativePlatform()) {
+    return;
+  }
+
   try {
     // Create a soaring sensation with building intensity
     await Haptics.impact({ style: ImpactStyle.Light });
