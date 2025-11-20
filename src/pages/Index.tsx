@@ -6,6 +6,7 @@ import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationCard, type Notification } from "@/components/NotificationCard";
 import { Header } from "@/components/Header";
+import { glideHaptic, soarHaptic } from "@/lib/haptics";
 
 // Lazy load heavy components
 const MapboxHeatmap = lazy(() => import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap })));
@@ -165,11 +166,14 @@ const Index = () => {
 
   const handleGetDirections = () => {
     if (!selectedVenue) return;
+    glideHaptic(); // Smooth gliding haptic when opening directions
     setShowDirectionsDialog(true);
   };
 
   const openDirections = (app: 'google' | 'apple' | 'waze') => {
     if (!selectedVenue) return;
+    
+    soarHaptic(); // Soaring haptic when selecting navigation app
     
     const { lat, lng } = selectedVenue;
     const destination = encodeURIComponent(selectedVenue.name);

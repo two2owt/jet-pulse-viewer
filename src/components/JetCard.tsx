@@ -1,6 +1,7 @@
 import { Clock, MapPin, Users, Star, TrendingUp, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { OptimizedImage } from "./ui/optimized-image";
+import { glideHaptic } from "@/lib/haptics";
 import type { Venue } from "./Heatmap";
 
 interface JetCardProps {
@@ -15,6 +16,11 @@ export const JetCard = ({ venue, onGetDirections, onClose }: JetCardProps) => {
     if (activity >= 60) return { label: "🌟 Busy", color: "text-warm" };
     if (activity >= 40) return { label: "✨ Moderate", color: "text-cool" };
     return { label: "😌 Quiet", color: "text-cold" };
+  };
+
+  const handleGetDirections = () => {
+    glideHaptic(); // Smooth gliding haptic feedback
+    onGetDirections();
   };
 
   const activityLevel = getActivityLevel(venue.activity);
@@ -109,7 +115,7 @@ export const JetCard = ({ venue, onGetDirections, onClose }: JetCardProps) => {
 
         {/* Action Button */}
         <Button 
-          onClick={onGetDirections}
+          onClick={handleGetDirections}
           className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 text-primary-foreground font-semibold py-6 rounded-xl shadow-[var(--shadow-glow)] transition-all duration-300 hover-scale"
         >
           Get Directions
