@@ -1,10 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.81.1';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const dealImageSchema = z.object({
+  dealId: z.string().uuid('Invalid deal ID format'),
+  title: z.string().trim().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
+  description: z.string().trim().min(1, 'Description is required').max(1000, 'Description must be less than 1000 characters'),
+  dealType: z.string().max(50, 'Deal type must be less than 50 characters').optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -43,12 +52,16 @@ serve(async (req) => {
       throw new Error('Unauthorized: Admin role required to generate deal images');
     }
 
-    const { dealId, title, description, dealType } = await req.json();
-    console.log('Admin user generating image for deal:', dealId, title);
-
-    if (!dealId || !title) {
-      throw new Error('dealId and title are required');
+    const requestBody = await req.json();
+    
+    // Validate and sanitize input
+    const validationResult = dealImageSchema.safeParse(requestBody);
+    if (!validationResult.success) {
+      throw new Error(`Invalid input: ${validationResult.error.errors.map(e => e.message).join(', ')}`);
     }
+    
+    const { dealId, title, description, dealType } = validationResult.data;
+    console.log('Admin user generating image for deal:', dealId, title);
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
