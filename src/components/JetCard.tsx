@@ -18,10 +18,12 @@ export const JetCard = ({ venue, onGetDirections, onClose }: JetCardProps) => {
     return { label: "😌 Quiet", color: "text-cold" };
   };
 
-  const handleGetDirections = () => {
-    glideHaptic(); // Smooth gliding haptic feedback
+
+  const handleGetDirections = async () => {
+    await glideHaptic(); // Smooth gliding haptic feedback
     onGetDirections();
   };
+
 
   const activityLevel = getActivityLevel(venue.activity);
 

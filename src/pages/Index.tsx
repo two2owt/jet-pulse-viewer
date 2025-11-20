@@ -164,16 +164,16 @@ const Index = () => {
     }
   };
 
-  const handleGetDirections = () => {
+  const handleGetDirections = async () => {
     if (!selectedVenue) return;
-    glideHaptic(); // Smooth gliding haptic when opening directions
+    await glideHaptic(); // Smooth gliding haptic when opening directions
     setShowDirectionsDialog(true);
   };
 
-  const openDirections = (app: 'google' | 'apple' | 'waze') => {
+  const openDirections = async (app: 'google' | 'apple' | 'waze') => {
     if (!selectedVenue) return;
     
-    soarHaptic(); // Soaring haptic when selecting navigation app
+    await soarHaptic(); // Soaring haptic when selecting navigation app
     
     const { lat, lng } = selectedVenue;
     const destination = encodeURIComponent(selectedVenue.name);

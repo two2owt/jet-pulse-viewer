@@ -1,130 +1,133 @@
 /**
  * Haptic feedback utilities for enhanced user experience
+ * Uses Capacitor Haptics API for native iOS/Android support
  */
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
 export type HapticPattern = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' | 'glide' | 'soar';
 
-interface VibrationPattern {
-  pattern: number | number[];
-  description: string;
-}
-
-const HAPTIC_PATTERNS: Record<HapticPattern, VibrationPattern> = {
-  light: {
-    pattern: 10,
-    description: 'Quick, subtle tap',
-  },
-  medium: {
-    pattern: 20,
-    description: 'Medium intensity tap',
-  },
-  heavy: {
-    pattern: 40,
-    description: 'Strong, pronounced tap',
-  },
-  success: {
-    pattern: [10, 50, 10],
-    description: 'Double tap for success',
-  },
-  warning: {
-    pattern: [20, 100, 20, 100, 20],
-    description: 'Three taps for warning',
-  },
-  error: {
-    pattern: [50, 100, 50, 100, 50],
-    description: 'Strong triple tap for error',
-  },
-  glide: {
-    pattern: [5, 10, 10, 10, 15, 10, 20, 10, 15, 10, 10, 10, 5],
-    description: 'Smooth gliding sensation with gentle build and fade',
-  },
-  soar: {
-    pattern: [3, 8, 5, 8, 8, 8, 12, 8, 15, 8, 18, 8, 15, 8, 12, 8, 8, 8, 5, 8, 3],
-    description: 'Smooth soaring sensation like taking flight',
-  },
-};
-
 /**
- * Check if the Vibration API is supported
+ * Check if native haptics are supported
  */
-export const isHapticSupported = (): boolean => {
-  return 'vibrate' in navigator;
+export const isHapticSupported = async (): Promise<boolean> => {
+  try {
+    // Capacitor Haptics is available on iOS and Android
+    await Haptics.impact({ style: ImpactStyle.Light });
+    return true;
+  } catch (error) {
+    console.debug('Native haptic feedback not available');
+    return false;
+  }
 };
 
 /**
  * Trigger haptic feedback with a predefined pattern
  */
-export const triggerHaptic = (pattern: HapticPattern = 'light'): void => {
-  if (!isHapticSupported()) {
-    console.debug('Haptic feedback not supported on this device');
-    return;
-  }
-
+export const triggerHaptic = async (pattern: HapticPattern = 'light'): Promise<void> => {
   try {
-    const hapticPattern = HAPTIC_PATTERNS[pattern];
-    navigator.vibrate(hapticPattern.pattern);
+    switch (pattern) {
+      case 'light':
+        await Haptics.impact({ style: ImpactStyle.Light });
+        break;
+      case 'medium':
+        await Haptics.impact({ style: ImpactStyle.Medium });
+        break;
+      case 'heavy':
+        await Haptics.impact({ style: ImpactStyle.Heavy });
+        break;
+      case 'success':
+        await Haptics.notification({ type: NotificationType.Success });
+        break;
+      case 'warning':
+        await Haptics.notification({ type: NotificationType.Warning });
+        break;
+      case 'error':
+        await Haptics.notification({ type: NotificationType.Error });
+        break;
+      case 'glide':
+        await glideHaptic();
+        break;
+      case 'soar':
+        await soarHaptic();
+        break;
+      default:
+        await Haptics.impact({ style: ImpactStyle.Light });
+    }
   } catch (error) {
     console.error('Error triggering haptic feedback:', error);
   }
 };
 
 /**
- * Trigger custom haptic feedback with a custom pattern
+ * Trigger custom haptic feedback with a custom intensity
  */
-export const triggerCustomHaptic = (pattern: number | number[]): void => {
-  if (!isHapticSupported()) {
-    console.debug('Haptic feedback not supported on this device');
-    return;
-  }
-
+export const triggerCustomHaptic = async (style: ImpactStyle = ImpactStyle.Medium): Promise<void> => {
   try {
-    navigator.vibrate(pattern);
+    await Haptics.impact({ style });
   } catch (error) {
     console.error('Error triggering custom haptic feedback:', error);
   }
 };
 
 /**
- * Cancel any ongoing vibration
+ * Create a smooth gliding haptic pattern
+ * Simulates a smooth, continuous gliding motion with graduated impacts
  */
-export const cancelHaptic = (): void => {
-  if (!isHapticSupported()) return;
-  
+export const glideHaptic = async (): Promise<void> => {
   try {
-    navigator.vibrate(0);
+    // Create a smooth gliding sensation with increasing then decreasing intensity
+    await Haptics.impact({ style: ImpactStyle.Light });
+    await new Promise(resolve => setTimeout(resolve, 50));
+    await Haptics.impact({ style: ImpactStyle.Light });
+    await new Promise(resolve => setTimeout(resolve, 50));
+    await Haptics.impact({ style: ImpactStyle.Medium });
+    await new Promise(resolve => setTimeout(resolve, 50));
+    await Haptics.impact({ style: ImpactStyle.Medium });
+    await new Promise(resolve => setTimeout(resolve, 50));
+    await Haptics.impact({ style: ImpactStyle.Light });
+    await new Promise(resolve => setTimeout(resolve, 50));
+    await Haptics.impact({ style: ImpactStyle.Light });
   } catch (error) {
-    console.error('Error canceling haptic feedback:', error);
+    console.error('Error triggering glide haptic:', error);
   }
 };
 
 /**
- * Create a smooth gliding haptic pattern
- * Simulates a smooth, continuous gliding motion
- */
-export const glideHaptic = (): void => {
-  triggerHaptic('glide');
-};
-
-/**
  * Create a soaring haptic pattern
- * Simulates the sensation of soaring or taking flight
+ * Simulates the sensation of soaring or taking flight with crescendo effect
  */
-export const soarHaptic = (): void => {
-  triggerHaptic('soar');
+export const soarHaptic = async (): Promise<void> => {
+  try {
+    // Create a soaring sensation with building intensity
+    await Haptics.impact({ style: ImpactStyle.Light });
+    await new Promise(resolve => setTimeout(resolve, 40));
+    await Haptics.impact({ style: ImpactStyle.Light });
+    await new Promise(resolve => setTimeout(resolve, 40));
+    await Haptics.impact({ style: ImpactStyle.Medium });
+    await new Promise(resolve => setTimeout(resolve, 40));
+    await Haptics.impact({ style: ImpactStyle.Medium });
+    await new Promise(resolve => setTimeout(resolve, 40));
+    await Haptics.impact({ style: ImpactStyle.Heavy });
+    await new Promise(resolve => setTimeout(resolve, 60));
+    await Haptics.impact({ style: ImpactStyle.Heavy });
+    await new Promise(resolve => setTimeout(resolve, 40));
+    await Haptics.impact({ style: ImpactStyle.Medium });
+    await new Promise(resolve => setTimeout(resolve, 40));
+    await Haptics.impact({ style: ImpactStyle.Light });
+  } catch (error) {
+    console.error('Error triggering soar haptic:', error);
+  }
 };
 
 /**
  * React hook for haptic feedback
  */
 export const useHaptic = () => {
-  const supported = isHapticSupported();
-
   return {
-    supported,
     trigger: triggerHaptic,
     triggerCustom: triggerCustomHaptic,
-    cancel: cancelHaptic,
     glide: glideHaptic,
     soar: soarHaptic,
+    isSupported: isHapticSupported,
   };
 };
