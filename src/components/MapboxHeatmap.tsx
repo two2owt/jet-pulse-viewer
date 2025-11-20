@@ -551,6 +551,17 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       el.style.cssText = `
         width: 44px;
         height: 44px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      `;
+
+      // Create inner pin element that will be rotated
+      const pinEl = document.createElement('div');
+      pinEl.style.cssText = `
+        width: 44px;
+        height: 44px;
         background: linear-gradient(135deg, ${color}40, ${color}80);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
@@ -566,50 +577,51 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           inset 0 -1px 1px rgba(0, 0, 0, 0.2);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         filter: drop-shadow(0 4px 12px ${color}40);
-        cursor: pointer;
         transform: rotate(-45deg);
       `;
 
       // Add pulsing animation for high activity
       if (venue.activity >= 80) {
-        el.style.animation = "pulse 2s ease-in-out infinite";
+        pinEl.style.animation = "pulse 2s ease-in-out infinite";
       }
 
       // Add modern location pin icon
-      el.innerHTML = `
+      pinEl.innerHTML = `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg);">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
       `;
 
-      // Enhanced hover effects
+      el.appendChild(pinEl);
+
+      // Enhanced hover effects on the pin element
       el.addEventListener("mouseenter", () => {
-        el.style.transform = "rotate(-45deg) scale(1.2)";
-        el.style.boxShadow = `
+        pinEl.style.transform = "rotate(-45deg) scale(1.2)";
+        pinEl.style.boxShadow = `
           0 12px 48px ${color}50,
           0 0 0 6px ${color}20,
           inset 0 2px 2px rgba(255, 255, 255, 0.4),
           inset 0 -2px 2px rgba(0, 0, 0, 0.2)
         `;
-        el.style.filter = `drop-shadow(0 6px 20px ${color}60)`;
+        pinEl.style.filter = `drop-shadow(0 6px 20px ${color}60)`;
       });
 
       el.addEventListener("mouseleave", () => {
-        el.style.transform = "rotate(-45deg)";
-        el.style.boxShadow = `
+        pinEl.style.transform = "rotate(-45deg)";
+        pinEl.style.boxShadow = `
           0 8px 32px ${color}30,
           0 0 0 4px ${color}10,
           inset 0 1px 1px rgba(255, 255, 255, 0.3),
           inset 0 -1px 1px rgba(0, 0, 0, 0.2)
         `;
-        el.style.filter = `drop-shadow(0 4px 12px ${color}40)`;
+        pinEl.style.filter = `drop-shadow(0 4px 12px ${color}40)`;
       });
 
-      // Create marker using stored map instance with center anchor for precise positioning
+      // Create marker with bottom anchor so pin tip points to exact coordinate
       const marker = new mapboxgl.Marker({
         element: el,
-        anchor: 'center'
+        anchor: 'bottom'
       })
         .setLngLat([venue.lng, venue.lat])
         .addTo(mapInstance);
