@@ -103,14 +103,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       'bottom-right'
     );
 
-    // Add navigation control
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: true,
-        showCompass: true,
-      }),
-      'top-right'
-    );
 
     // Ensure map resizes to container after initialization
     map.current.on('load', () => {
