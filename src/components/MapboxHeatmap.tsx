@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { MapPin, TrendingUp, Layers, X } from "lucide-react";
+import { MapPin, TrendingUp, Layers, X, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocationDensity } from "@/hooks/useLocationDensity";
 import { Button } from "./ui/button";
@@ -38,7 +38,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [hourFilter, setHourFilter] = useState<number | undefined>();
   const [dayFilter, setDayFilter] = useState<number | undefined>();
   
-  const { densityData, loading: densityLoading, refresh: refreshDensity } = useLocationDensity({
+  const { densityData, loading: densityLoading, error: densityError, refresh: refreshDensity } = useLocationDensity({
     timeFilter,
     hourOfDay: hourFilter,
     dayOfWeek: dayFilter,
@@ -244,15 +244,20 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     const layerId = 'location-density-heat';
     const pointLayerId = `${layerId}-point`;
 
-    // Remove existing layers and source if they exist
-    if (map.current.getLayer(pointLayerId)) {
-      map.current.removeLayer(pointLayerId);
-    }
-    if (map.current.getLayer(layerId)) {
-      map.current.removeLayer(layerId);
-    }
-    if (map.current.getSource(sourceId)) {
-      map.current.removeSource(sourceId);
+    try {
+      // Remove existing layers and source if they exist
+      if (map.current.getLayer(pointLayerId)) {
+        map.current.removeLayer(pointLayerId);
+      }
+      if (map.current.getLayer(layerId)) {
+        map.current.removeLayer(layerId);
+      }
+      if (map.current.getSource(sourceId)) {
+        map.current.removeSource(sourceId);
+      }
+    } catch (error) {
+      console.error('Error removing existing layers:', error);
+      return;
     }
 
     if (!showDensityLayer) return;
@@ -637,6 +642,24 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               )}
             </div>
+
+            {/* Error UI */}
+            {densityError && (
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-2 space-y-2">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-destructive" />
+                  <p className="text-xs text-destructive font-medium">Failed to load heat data</p>
+                </div>
+                <Button
+                  onClick={refreshDensity}
+                  variant="outline"
+                  size="sm"
+                  className="w-full h-7 text-xs border-destructive/30 hover:bg-destructive/20"
+                >
+                  Retry
+                </Button>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
