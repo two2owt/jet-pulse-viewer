@@ -9,7 +9,6 @@ import { ThemeToggle } from "./ThemeToggle";
 import type { Venue } from "./Heatmap";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
-import jetIcon from "@/assets/jet-icon.png";
 
 type Deal = Database['public']['Tables']['deals']['Row'];
 
@@ -90,15 +89,6 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
                 JT
               </AvatarFallback>
             </Avatar>
-            
-            {/* Jet Icon */}
-            <div className="relative p-2 sm:p-2.5 md:p-3 bg-gradient-primary rounded-xl shadow-lg hover-scale transition-all duration-300 animate-pulse">
-              <img 
-                src={jetIcon} 
-                alt="JET Icon" 
-                className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 object-contain brightness-0 invert"
-              />
-            </div>
           </div>
         </div>
       </div>
