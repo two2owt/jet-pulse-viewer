@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Clock, MapPin, Users, Star, TrendingUp, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { OptimizedImage } from "./ui/optimized-image";
@@ -10,7 +11,7 @@ interface JetCardProps {
   onClose?: () => void;
 }
 
-export const JetCard = ({ venue, onGetDirections, onClose }: JetCardProps) => {
+export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) => {
   const getActivityLevel = (activity: number) => {
     if (activity >= 80) return { label: "🔥 Very Busy", color: "text-hot" };
     if (activity >= 60) return { label: "🌟 Busy", color: "text-warm" };
@@ -125,4 +126,4 @@ export const JetCard = ({ venue, onGetDirections, onClose }: JetCardProps) => {
       </div>
     </div>
   );
-};
+});

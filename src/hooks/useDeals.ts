@@ -11,7 +11,6 @@ export const useDeals = () => {
 
   const loadDeals = async () => {
     try {
-      setLoading(true);
       const { data, error: fetchError } = await supabase
         .from('deals')
         .select('*')
@@ -32,7 +31,13 @@ export const useDeals = () => {
   };
 
   useEffect(() => {
-    loadDeals();
+    // Defer initial load to prioritize critical content
+    const timer = setTimeout(() => {
+      setLoading(true);
+      loadDeals();
+    }, 200);
+    
+    const cleanup = () => clearTimeout(timer);
 
     // Set up real-time subscription
     const channel = supabase
@@ -52,6 +57,7 @@ export const useDeals = () => {
       .subscribe();
 
     return () => {
+      cleanup();
       supabase.removeChannel(channel);
     };
   }, []);

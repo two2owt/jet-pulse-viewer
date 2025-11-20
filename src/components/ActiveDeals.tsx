@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock, MapPin, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "./ui/button";
@@ -24,7 +24,7 @@ interface ActiveDealsProps {
   selectedCity: City;
 }
 
-export const ActiveDeals = ({ selectedCity }: ActiveDealsProps) => {
+export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
@@ -264,4 +264,4 @@ export const ActiveDeals = ({ selectedCity }: ActiveDealsProps) => {
       </CollapsibleContent>
     </Collapsible>
   );
-};
+});
