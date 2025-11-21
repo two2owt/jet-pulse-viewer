@@ -1,0 +1,70 @@
+import { useEffect, useState } from "react";
+import jetLogo from "@/assets/jet-intro-logo.png";
+
+interface IntroScreenProps {
+  onComplete: () => void;
+}
+
+export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+      setTimeout(onComplete, 500); // Wait for fade out animation
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+
+  return (
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-500 ${
+        isVisible ? "opacity-100" : "opacity-0"
+      }`}
+    >
+      <div className="relative flex items-center justify-center">
+        {/* Neumorphism container */}
+        <div
+          className="relative rounded-[3rem] p-16 animate-pulse-glow"
+          style={{
+            background: "var(--background)",
+            boxShadow: `
+              20px 20px 60px hsl(var(--background) / 0.8),
+              -20px -20px 60px hsl(var(--foreground) / 0.05),
+              inset 5px 5px 10px hsl(var(--background) / 0.5),
+              inset -5px -5px 10px hsl(var(--foreground) / 0.03)
+            `,
+          }}
+        >
+          {/* Logo container with inner neumorphism */}
+          <div
+            className="rounded-[2.5rem] p-12 animate-scale-in"
+            style={{
+              background: "var(--background)",
+              boxShadow: `
+                inset 10px 10px 20px hsl(var(--background) / 0.8),
+                inset -10px -10px 20px hsl(var(--foreground) / 0.05)
+              `,
+            }}
+          >
+            <img
+              src={jetLogo}
+              alt="JET Logo"
+              className="w-32 h-32 object-contain animate-fade-in"
+            />
+          </div>
+        </div>
+
+        {/* Glowing ring effect */}
+        <div
+          className="absolute inset-0 rounded-[3rem] animate-pulse"
+          style={{
+            background: `radial-gradient(circle, hsl(var(--primary) / 0.1) 0%, transparent 70%)`,
+            filter: "blur(20px)",
+          }}
+        />
+      </div>
+    </div>
+  );
+};
