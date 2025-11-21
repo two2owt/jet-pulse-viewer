@@ -6,6 +6,7 @@ import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationCard, type Notification } from "@/components/NotificationCard";
 import { Header } from "@/components/Header";
+import { IntroScreen } from "@/components/IntroScreen";
 import { glideHaptic, soarHaptic } from "@/lib/haptics";
 
 // Lazy load heavy components
@@ -47,6 +48,11 @@ const mockVenues: Venue[] = [
 
 const Index = () => {
   const navigate = useNavigate();
+  const [showIntro, setShowIntro] = useState(() => {
+    // Check if user has seen intro before
+    const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+    return !hasSeenIntro;
+  });
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "profile">("map");
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
@@ -57,6 +63,11 @@ const Index = () => {
   const { isScrapingActive } = useAutoScrapeVenueImages(true);
   const { deals, refresh: refreshDeals } = useDeals();
   const jetCardRef = useRef<HTMLDivElement>(null);
+
+  const handleIntroComplete = () => {
+    localStorage.setItem('hasSeenIntro', 'true');
+    setShowIntro(false);
+  };
 
   // Pull to refresh functionality
   const handleRefresh = async () => {
@@ -235,13 +246,17 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-16 sm:pb-20 md:pb-24">
-      {/* Header */}
-      <Header 
-        venues={mockVenues}
-        deals={deals}
-        onVenueSelect={handleVenueSelect}
-      />
+    <>
+      {/* Intro Screen */}
+      {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
+      
+      <div className="min-h-screen bg-background pb-16 sm:pb-20 md:pb-24">
+        {/* Header */}
+        <Header 
+          venues={mockVenues}
+          deals={deals}
+          onVenueSelect={handleVenueSelect}
+        />
 
       {/* Main Content */}
       <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6'} space-y-3 sm:space-y-4 md:space-y-6`}>
@@ -462,6 +477,7 @@ const Index = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 };
 
