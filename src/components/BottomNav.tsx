@@ -1,7 +1,7 @@
-import { Map, Compass, Bell, Star } from "lucide-react";
+import { Map, Compass, Bell, Star, Users } from "lucide-react";
 import { useState } from "react";
 
-type NavItem = "map" | "explore" | "notifications" | "favorites";
+type NavItem = "map" | "explore" | "notifications" | "favorites" | "social";
 
 interface BottomNavProps {
   activeTab: NavItem;
@@ -15,6 +15,7 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
     { id: "explore" as NavItem, icon: Compass, label: "Explore" },
     { id: "notifications" as NavItem, icon: Bell, label: "Alerts" },
     { id: "favorites" as NavItem, icon: Star, label: "Favorites" },
+    { id: "social" as NavItem, icon: Users, label: "Friends" },
   ];
 
   return (
