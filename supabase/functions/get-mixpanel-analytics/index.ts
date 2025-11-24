@@ -1,7 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const MIXPANEL_API_SECRET = Deno.env.get('MIXPANEL_API_SECRET');
+const MIXPANEL_SERVICE_USERNAME = Deno.env.get('MIXPANEL_SERVICE_USERNAME');
+const MIXPANEL_SERVICE_SECRET = Deno.env.get('MIXPANEL_SERVICE_SECRET');
 const MIXPANEL_PROJECT_ID = '3683895';
 
 const corsHeaders = {
@@ -19,8 +20,8 @@ serve(async (req) => {
     
     console.log('Fetching Mixpanel data:', { metric, fromDate, toDate });
 
-    // Create Basic Auth header
-    const auth = btoa(`${MIXPANEL_API_SECRET}:`);
+    // Create Basic Auth header with username:secret
+    const auth = btoa(`${MIXPANEL_SERVICE_USERNAME}:${MIXPANEL_SERVICE_SECRET}`);
     
     let endpoint = '';
     let params = new URLSearchParams();
