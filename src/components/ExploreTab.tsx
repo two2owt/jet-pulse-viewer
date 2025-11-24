@@ -4,11 +4,13 @@ import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { OptimizedImage } from "./ui/optimized-image";
-import { Search, MapPin, Clock, TrendingUp, Filter, X, Navigation } from "lucide-react";
+import { Search, MapPin, Clock, TrendingUp, Filter, X, Navigation, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { EmptyState } from "./EmptyState";
 import { calculateDistance, getDynamicRadius, formatDistance } from "@/utils/geospatialUtils";
+import { useFavorites } from "@/hooks/useFavorites";
+import type { User } from "@supabase/supabase-js";
 
 interface Deal {
   id: string;
@@ -42,9 +44,23 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  
+  const { isFavorite, toggleFavorite } = useFavorites(user?.id);
 
   useEffect(() => {
     getUserLocation();
+    
+    // Get current user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -417,9 +433,28 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
                     <h3 className="text-sm font-bold text-foreground line-clamp-1">
                       {deal.title}
                     </h3>
-                    <Badge variant="secondary" className="flex-shrink-0">
-                      {deal.deal_type}
-                    </Badge>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(deal.id);
+                        }}
+                      >
+                        <Heart
+                          className={`w-4 h-4 ${
+                            isFavorite(deal.id)
+                              ? "fill-primary text-primary"
+                              : "text-muted-foreground"
+                          }`}
+                        />
+                      </Button>
+                      <Badge variant="secondary">
+                        {deal.deal_type}
+                      </Badge>
+                    </div>
                   </div>
                   
                   <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
