@@ -161,8 +161,20 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
 
   if (deals.length === 0) {
     return (
-      <div className="bg-card/50 rounded-xl p-4 border border-border/50 text-center">
-        <p className="text-sm text-muted-foreground">No active deals right now</p>
+      <div className="space-y-3 animate-fade-in">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-bold text-foreground">Active Deals</h3>
+        </div>
+        <div className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-2xl p-8 border border-border/50 text-center space-y-3">
+          <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+            <TrendingUp className="w-8 h-8 text-primary/60" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-base font-semibold text-foreground">No active deals yet</p>
+            <p className="text-sm text-muted-foreground">Check back soon for exciting offers near you!</p>
+          </div>
+        </div>
       </div>
     );
   }

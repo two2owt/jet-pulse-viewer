@@ -192,11 +192,23 @@ const Onboarding = () => {
           <div className="w-16 h-16 bg-gradient-to-r from-primary to-primary-glow rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[var(--shadow-glow)]">
             <Zap className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            {step === 1 && "Create User Profile"}
-            {step === 2 && "Set Personal Preferences"}
-            {step === 3 && "Review Suggestions"}
-          </h1>
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <h1 className="text-3xl font-bold text-foreground">
+              {step === 1 && "Create User Profile"}
+              {step === 2 && "Set Personal Preferences"}
+              {step === 3 && "Review Suggestions"}
+            </h1>
+            {step < 3 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setStep(3)}
+                className="text-muted-foreground hover:text-foreground text-sm"
+              >
+                Skip
+              </Button>
+            )}
+          </div>
           <div className="flex justify-center gap-2 mt-4">
             {[1, 2, 3].map((s) => (
               <div

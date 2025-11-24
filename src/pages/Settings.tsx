@@ -11,6 +11,7 @@ import { z } from "zod";
 import { useTheme } from "next-themes";
 import { ReportIssueDialog } from "@/components/ReportIssueDialog";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { Footer } from "@/components/Footer";
 
 const preferencesSchema = z.object({
   notifications_enabled: z.boolean(),
@@ -461,6 +462,8 @@ const Settings = () => {
           )}
         </Button>
       </main>
+
+      <Footer />
     </div>
   );
 };
