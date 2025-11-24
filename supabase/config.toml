@@ -14,3 +14,6 @@ verify_jwt = true
 
 [functions.generate-deal-image]
 verify_jwt = true
+
+[functions.get-mixpanel-analytics]
+verify_jwt = true
