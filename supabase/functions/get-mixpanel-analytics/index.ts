@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const MIXPANEL_SERVICE_USERNAME = Deno.env.get('MIXPANEL_SERVICE_USERNAME');
 const MIXPANEL_SERVICE_SECRET = Deno.env.get('MIXPANEL_SERVICE_SECRET');
-const MIXPANEL_PROJECT_ID = '3683895';
+const MIXPANEL_PROJECT_ID = '3935155';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
