@@ -86,7 +86,10 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Logo */}
-          <div className="flex items-center flex-shrink-0">
+          <div 
+            className="flex items-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate('/')}
+          >
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-wider">
               JET
             </h1>
