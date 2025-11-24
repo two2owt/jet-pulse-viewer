@@ -148,7 +148,7 @@ export default function Favorites() {
             title="No favorites yet"
             description="Start exploring and save deals you love! Your favorite venues and offers will appear here."
             actionLabel="Explore Deals"
-            onAction={() => navigate("/")}
+            onAction={() => navigate("/?tab=explore")}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
