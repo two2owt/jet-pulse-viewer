@@ -53,7 +53,7 @@ const Index = () => {
     const hasSeenIntro = localStorage.getItem('hasSeenIntro');
     return !hasSeenIntro;
   });
-  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "profile">("map");
+  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites">("map");
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
@@ -122,6 +122,13 @@ const Index = () => {
     
     checkOnboarding();
   }, [navigate]);
+
+  // Handle favorites tab navigation
+  useEffect(() => {
+    if (activeTab === "favorites") {
+      navigate("/favorites");
+    }
+  }, [activeTab, navigate]);
 
   const handleCityChange = (city: City) => {
     setSelectedCity(city);
@@ -395,21 +402,6 @@ const Index = () => {
               </div>
             }>
               <ExploreTab onVenueSelect={handleVenueSelect} />
-            </Suspense>
-          </div>
-        )}
-
-        {activeTab === "profile" && (
-          <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 animate-fade-in px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-96">
-                <div className="text-center space-y-3">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                  <p className="text-sm text-muted-foreground">Loading profile...</p>
-                </div>
-              </div>
-            }>
-              <UserProfile />
             </Suspense>
           </div>
         )}

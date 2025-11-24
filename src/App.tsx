@@ -15,6 +15,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Favorites = lazy(() => import("./pages/Favorites"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-background">
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/favorites" element={<Favorites />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
