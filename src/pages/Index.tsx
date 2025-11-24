@@ -124,14 +124,21 @@ const Index = () => {
     checkOnboarding();
   }, [navigate]);
 
-  // Ensure we're on map tab when on root path
+  // Check URL parameters and update activeTab on mount/navigation
   useEffect(() => {
-    if (location.pathname === "/" && activeTab !== "map") {
+    const searchParams = new URLSearchParams(location.search);
+    const tabParam = searchParams.get('tab');
+    
+    if (tabParam === "explore") {
+      setActiveTab("explore");
+    } else if (tabParam === "notifications") {
+      setActiveTab("notifications");
+    } else if (tabParam === "map" || (location.pathname === "/" && !tabParam)) {
       setActiveTab("map");
     }
-  }, [location.pathname, activeTab]);
+  }, [location.search, location.pathname]);
 
-  // Handle favorites and social tab navigation
+  // Handle favorites and social tab navigation (these go to separate pages)
   useEffect(() => {
     if (activeTab === "favorites") {
       navigate("/favorites");
@@ -420,7 +427,16 @@ const Index = () => {
       {/* Bottom Navigation */}
       <BottomNav 
         activeTab={activeTab} 
-        onTabChange={setActiveTab}
+        onTabChange={(tab) => {
+          // For map, explore, and notifications, stay on Index page but update tab
+          if (tab === "map" || tab === "explore" || tab === "notifications") {
+            setActiveTab(tab);
+            // Don't navigate, just update the tab state
+          } else {
+            // For favorites and social, the useEffect will handle navigation
+            setActiveTab(tab);
+          }
+        }}
         notificationCount={notifications.filter(n => !n.read).length}
       />
 
