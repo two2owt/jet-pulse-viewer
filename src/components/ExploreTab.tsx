@@ -329,18 +329,26 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
       <div className="grid grid-cols-3 gap-3">
         <Card className="p-4 text-center bg-card/90 backdrop-blur-sm hover-scale shadow-none">
           <TrendingUp className="w-6 h-6 mx-auto mb-2 text-primary" />
-          <p className="text-2xl font-bold text-foreground">{deals.length}</p>
-          <p className="text-xs text-muted-foreground">Active Deals</p>
+          <p className="text-2xl font-bold text-foreground">{filteredDeals.length}</p>
+          <p className="text-xs text-muted-foreground">
+            {userLocation ? "Nearby Deals" : "Active Deals"}
+          </p>
         </Card>
         <Card className="p-4 text-center bg-card/90 backdrop-blur-sm hover-scale shadow-none">
           <MapPin className="w-6 h-6 mx-auto mb-2 text-accent" />
-          <p className="text-2xl font-bold text-foreground">{new Set(deals.map(d => d.venue_name)).size}</p>
-          <p className="text-xs text-muted-foreground">Venues</p>
+          <p className="text-2xl font-bold text-foreground">
+            {new Set(filteredDeals.map(d => d.venue_name)).size}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {userLocation ? "Nearby Venues" : "Venues"}
+          </p>
         </Card>
         <Card className="p-4 text-center bg-card/90 backdrop-blur-sm hover-scale shadow-none">
           <Clock className="w-6 h-6 mx-auto mb-2 text-secondary" />
           <p className="text-2xl font-bold text-foreground">{filteredDeals.length}</p>
-          <p className="text-xs text-muted-foreground">Results</p>
+          <p className="text-xs text-muted-foreground">
+            {searchQuery || selectedCategories.length > 0 ? "Results" : "Available"}
+          </p>
         </Card>
       </div>
 
