@@ -1,11 +1,12 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { analytics } from "@/lib/analytics";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -24,12 +25,23 @@ const PageLoader = () => (
 
 const queryClient = new QueryClient();
 
+const PageTracker = () => {
+  const location = useLocation();
+  
+  useEffect(() => {
+    analytics.pageView(location.pathname);
+  }, [location.pathname]);
+  
+  return null;
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <PageTracker />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />
