@@ -45,12 +45,19 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
 
   useEffect(() => {
     getUserLocation();
-    loadDeals();
   }, []);
 
   useEffect(() => {
+    // Load deals only after we have attempted to get location
+    // This ensures we can calculate distances properly
+    if (userLocation !== null || locationError !== null) {
+      loadDeals();
+    }
+  }, [userLocation, locationError]);
+
+  useEffect(() => {
     filterDeals();
-  }, [searchQuery, deals, selectedCategories, userLocation]);
+  }, [searchQuery, deals, selectedCategories]);
 
   const getUserLocation = () => {
     if (!navigator.geolocation) {
@@ -84,6 +91,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
 
   const loadDeals = async () => {
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('deals')
         .select(`
@@ -102,6 +110,9 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
 
       if (error) throw error;
       
+      console.log('User location:', userLocation);
+      console.log('Raw deals data:', data);
+      
       // Calculate distances for deals with neighborhood data
       const dealsWithDistance = (data || []).map(deal => {
         if (userLocation && deal.neighborhoods) {
@@ -111,13 +122,15 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
             deal.neighborhoods.center_lat,
             deal.neighborhoods.center_lng
           );
+          console.log(`Deal ${deal.title} distance: ${distance}km`);
           return { ...deal, distance };
         }
+        console.log(`Deal ${deal.title} - no location data`);
         return deal;
       });
 
+      console.log('Deals with distance:', dealsWithDistance);
       setDeals(dealsWithDistance);
-      setFilteredDeals(dealsWithDistance);
       
       // Extract unique categories
       const categories = [...new Set((data || []).map(d => d.deal_type))].sort();
@@ -131,17 +144,30 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
   };
 
   const filterDeals = () => {
-    let filtered = deals;
+    let filtered = [...deals];
+    
+    console.log('Starting filterDeals with', deals.length, 'deals');
+    console.log('User location available:', !!userLocation);
     
     // Apply location-based filter if user location is available
     if (userLocation) {
+      const beforeFilter = filtered.length;
       filtered = filtered.filter(deal => {
-        if (!deal.distance) return true; // Include deals without location data
+        // Only show deals with distance data
+        if (deal.distance === undefined) {
+          console.log(`Excluding ${deal.title} - no distance data`);
+          return false;
+        }
         
         // Get dynamic radius based on neighborhood
         const radius = getDynamicRadius(deal.neighborhoods?.name);
-        return deal.distance <= radius;
+        const isWithinRadius = deal.distance <= radius;
+        
+        console.log(`${deal.title}: ${deal.distance.toFixed(2)}km (max: ${radius}km) - ${isWithinRadius ? 'INCLUDED' : 'EXCLUDED'}`);
+        return isWithinRadius;
       });
+      
+      console.log(`Location filter: ${beforeFilter} -> ${filtered.length} deals`);
 
       // Sort by distance (closest first)
       filtered.sort((a, b) => {
@@ -149,17 +175,22 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
         if (b.distance === undefined) return -1;
         return a.distance - b.distance;
       });
+    } else {
+      console.log('No user location - showing all deals');
     }
     
     // Apply category filter
     if (selectedCategories.length > 0) {
+      const beforeFilter = filtered.length;
       filtered = filtered.filter(deal => 
         selectedCategories.includes(deal.deal_type)
       );
+      console.log(`Category filter: ${beforeFilter} -> ${filtered.length} deals`);
     }
     
     // Apply search filter
     if (searchQuery.trim()) {
+      const beforeFilter = filtered.length;
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (deal) =>
@@ -168,8 +199,10 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
           deal.venue_name.toLowerCase().includes(query) ||
           deal.deal_type.toLowerCase().includes(query)
       );
+      console.log(`Search filter: ${beforeFilter} -> ${filtered.length} deals`);
     }
     
+    console.log('Final filtered deals:', filtered.length);
     setFilteredDeals(filtered);
   };
 
