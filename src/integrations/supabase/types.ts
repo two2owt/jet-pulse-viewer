@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      deal_shares: {
+        Row: {
+          deal_id: string
+          id: string
+          shared_at: string
+          user_id: string
+        }
+        Insert: {
+          deal_id: string
+          id?: string
+          shared_at?: string
+          user_id: string
+        }
+        Update: {
+          deal_id?: string
+          id?: string
+          shared_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_shares_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deals: {
         Row: {
           active: boolean | null
@@ -249,6 +278,56 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      search_history: {
+        Row: {
+          created_at: string
+          id: string
+          search_query: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          search_query: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          search_query?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_favorites: {
+        Row: {
+          created_at: string
+          deal_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_locations: {
         Row: {

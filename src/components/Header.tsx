@@ -10,6 +10,7 @@ import type { Venue } from "./Heatmap";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { useSearchHistory } from "@/hooks/useSearchHistory";
 
 type Deal = Database['public']['Tables']['deals']['Row'];
 
@@ -27,11 +28,15 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
   const [showResults, setShowResults] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string>("");
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+
+  const { addToSearchHistory } = useSearchHistory(userId);
 
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        setUserId(user.id);
         const { data: profile } = await supabase
           .from('profiles')
           .select('avatar_url, display_name')
@@ -55,6 +60,14 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
       searchSchema.parse(value);
       setSearchQuery(value);
       setShowResults(value.trim().length > 0);
+      
+      // Track search after a short delay (debounced)
+      if (value.trim().length > 2) {
+        const timeoutId = setTimeout(() => {
+          addToSearchHistory(value.trim());
+        }, 1000);
+        return () => clearTimeout(timeoutId);
+      }
     } catch (error) {
       // Keep the previous valid value if validation fails
       if (value.length <= 100) {

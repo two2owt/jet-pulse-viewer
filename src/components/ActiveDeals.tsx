@@ -1,12 +1,16 @@
 import { useEffect, useState, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, MapPin, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
+import { Clock, MapPin, TrendingUp, ChevronDown, ChevronUp, Heart, Share2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { OptimizedImage } from "./ui/optimized-image";
 import { DealCardSkeleton } from "./skeletons/DealCardSkeleton";
 import { toast } from "sonner";
 import type { City } from "@/types/cities";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { useFavorites } from "@/hooks/useFavorites";
+import { shareDeal } from "@/utils/shareUtils";
+import { glideHaptic } from "@/lib/haptics";
+import { cn } from "@/lib/utils";
 
 interface Deal {
   id: string;
@@ -28,11 +32,28 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(() => {
     const saved = localStorage.getItem('activeDealsOpen');
     return saved !== null ? JSON.parse(saved) : false;
   });
   const INITIAL_DISPLAY = 5;
+
+  const { isFavorite, toggleFavorite } = useFavorites(user?.id);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('activeDealsOpen', JSON.stringify(isOpen));
@@ -236,17 +257,59 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
                     {deal.description}
                   </p>
                   
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="w-3 h-3" />
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground flex-1 min-w-0">
+                      <MapPin className="w-3 h-3 flex-shrink-0" />
                       <span className="truncate">{deal.venue_name}</span>
                     </div>
                     
-                    <div className="flex items-center gap-1 text-xs text-primary font-medium">
+                    <div className="flex items-center gap-1 text-xs text-primary font-medium flex-shrink-0">
                       <Clock className="w-3 h-3" />
                       <span>{getTimeRemaining(deal.expires_at)}</span>
                     </div>
                   </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-1 flex-shrink-0">
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await glideHaptic();
+                      await toggleFavorite(deal.id);
+                    }}
+                    className="p-2 rounded-lg hover:bg-background/50 transition-colors"
+                    aria-label={isFavorite(deal.id) ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Heart
+                      className={cn(
+                        "w-4 h-4 transition-colors",
+                        isFavorite(deal.id) ? "fill-red-500 text-red-500" : "text-muted-foreground"
+                      )}
+                    />
+                  </button>
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await glideHaptic();
+                      const result = await shareDeal(deal, user?.id);
+                      if (result.success) {
+                        toast.success(
+                          result.method === "native" ? "Shared successfully!" : "Copied to clipboard!",
+                          {
+                            description:
+                              result.method === "native"
+                                ? `${deal.title} shared with others`
+                                : "Share link copied - paste it anywhere",
+                          }
+                        );
+                      }
+                    }}
+                    className="p-2 rounded-lg hover:bg-background/50 transition-colors"
+                    aria-label="Share deal"
+                  >
+                    <Share2 className="w-4 h-4 text-muted-foreground" />
+                  </button>
                 </div>
               </div>
             </div>
