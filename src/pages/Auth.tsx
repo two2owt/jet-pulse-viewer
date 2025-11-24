@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Zap, Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { Footer } from "@/components/Footer";
+import jetLogo from "@/assets/jet-auth-logo.png";
 
 // Enhanced validation schemas
 const emailSchema = z.string()
@@ -213,8 +214,8 @@ const Auth = () => {
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 bg-gradient-to-r from-primary to-primary-glow rounded-2xl flex items-center justify-center mx-auto shadow-[var(--shadow-glow)]">
-            <Zap className="w-10 h-10 text-primary-foreground" />
+          <div className="w-24 h-24 flex items-center justify-center mx-auto">
+            <img src={jetLogo} alt="JET Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">Welcome to JET</h1>
           <p className="text-muted-foreground">
@@ -222,7 +223,7 @@ const Auth = () => {
               ? "Reset your password"
               : isSignUp
               ? "Create an account to get started"
-              : "Sign in to discover what's hot in Charlotte"}
+              : "Sign in to discover what's hot in your area"}
           </p>
         </div>
 
