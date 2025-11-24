@@ -4,10 +4,11 @@ import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { OptimizedImage } from "./ui/optimized-image";
-import { Search, MapPin, Clock, TrendingUp, Filter, X } from "lucide-react";
+import { Search, MapPin, Clock, TrendingUp, Filter, X, Navigation } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { EmptyState } from "./EmptyState";
+import { calculateDistance, getDynamicRadius, formatDistance } from "@/utils/geospatialUtils";
 
 interface Deal {
   id: string;
@@ -18,6 +19,14 @@ interface Deal {
   expires_at: string;
   image_url: string | null;
   website_url: string | null;
+  neighborhood_id: string | null;
+  neighborhoods?: {
+    id: string;
+    name: string;
+    center_lat: number;
+    center_lng: number;
+  };
+  distance?: number; // Distance from user in km
 }
 
 interface ExploreTabProps {
@@ -31,28 +40,84 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
+    getUserLocation();
     loadDeals();
   }, []);
 
   useEffect(() => {
     filterDeals();
-  }, [searchQuery, deals, selectedCategories]);
+  }, [searchQuery, deals, selectedCategories, userLocation]);
+
+  const getUserLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setLocationError(null);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        setLocationError("Unable to access your location");
+        // Show warning but don't block - show all deals if location unavailable
+        toast.error("Location access denied", {
+          description: "Showing all deals. Enable location for personalized results.",
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000, // Cache for 5 minutes
+      }
+    );
+  };
 
   const loadDeals = async () => {
     try {
       const { data, error } = await supabase
         .from('deals')
-        .select('*')
+        .select(`
+          *,
+          neighborhoods (
+            id,
+            name,
+            center_lat,
+            center_lng
+          )
+        `)
         .eq('active', true)
         .gte('expires_at', new Date().toISOString())
         .lte('starts_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDeals(data || []);
-      setFilteredDeals(data || []);
+      
+      // Calculate distances for deals with neighborhood data
+      const dealsWithDistance = (data || []).map(deal => {
+        if (userLocation && deal.neighborhoods) {
+          const distance = calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            deal.neighborhoods.center_lat,
+            deal.neighborhoods.center_lng
+          );
+          return { ...deal, distance };
+        }
+        return deal;
+      });
+
+      setDeals(dealsWithDistance);
+      setFilteredDeals(dealsWithDistance);
       
       // Extract unique categories
       const categories = [...new Set((data || []).map(d => d.deal_type))].sort();
@@ -67,6 +132,24 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
 
   const filterDeals = () => {
     let filtered = deals;
+    
+    // Apply location-based filter if user location is available
+    if (userLocation) {
+      filtered = filtered.filter(deal => {
+        if (!deal.distance) return true; // Include deals without location data
+        
+        // Get dynamic radius based on neighborhood
+        const radius = getDynamicRadius(deal.neighborhoods?.name);
+        return deal.distance <= radius;
+      });
+
+      // Sort by distance (closest first)
+      filtered.sort((a, b) => {
+        if (a.distance === undefined) return 1;
+        if (b.distance === undefined) return -1;
+        return a.distance - b.distance;
+      });
+    }
     
     // Apply category filter
     if (selectedCategories.length > 0) {
@@ -147,7 +230,19 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-foreground mb-2">Explore Deals</h2>
-        <p className="text-sm text-muted-foreground">Discover trending spots and exclusive offers</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-muted-foreground">
+            {userLocation 
+              ? "Showing deals near you" 
+              : "Showing all available deals"}
+          </p>
+          {userLocation && (
+            <Badge variant="secondary" className="text-xs flex items-center gap-1">
+              <Navigation className="w-3 h-3" />
+              Location Active
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -296,9 +391,16 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
                       <span className="truncate">{deal.venue_name}</span>
                     </div>
                     
-                    <div className="flex items-center gap-1 text-primary font-medium flex-shrink-0">
-                      <Clock className="w-3 h-3" />
-                      {getTimeRemaining(deal.expires_at)}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {deal.distance !== undefined && (
+                        <span className="text-accent font-medium">
+                          {formatDistance(deal.distance)}
+                        </span>
+                      )}
+                      <div className="flex items-center gap-1 text-primary font-medium">
+                        <Clock className="w-3 h-3" />
+                        {getTimeRemaining(deal.expires_at)}
+                      </div>
                     </div>
                   </div>
                 </div>
