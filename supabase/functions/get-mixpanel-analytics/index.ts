@@ -22,6 +22,11 @@ serve(async (req) => {
     console.log('Fetching Mixpanel data:', { metric, fromDate, toDate });
     console.log('Service Account Username:', MIXPANEL_SERVICE_USERNAME ? 'SET' : 'NOT SET');
     console.log('Service Account Secret:', MIXPANEL_SERVICE_SECRET ? 'SET' : 'NOT SET');
+    
+    // Log username format (first 10 chars only for security)
+    if (MIXPANEL_SERVICE_USERNAME) {
+      console.log('Username format:', MIXPANEL_SERVICE_USERNAME.substring(0, 10) + '...');
+    }
 
     // Create Basic Auth header with username:secret for Query API
     const auth = btoa(`${MIXPANEL_SERVICE_USERNAME}:${MIXPANEL_SERVICE_SECRET}`);
@@ -33,8 +38,8 @@ serve(async (req) => {
     // Determine which Mixpanel endpoint to call based on metric
     switch(metric) {
       case 'test':
-        // Test endpoint to verify authentication
-        endpoint = 'https://mixpanel.com/api/app/me';
+        // Test endpoint to verify Service Account
+        endpoint = 'https://mixpanel.com/api/app/projects';
         break;
       
       case 'activeUsers':
