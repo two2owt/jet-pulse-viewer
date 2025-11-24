@@ -4,8 +4,10 @@ import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { OptimizedImage } from "./ui/optimized-image";
-import { Search, MapPin, Clock, TrendingUp } from "lucide-react";
+import { Search, MapPin, Clock, TrendingUp, Filter, X } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "./ui/button";
+import { EmptyState } from "./EmptyState";
 
 interface Deal {
   id: string;
@@ -27,6 +29,8 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
   useEffect(() => {
     loadDeals();
@@ -34,7 +38,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
 
   useEffect(() => {
     filterDeals();
-  }, [searchQuery, deals]);
+  }, [searchQuery, deals, selectedCategories]);
 
   const loadDeals = async () => {
     try {
@@ -49,6 +53,10 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
       if (error) throw error;
       setDeals(data || []);
       setFilteredDeals(data || []);
+      
+      // Extract unique categories
+      const categories = [...new Set((data || []).map(d => d.deal_type))].sort();
+      setAvailableCategories(categories);
     } catch (error) {
       console.error('Error loading deals:', error);
       toast.error('Failed to load deals');
@@ -58,20 +66,41 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
   };
 
   const filterDeals = () => {
-    if (!searchQuery.trim()) {
-      setFilteredDeals(deals);
-      return;
+    let filtered = deals;
+    
+    // Apply category filter
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter(deal => 
+        selectedCategories.includes(deal.deal_type)
+      );
     }
-
-    const query = searchQuery.toLowerCase();
-    const filtered = deals.filter(
-      (deal) =>
-        deal.title.toLowerCase().includes(query) ||
-        deal.description.toLowerCase().includes(query) ||
-        deal.venue_name.toLowerCase().includes(query) ||
-        deal.deal_type.toLowerCase().includes(query)
-    );
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (deal) =>
+          deal.title.toLowerCase().includes(query) ||
+          deal.description.toLowerCase().includes(query) ||
+          deal.venue_name.toLowerCase().includes(query) ||
+          deal.deal_type.toLowerCase().includes(query)
+      );
+    }
+    
     setFilteredDeals(filtered);
+  };
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const clearFilters = () => {
+    setSelectedCategories([]);
+    setSearchQuery("");
   };
 
   const getDealIcon = (dealType: string) => {
@@ -133,6 +162,41 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
         />
       </div>
 
+      {/* Category Filters */}
+      {availableCategories.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">Filter by Category</span>
+            </div>
+            {(selectedCategories.length > 0 || searchQuery) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="h-8 text-xs"
+              >
+                <X className="w-3 h-3 mr-1" />
+                Clear all
+              </Button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {availableCategories.map((category) => (
+              <Badge
+                key={category}
+                variant={selectedCategories.includes(category) ? "default" : "outline"}
+                className="cursor-pointer hover-scale"
+                onClick={() => toggleCategory(category)}
+              >
+                {category}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         <Card className="p-4 text-center bg-card/90 backdrop-blur-sm hover-scale shadow-none">
@@ -160,21 +224,23 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
       )}
 
       {/* No Results */}
-      {!isLoading && filteredDeals.length === 0 && searchQuery && (
-        <Card className="p-8 text-center bg-card/90 backdrop-blur-sm shadow-none">
-          <Search className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground mb-2">No deals found</p>
-          <p className="text-sm text-muted-foreground">Try searching for something else</p>
-        </Card>
+      {!isLoading && filteredDeals.length === 0 && (searchQuery || selectedCategories.length > 0) && (
+        <EmptyState
+          icon={Search}
+          title="No deals found"
+          description="Try adjusting your search or filter criteria to find more deals"
+          actionLabel="Clear Filters"
+          onAction={clearFilters}
+        />
       )}
 
       {/* No Deals */}
-      {!isLoading && deals.length === 0 && (
-        <Card className="p-8 text-center bg-card/90 backdrop-blur-sm shadow-none">
-          <TrendingUp className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground mb-2">No active deals right now</p>
-          <p className="text-sm text-muted-foreground">Check back soon for new offers</p>
-        </Card>
+      {!isLoading && deals.length === 0 && !searchQuery && selectedCategories.length === 0 && (
+        <EmptyState
+          icon={TrendingUp}
+          title="No active deals right now"
+          description="Check back soon for new exclusive offers and trending spots in your area"
+        />
       )}
 
       {/* Deals Grid */}
