@@ -1,14 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, MapPin, Bell, TrendingUp, Star, Activity, Eye } from "lucide-react";
 import { Loader2 } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { format, subDays } from "date-fns";
+import { useState } from "react";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
 export const UserAnalytics = () => {
+  const [activeTab, setActiveTab] = useState("overview");
+  
   const { data, isLoading } = useQuery({
     queryKey: ['admin-analytics'],
     queryFn: async () => {
@@ -101,6 +105,27 @@ export const UserAnalytics = () => {
     }
   });
 
+  // Fetch real-time Mixpanel data
+  const { data: mixpanelData, isLoading: mixpanelLoading } = useQuery({
+    queryKey: ['mixpanel-analytics'],
+    queryFn: async () => {
+      const fromDate = format(subDays(new Date(), 7), 'yyyy-MM-dd');
+      const toDate = format(new Date(), 'yyyy-MM-dd');
+      
+      const { data, error } = await supabase.functions.invoke('get-mixpanel-analytics', {
+        body: { 
+          metric: 'events',
+          fromDate,
+          toDate
+        }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   if (isLoading) {
     return (
       <div className="flex justify-center p-12">
@@ -146,164 +171,60 @@ export const UserAnalytics = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Analytics Dashboard</h2>
-        <p className="text-muted-foreground">Real-time platform metrics and user engagement</p>
-      </div>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <TabsList>
+        <TabsTrigger value="overview">Overview</TabsTrigger>
+        <TabsTrigger value="mixpanel">Live Mixpanel</TabsTrigger>
+      </TabsList>
 
-      {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {cards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.title} className="bg-card/50 backdrop-blur-sm border-border/50">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {card.title}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{typeof card.value === 'number' ? card.value.toLocaleString() : card.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {card.description}
-                </p>
-                <p className="text-xs text-primary/70 mt-1">
-                  {card.trend}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <TabsContent value="overview" className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Analytics Dashboard</h2>
+          <p className="text-muted-foreground">Real-time platform metrics and user engagement</p>
+        </div>
 
-      {/* Charts Row */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* User Growth Chart */}
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              User Growth (7 Days)
-            </CardTitle>
-            <CardDescription>New user registrations per day</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={data?.userGrowth || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="users" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={2}
-                  dot={{ fill: 'hsl(var(--primary))' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        {/* Key Metrics */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {cards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <Card key={card.title} className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {card.title}
+                  </CardTitle>
+                  <Icon className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{typeof card.value === 'number' ? card.value.toLocaleString() : card.value}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {card.description}
+                  </p>
+                  <p className="text-xs text-primary/70 mt-1">
+                    {card.trend}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
 
-        {/* Location Activity Chart */}
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" />
-              Location Activity
-            </CardTitle>
-            <CardDescription>User check-ins over the last week</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={data?.locationActivity || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                />
-                <Bar dataKey="locations" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Bottom Row */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Popular Venues */}
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-primary" />
-              Top Venues
-            </CardTitle>
-            <CardDescription>Venues with most active deals</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data?.popularVenues && data.popularVenues.length > 0 ? (
-                data.popularVenues.map((venue, idx) => (
-                  <div key={venue.venue_id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                        {idx + 1}
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{venue.venue_name}</p>
-                        <p className="text-xs text-muted-foreground">{venue.count} active deals</p>
-                      </div>
-                    </div>
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">No venue data available</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Deal Type Distribution */}
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" />
-              Deal Categories
-            </CardTitle>
-            <CardDescription>Distribution of active deals by type</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data?.dealTypeStats && data.dealTypeStats.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={data.dealTypeStats}
-                    dataKey="count"
-                    nameKey="type"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    label={(entry) => `${entry.type}: ${entry.count}`}
-                  >
-                    {data.dealTypeStats.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
+        {/* Charts Row */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                User Growth (7 Days)
+              </CardTitle>
+              <CardDescription>New user registrations per day</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={data?.userGrowth || []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+                  <YAxis stroke="hsl(var(--muted-foreground))" />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card))',
@@ -311,47 +232,334 @@ export const UserAnalytics = () => {
                       borderRadius: '8px'
                     }}
                   />
-                </PieChart>
+                  <Line 
+                    type="monotone" 
+                    dataKey="users" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--primary))' }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
-            ) : (
-              <p className="text-sm text-muted-foreground">No deal data available</p>
-            )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary" />
+                Location Activity
+              </CardTitle>
+              <CardDescription>User check-ins over the last week</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={data?.locationActivity || []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+                  <YAxis stroke="hsl(var(--muted-foreground))" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <Bar dataKey="locations" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Bottom Row */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" />
+                Top Venues
+              </CardTitle>
+              <CardDescription>Venues with most active deals</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {data?.popularVenues && data.popularVenues.length > 0 ? (
+                  data.popularVenues.map((venue, idx) => (
+                    <div key={venue.venue_id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{venue.venue_name}</p>
+                          <p className="text-xs text-muted-foreground">{venue.count} active deals</p>
+                        </div>
+                      </div>
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No venue data available</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary" />
+                Deal Categories
+              </CardTitle>
+              <CardDescription>Distribution of active deals by type</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {data?.dealTypeStats && data.dealTypeStats.length > 0 ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={data.dealTypeStats}
+                      dataKey="count"
+                      nameKey="type"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label={(entry) => `${entry.type}: ${entry.count}`}
+                    >
+                      {data.dealTypeStats.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-sm text-muted-foreground">No deal data available</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Notifications Stats */}
+        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              Notification Performance
+            </CardTitle>
+            <CardDescription>Push notification delivery stats</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-2xl font-bold text-primary">{data?.totalNotifications?.toLocaleString() || 0}</p>
+                <p className="text-xs text-muted-foreground">Total Sent</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-primary">
+                  {data?.completedOnboarding && data?.totalNotifications 
+                    ? (data.totalNotifications / data.completedOnboarding).toFixed(1)
+                    : 0}
+                </p>
+                <p className="text-xs text-muted-foreground">Avg per User</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-primary">
+                  {data?.totalNotifications ? '100%' : '0%'}
+                </p>
+                <p className="text-xs text-muted-foreground">Delivery Rate</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
-      </div>
+      </TabsContent>
 
-      {/* Notifications Stats */}
-      <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-primary" />
-            Notification Performance
-          </CardTitle>
-          <CardDescription>Push notification delivery stats</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-2xl font-bold text-primary">{data?.totalNotifications?.toLocaleString() || 0}</p>
-              <p className="text-xs text-muted-foreground">Total Sent</p>
+      <TabsContent value="mixpanel" className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Live Mixpanel Analytics</h2>
+          <p className="text-muted-foreground">Real-time event tracking • Updates every 30 seconds</p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Events</CardTitle>
+              <Activity className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              {mixpanelLoading ? (
+                <div className="h-8 w-20 bg-muted animate-pulse rounded" />
+              ) : (
+                <div className="text-2xl font-bold">
+                  {mixpanelData?.data?.data ? 
+                    Object.values(mixpanelData.data.data as Record<string, Record<string, number>>).reduce((sum: number, day: Record<string, number>) => 
+                      sum + Object.values(day).reduce((s: number, v: number) => s + (v || 0), 0)
+                    , 0) : 0}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">Last 7 days</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Page Views</CardTitle>
+              <Eye className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              {mixpanelLoading ? (
+                <div className="h-8 w-20 bg-muted animate-pulse rounded" />
+              ) : (
+                <div className="text-2xl font-bold">
+                  {mixpanelData?.data?.data?.['Page Viewed'] ? 
+                    Object.values(mixpanelData.data.data['Page Viewed'] as Record<string, number>).reduce((s: number, v: number) => s + v, 0) : 0}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">Last 7 days</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Deal Views</CardTitle>
+              <Star className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              {mixpanelLoading ? (
+                <div className="h-8 w-20 bg-muted animate-pulse rounded" />
+              ) : (
+                <div className="text-2xl font-bold">
+                  {mixpanelData?.data?.data?.['Deal Viewed'] ? 
+                    Object.values(mixpanelData.data.data['Deal Viewed'] as Record<string, number>).reduce((s: number, v: number) => s + v, 0) : 0}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">Last 7 days</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Deal Clicks</CardTitle>
+              <TrendingUp className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              {mixpanelLoading ? (
+                <div className="h-8 w-20 bg-muted animate-pulse rounded" />
+              ) : (
+                <div className="text-2xl font-bold">
+                  {mixpanelData?.data?.data?.['Deal Clicked'] ? 
+                    Object.values(mixpanelData.data.data['Deal Clicked'] as Record<string, number>).reduce((s: number, v: number) => s + v, 0) : 0}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">Last 7 days</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle>Event Trends</CardTitle>
+              <CardDescription>Daily event volume from Mixpanel</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {mixpanelLoading ? (
+                <div className="h-[300px] bg-muted animate-pulse rounded" />
+              ) : mixpanelData?.data?.data ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={
+                    Object.keys(mixpanelData.data.data['Page Viewed'] || {}).map(date => ({
+                      date: format(new Date(date), 'MMM dd'),
+                      pageViews: mixpanelData.data.data['Page Viewed']?.[date] || 0,
+                      dealViews: mixpanelData.data.data['Deal Viewed']?.[date] || 0,
+                      dealClicks: mixpanelData.data.data['Deal Clicked']?.[date] || 0,
+                    }))
+                  }>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+                    <YAxis stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Legend />
+                    <Line type="monotone" dataKey="pageViews" stroke="hsl(var(--primary))" name="Page Views" strokeWidth={2} />
+                    <Line type="monotone" dataKey="dealViews" stroke="hsl(var(--secondary))" name="Deal Views" strokeWidth={2} />
+                    <Line type="monotone" dataKey="dealClicks" stroke="hsl(var(--accent))" name="Deal Clicks" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  No event data available
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle>Search Activity</CardTitle>
+              <CardDescription>User search behavior</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {mixpanelLoading ? (
+                <div className="h-[300px] bg-muted animate-pulse rounded" />
+              ) : mixpanelData?.data?.data?.['Search Performed'] ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={
+                    Object.keys(mixpanelData.data.data['Search Performed']).map(date => ({
+                      date: format(new Date(date), 'MMM dd'),
+                      searches: mixpanelData.data.data['Search Performed'][date] || 0,
+                    }))
+                  }>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+                    <YAxis stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Bar dataKey="searches" fill="hsl(var(--primary))" name="Searches" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  No search data available
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+          <CardHeader>
+            <CardTitle>💡 Mixpanel Integration</CardTitle>
+            <CardDescription>
+              Live analytics powered by Mixpanel API • Auto-refreshing every 30 seconds
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm text-muted-foreground space-y-2">
+              <p>✓ Page views, deal interactions, searches, and user engagement</p>
+              <p>✓ Session recording enabled at 100% for detailed user journey analysis</p>
+              <p>✓ Autocapture enabled for comprehensive event tracking</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-primary">
-                {data?.completedOnboarding && data?.totalNotifications 
-                  ? (data.totalNotifications / data.completedOnboarding).toFixed(1)
-                  : 0}
-              </p>
-              <p className="text-xs text-muted-foreground">Avg per User</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-primary">
-                {data?.totalNotifications ? '100%' : '0%'}
-              </p>
-              <p className="text-xs text-muted-foreground">Delivery Rate</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 };
