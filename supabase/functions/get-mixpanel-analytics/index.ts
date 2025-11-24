@@ -19,15 +19,23 @@ serve(async (req) => {
     const { metric, fromDate, toDate } = await req.json();
     
     console.log('Fetching Mixpanel data:', { metric, fromDate, toDate });
+    console.log('Service Account Username:', MIXPANEL_SERVICE_USERNAME ? 'SET' : 'NOT SET');
+    console.log('Service Account Secret:', MIXPANEL_SERVICE_SECRET ? 'SET' : 'NOT SET');
 
     // Create Basic Auth header with username:secret
     const auth = btoa(`${MIXPANEL_SERVICE_USERNAME}:${MIXPANEL_SERVICE_SECRET}`);
+    console.log('Auth header created (length):', auth.length);
     
     let endpoint = '';
     let params = new URLSearchParams();
     
     // Determine which Mixpanel endpoint to call based on metric
     switch(metric) {
+      case 'test':
+        // Test endpoint to verify authentication
+        endpoint = 'https://mixpanel.com/api/app/me';
+        break;
+      
       case 'activeUsers':
         endpoint = 'https://mixpanel.com/api/2.0/engage';
         params.append('project_id', MIXPANEL_PROJECT_ID);
