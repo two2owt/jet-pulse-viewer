@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useConnections } from "@/hooks/useConnections";
+import { useNotifications } from "@/hooks/useNotifications";
 import { Users, UserPlus, Loader2, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Header } from "@/components/Header";
+import { BottomNav } from "@/components/BottomNav";
 
 interface Profile {
   id: string;
@@ -17,6 +20,8 @@ export default function Social() {
   const [user, setUser] = useState<any>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("social");
+  const { notifications } = useNotifications();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -93,6 +98,19 @@ export default function Social() {
     }
   };
 
+  const handleTabChange = (tab: "map" | "explore" | "notifications" | "favorites" | "social") => {
+    setActiveTab(tab);
+    if (tab === "map") {
+      navigate("/");
+    } else if (tab === "explore") {
+      navigate("/?tab=explore");
+    } else if (tab === "notifications") {
+      navigate("/?tab=notifications");
+    } else if (tab === "favorites") {
+      navigate("/favorites");
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
@@ -122,8 +140,14 @@ export default function Social() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
+    <>
+      <Header 
+        venues={[]}
+        deals={[]}
+        onVenueSelect={() => {}}
+      />
+      <div className="min-h-screen bg-background pb-20">
+        <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
         {/* Pending Requests */}
         {pendingRequests.length > 0 && (
           <div>
@@ -239,7 +263,14 @@ export default function Social() {
             ))}
           </div>
         </div>
+        </div>
       </div>
-    </div>
+      
+      <BottomNav 
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        notificationCount={notifications.filter(n => !n.read).length}
+      />
+    </>
   );
 }
