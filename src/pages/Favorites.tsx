@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useNotifications } from "@/hooks/useNotifications";
 import { Heart, Loader2 } from "lucide-react";
 import { DealCard } from "@/components/DealCard";
 import { useNavigate } from "react-router-dom";
+import { BottomNav } from "@/components/BottomNav";
+import { Header } from "@/components/Header";
 
 interface Deal {
   id: string;
@@ -22,6 +25,8 @@ export default function Favorites() {
   const [user, setUser] = useState<any>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("favorites");
+  const { notifications } = useNotifications();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -51,6 +56,19 @@ export default function Favorites() {
       setLoading(false);
     }
   }, [favorites, favoritesLoading, user]);
+
+  const handleTabChange = (tab: "map" | "explore" | "notifications" | "favorites" | "social") => {
+    setActiveTab(tab);
+    if (tab === "map") {
+      navigate("/");
+    } else if (tab === "explore") {
+      navigate("/?tab=explore");
+    } else if (tab === "notifications") {
+      navigate("/?tab=notifications");
+    } else if (tab === "social") {
+      navigate("/social");
+    }
+  };
 
   const fetchFavoriteDeals = async () => {
     try {
@@ -99,8 +117,14 @@ export default function Favorites() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="max-w-7xl mx-auto px-4 py-6">
+    <>
+      <Header 
+        venues={[]}
+        deals={[]}
+        onVenueSelect={() => {}}
+      />
+      <div className="min-h-screen bg-background pb-20">
+        <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground mb-2">My Favorites</h1>
           <p className="text-muted-foreground">
@@ -129,7 +153,14 @@ export default function Favorites() {
             ))}
           </div>
         )}
+        </div>
       </div>
-    </div>
+      
+      <BottomNav 
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        notificationCount={notifications.filter(n => !n.read).length}
+      />
+    </>
   );
 }
