@@ -35,6 +35,7 @@ serve(async (req) => {
       
       case 'events':
         endpoint = 'https://mixpanel.com/api/2.0/events';
+        params.append('project_id', MIXPANEL_PROJECT_ID);
         params.append('event', '["Page Viewed", "Deal Viewed", "Deal Clicked", "Button Clicked", "Search Performed"]');
         params.append('unit', 'day');
         params.append('type', 'general');
@@ -44,12 +45,14 @@ serve(async (req) => {
       
       case 'topEvents':
         endpoint = 'https://mixpanel.com/api/2.0/events/top';
+        params.append('project_id', MIXPANEL_PROJECT_ID);
         params.append('type', 'general');
         params.append('limit', '10');
         break;
         
       case 'funnels':
         endpoint = 'https://mixpanel.com/api/2.0/funnels';
+        params.append('project_id', MIXPANEL_PROJECT_ID);
         params.append('from_date', fromDate);
         params.append('to_date', toDate);
         break;
