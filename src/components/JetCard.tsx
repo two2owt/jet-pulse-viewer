@@ -1,9 +1,10 @@
-import { memo } from "react";
+import { memo, useState, useEffect } from "react";
 import { Clock, MapPin, Users, Star, TrendingUp, X, Share2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { OptimizedImage } from "./ui/optimized-image";
 import { glideHaptic } from "@/lib/haptics";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import type { Venue } from "./Heatmap";
 
 interface JetCardProps {
@@ -13,6 +14,22 @@ interface JetCardProps {
 }
 
 export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) => {
+  const [user, setUser] = useState<any>(null);
+  
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const getActivityLevel = (activity: number) => {
     if (activity >= 80) return { label: "🔥 Very Busy", color: "text-hot" };
     if (activity >= 60) return { label: "🌟 Busy", color: "text-warm" };
@@ -27,38 +44,47 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
   };
 
   const handleShare = async () => {
-    await glideHaptic(); // Smooth gliding haptic feedback
+    await glideHaptic();
     
-    const shareData = {
-      title: venue.name,
-      text: venue.address 
-        ? `Check out ${venue.name} at ${venue.address}!`
-        : `Check out ${venue.name} in ${venue.neighborhood}!`,
-      url: venue.address
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}`
-        : `https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`
-    };
+    const shareUrl = venue.address
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}`
+      : `https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`;
+    
+    const shareText = venue.address 
+      ? `Check out ${venue.name} at ${venue.address}!`
+      : `Check out ${venue.name} in ${venue.neighborhood}!`;
 
-    try {
-      if (navigator.share) {
-        // Use native share API on mobile devices
-        await navigator.share(shareData);
+    // Use Web Share API if available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: venue.name,
+          text: shareText,
+          url: shareUrl,
+        });
         toast.success("Shared successfully!", {
-          description: `${venue.name} shared with others`
+          description: `${venue.name} shared with others`,
         });
-      } else {
-        // Fallback for desktop - copy to clipboard
-        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
-        await navigator.clipboard.writeText(shareText);
-        toast.success("Copied to clipboard!", {
-          description: "Share link copied - paste it anywhere"
-        });
+      } catch (error) {
+        // User cancelled or share failed
+        if ((error as Error).name !== "AbortError") {
+          console.error("Error sharing:", error);
+          toast.error("Couldn't share", {
+            description: "Please try again",
+          });
+        }
       }
-    } catch (error) {
-      if ((error as Error).name !== 'AbortError') {
-        console.error('Error sharing:', error);
+    } else {
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+        toast.success("Copied to clipboard!", {
+          description: "Share link copied - paste it anywhere",
+        });
+      } catch (error) {
+        console.error("Error copying to clipboard:", error);
         toast.error("Couldn't share", {
-          description: "Please try again"
+          description: "Please try again",
         });
       }
     }
