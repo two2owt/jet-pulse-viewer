@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useNotifications } from "@/hooks/useNotifications";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart, Loader2, Compass } from "lucide-react";
 import { DealCard } from "@/components/DealCard";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
+import { EmptyState } from "@/components/EmptyState";
+import { Button } from "@/components/ui/button";
 
 interface Deal {
   id: string;
@@ -90,21 +92,29 @@ export default function Favorites() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="text-center space-y-4">
-          <Heart className="h-16 w-16 mx-auto text-muted-foreground" />
-          <h2 className="text-2xl font-bold text-foreground">Sign in to view favorites</h2>
-          <p className="text-muted-foreground">
-            Create an account to save and track your favorite deals
-          </p>
-          <button
-            onClick={() => navigate("/auth")}
-            className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            Sign In
-          </button>
+      <>
+        <Header 
+          venues={[]}
+          deals={[]}
+          onVenueSelect={() => {}}
+        />
+        <div className="min-h-screen bg-background pb-20">
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <EmptyState
+              icon={Heart}
+              title="Sign in to view favorites"
+              description="Create an account to save and track your favorite deals across all venues"
+              actionLabel="Sign In"
+              onAction={() => navigate("/auth")}
+            />
+          </div>
         </div>
-      </div>
+        <BottomNav 
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          notificationCount={0}
+        />
+      </>
     );
   }
 
@@ -133,19 +143,13 @@ export default function Favorites() {
         </div>
 
         {deals.length === 0 ? (
-          <div className="text-center py-12">
-            <Heart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">No favorites yet</h2>
-            <p className="text-muted-foreground mb-6">
-              Start exploring and save deals you love!
-            </p>
-            <button
-              onClick={() => navigate("/")}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              Explore Deals
-            </button>
-          </div>
+          <EmptyState
+            icon={Compass}
+            title="No favorites yet"
+            description="Start exploring and save deals you love! Your favorite venues and offers will appear here."
+            actionLabel="Explore Deals"
+            onAction={() => navigate("/")}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {deals.map((deal) => (

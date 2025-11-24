@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useConnections } from "@/hooks/useConnections";
 import { useNotifications } from "@/hooks/useNotifications";
-import { Users, UserPlus, Loader2, Check, X } from "lucide-react";
+import { Users, UserPlus, Loader2, Check, X, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Profile {
   id: string;
@@ -113,21 +114,29 @@ export default function Social() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="text-center space-y-4">
-          <Users className="h-16 w-16 mx-auto text-muted-foreground" />
-          <h2 className="text-2xl font-bold text-foreground">Sign in to connect</h2>
-          <p className="text-muted-foreground">
-            Create an account to find and connect with friends
-          </p>
-          <button
-            onClick={() => navigate("/auth")}
-            className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            Sign In
-          </button>
+      <>
+        <Header 
+          venues={[]}
+          deals={[]}
+          onVenueSelect={() => {}}
+        />
+        <div className="min-h-screen bg-background pb-20">
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <EmptyState
+              icon={Users}
+              title="Sign in to connect"
+              description="Create an account to find and connect with friends, share deals, and build your social network"
+              actionLabel="Sign In"
+              onAction={() => navigate("/auth")}
+            />
+          </div>
         </div>
-      </div>
+        <BottomNav 
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          notificationCount={0}
+        />
+      </>
     );
   }
 
@@ -201,10 +210,11 @@ export default function Social() {
             My Friends ({connections.length})
           </h2>
           {connections.length === 0 ? (
-            <div className="text-center py-12 bg-card border border-border rounded-xl">
-              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No friends yet. Start connecting below!</p>
-            </div>
+            <EmptyState
+              icon={UserX}
+              title="No friends yet"
+              description="Start connecting with friends below to share deals and discover new spots together"
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {connections.map((connection) => (
