@@ -30,12 +30,17 @@ export const AuthButton = () => {
   if (user) {
     return (
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full">
+        <Button
+          onClick={() => navigate("/profile")}
+          variant="ghost"
+          size="sm"
+          className="h-8 px-3 gap-2"
+        >
           <User className="w-4 h-4 text-primary" />
           <span className="text-xs font-medium text-foreground max-w-[100px] truncate">
             {user.email}
           </span>
-        </div>
+        </Button>
         <Button
           onClick={handleSignOut}
           variant="ghost"
