@@ -53,7 +53,7 @@ const Index = () => {
     const hasSeenIntro = localStorage.getItem('hasSeenIntro');
     return !hasSeenIntro;
   });
-  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites">("map");
+  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("map");
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
@@ -123,10 +123,12 @@ const Index = () => {
     checkOnboarding();
   }, [navigate]);
 
-  // Handle favorites tab navigation
+  // Handle favorites and social tab navigation
   useEffect(() => {
     if (activeTab === "favorites") {
       navigate("/favorites");
+    } else if (activeTab === "social") {
+      navigate("/social");
     }
   }, [activeTab, navigate]);
 
