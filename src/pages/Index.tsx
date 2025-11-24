@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { type Venue } from "@/components/Heatmap";
 import { JetCard } from "@/components/JetCard";
@@ -48,6 +48,7 @@ const mockVenues: Venue[] = [
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showIntro, setShowIntro] = useState(() => {
     // Check if user has seen intro before
     const hasSeenIntro = localStorage.getItem('hasSeenIntro');
@@ -122,6 +123,13 @@ const Index = () => {
     
     checkOnboarding();
   }, [navigate]);
+
+  // Ensure we're on map tab when on root path
+  useEffect(() => {
+    if (location.pathname === "/" && activeTab !== "map") {
+      setActiveTab("map");
+    }
+  }, [location.pathname, activeTab]);
 
   // Handle favorites and social tab navigation
   useEffect(() => {
