@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import jetLogo from "@/assets/jet-intro-logo.png";
+import { Button } from "./ui/button";
+import { SkipForward } from "lucide-react";
 
 interface IntroScreenProps {
   onComplete: () => void;
@@ -16,6 +18,11 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
 
     return () => clearTimeout(timer);
   }, [onComplete]);
+
+  const handleSkip = () => {
+    setIsVisible(false);
+    setTimeout(onComplete, 300);
+  };
 
   return (
     <div
@@ -65,6 +72,17 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
           }}
         />
       </div>
+
+      {/* Skip Button */}
+      <Button
+        onClick={handleSkip}
+        variant="ghost"
+        size="sm"
+        className="absolute bottom-8 right-8 gap-2 text-muted-foreground hover:text-foreground"
+      >
+        Skip
+        <SkipForward className="w-4 h-4" />
+      </Button>
     </div>
   );
 };

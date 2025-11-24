@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Zap, Loader2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
+import { Footer } from "@/components/Footer";
 
 // Enhanced validation schemas
 const emailSchema = z.string()
@@ -366,6 +367,8 @@ const Auth = () => {
             <li>• Track your activity and rewards</li>
           </ul>
         </div>
+
+        <Footer />
       </div>
     </div>
   );
