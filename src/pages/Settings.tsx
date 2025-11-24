@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone } from "lucide-react";
+import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone, User } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useTheme } from "next-themes";
@@ -226,6 +226,24 @@ const Settings = () => {
 
       {/* Content */}
       <main className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Profile Link */}
+        <Card className="p-4 sm:p-5 md:p-6">
+          <Button
+            onClick={() => navigate("/profile")}
+            variant="outline"
+            className="w-full h-auto py-4 justify-start"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <User className="w-5 h-5 text-primary" />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-foreground">My Profile</div>
+                <div className="text-xs text-muted-foreground">View and edit your profile</div>
+              </div>
+            </div>
+          </Button>
+        </Card>
         {/* Notifications Section */}
         <Card className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
           <div>
