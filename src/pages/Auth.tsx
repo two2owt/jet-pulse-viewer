@@ -35,6 +35,9 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
+  const [showResendVerification, setShowResendVerification] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
 
   // Check if user is coming from password reset email
   useEffect(() => {
@@ -54,6 +57,16 @@ const Auth = () => {
     };
     checkResetMode();
   }, [searchParams]);
+
+  // Cooldown timer for resend verification
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => {
+        setResendCooldown(resendCooldown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   // Validate inputs before submission
   const validateInputs = (): boolean => {
@@ -80,6 +93,61 @@ const Auth = () => {
     
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  const handleResendVerification = async () => {
+    // Validate email first
+    const emailResult = emailSchema.safeParse(email);
+    if (!emailResult.success) {
+      toast.error("Invalid email", {
+        description: emailResult.error.errors[0].message,
+      });
+      return;
+    }
+
+    if (resendCooldown > 0) {
+      toast.error("Please wait", {
+        description: `You can resend in ${resendCooldown} seconds.`,
+      });
+      return;
+    }
+
+    setIsResending(true);
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email.trim(),
+        options: {
+          emailRedirectTo: window.location.origin.includes('localhost') 
+            ? 'https://dafac772-7908-4bdb-873c-58a805d7581e.lovableproject.com/verification-success'
+            : `${window.location.origin}/verification-success`,
+        },
+      });
+
+      if (error) {
+        if (error.message?.includes("rate limit")) {
+          toast.error("Too many attempts", {
+            description: "Please wait a few minutes before trying again.",
+          });
+          setResendCooldown(60);
+        } else {
+          throw error;
+        }
+        return;
+      }
+
+      toast.success("Verification email sent!", {
+        description: "Please check your inbox and spam folder.",
+      });
+      setResendCooldown(60); // 60 second cooldown
+    } catch (error: any) {
+      toast.error("Failed to resend email", {
+        description: "Please try again or contact support if the issue persists.",
+      });
+    } finally {
+      setIsResending(false);
+    }
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -211,7 +279,7 @@ const Auth = () => {
         toast.success("Check your email!", {
           description: "We sent you a verification link. Please verify your email to continue.",
         });
-        setEmail("");
+        setShowResendVerification(true);
         setPassword("");
         setConfirmPassword("");
         return;
@@ -232,6 +300,7 @@ const Auth = () => {
             toast.error("Email not verified", {
               description: "Please check your email and click the verification link.",
             });
+            setShowResendVerification(true);
             return;
           } else if (error.message?.includes("rate limit")) {
             toast.error("Too many attempts", {
@@ -248,6 +317,7 @@ const Auth = () => {
           toast.error("Email not verified", {
             description: "Please check your email and click the verification link before signing in.",
           });
+          setShowResendVerification(true);
           setIsLoading(false);
           return;
         }
@@ -406,6 +476,30 @@ const Auth = () => {
           </Button>
         </form>
 
+        {/* Resend Verification Email */}
+        {showResendVerification && !isResettingPassword && (
+          <div className="bg-muted/50 border border-border rounded-lg p-4 space-y-3">
+            <div className="text-sm text-muted-foreground">
+              Didn't receive the verification email?
+            </div>
+            <Button
+              type="button"
+              onClick={handleResendVerification}
+              disabled={isResending || resendCooldown > 0}
+              variant="outline"
+              className="w-full"
+              size="sm"
+            >
+              {isResending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              {resendCooldown > 0 
+                ? `Resend in ${resendCooldown}s` 
+                : "Resend Verification Email"}
+            </Button>
+          </div>
+        )}
+
         {/* Toggle & Forgot Password */}
         {!isResettingPassword && (
           <div className="text-center space-y-2">
@@ -422,6 +516,7 @@ const Auth = () => {
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setIsForgotPassword(false);
+                setShowResendVerification(false);
                 setValidationErrors({});
                 setPassword("");
                 setConfirmPassword("");
