@@ -178,11 +178,16 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
+        // Use production URL or Lovable preview URL, never localhost
+        const appUrl = window.location.origin.includes('localhost') 
+          ? 'https://dafac772-7908-4bdb-873c-58a805d7581e.lovableproject.com'
+          : window.location.origin;
+        
         const { error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/onboarding`,
+            emailRedirectTo: `${appUrl}/verification-success`,
           },
         });
 
