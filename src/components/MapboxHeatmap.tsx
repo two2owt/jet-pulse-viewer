@@ -31,11 +31,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapInitializing, setMapInitializing] = useState(true);
   const userMarker = useRef<mapboxgl.Marker | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const dealMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
   const isMobile = useIsMobile();
+  const initStartTime = useRef<number>(0);
   
   // Density heatmap state
   const [showDensityLayer, setShowDensityLayer] = useState(false);
@@ -91,14 +93,17 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     // Validate token before initialization
     if (!mapboxToken || mapboxToken.trim() === '') {
       console.error('MapboxHeatmap: Invalid or missing Mapbox token');
+      setMapInitializing(false);
       return;
     }
 
     try {
+      initStartTime.current = performance.now();
+      setMapInitializing(true);
       mapboxgl.accessToken = mapboxToken;
       console.log('MapboxHeatmap: Initializing map for', selectedCity.name);
 
-      // Initialize map centered on selected city
+      // Initialize map centered on selected city with performance optimizations
       map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: `mapbox://styles/mapbox/${mapStyle}-v11`,
@@ -112,7 +117,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       touchZoomRotate: true,
       touchPitch: !isMobile,
       dragRotate: !isMobile,
-      projection: 'globe' as any, // Enable globe projection
+      projection: 'globe' as any,
+      // Performance optimizations
+      fadeDuration: 100, // Faster tile fade for quicker perceived load
+      refreshExpiredTiles: false, // Don't refresh tiles automatically
     });
 
     // Add attribution control in a better position
@@ -126,13 +134,17 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
     // Ensure map resizes to container after initialization
     map.current.on('load', () => {
-      console.log('MapboxHeatmap: Map loaded successfully');
-      setTimeout(() => {
+      const loadTime = performance.now() - initStartTime.current;
+      console.log(`MapboxHeatmap: Map loaded successfully in ${loadTime.toFixed(2)}ms`);
+      
+      // Use requestAnimationFrame for smoother initialization
+      requestAnimationFrame(() => {
         if (map.current) {
           map.current.resize();
           setMapLoaded(true);
+          setMapInitializing(false);
         }
-      }, 100);
+      });
     });
 
     // Add error handler
@@ -409,22 +421,22 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     }
   }, [show3DTerrain, mapLoaded, isMobile]);
 
-  // Add/update density heatmap layer
+  // Add/update density heatmap layer with lazy loading
   useEffect(() => {
     if (!map.current || !mapLoaded || !densityData) return;
 
     const sourceId = 'location-density';
     const layerId = 'location-density-heat';
     const pointLayerId = `${layerId}-point`;
+    const glowLayerId = `${layerId}-glow`;
 
     try {
       // Remove existing layers and source if they exist
-      if (map.current.getLayer(pointLayerId)) {
-        map.current.removeLayer(pointLayerId);
-      }
-      if (map.current.getLayer(layerId)) {
-        map.current.removeLayer(layerId);
-      }
+      [glowLayerId, pointLayerId, layerId].forEach(id => {
+        if (map.current?.getLayer(id)) {
+          map.current.removeLayer(id);
+        }
+      });
       if (map.current.getSource(sourceId)) {
         map.current.removeSource(sourceId);
       }
@@ -767,18 +779,20 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   }, [mapLoaded, pathData, showMovementPaths]);
 
 
-  // Function to update markers based on current zoom level
+  // Optimized marker updates with throttling
   const updateMarkers = () => {
     if (!map.current || !mapLoaded) return;
 
     const mapInstance = map.current;
     
-    // Clear existing markers
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
+    // Use requestAnimationFrame for smoother updates
+    requestAnimationFrame(() => {
+      // Clear existing markers
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
 
-    // Get current zoom level for dynamic sizing
-    const currentZoom = mapInstance.getZoom();
+      // Get current zoom level for dynamic sizing
+      const currentZoom = mapInstance.getZoom();
     
     // Improved zoom scaling formula for extreme zoom levels
     let zoomFactor: number;
@@ -962,6 +976,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       markersRef.current.push(marker);
     });
+    
+    }); // Close requestAnimationFrame
   };
 
   // Call updateMarkers on initial load and when venues change
@@ -1049,6 +1065,22 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
   return (
     <div className="relative w-full h-full min-h-[500px]">
+      {/* Map Loading Overlay */}
+      {mapInitializing && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/95 backdrop-blur-sm z-50 animate-fade-in">
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-primary/30 rounded-full" />
+              <div className="absolute inset-0 w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+            <div className="text-center">
+              <p className="text-base font-semibold text-foreground mb-1">Loading Map</p>
+              <p className="text-sm text-muted-foreground">Initializing {selectedCity.name}...</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div 
         ref={mapContainer} 
         className="absolute inset-0 overflow-hidden"
@@ -1056,8 +1088,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           width: '100%', 
           height: '100%',
           minHeight: isMobile ? '100%' : '500px',
-          // Optimize touch handling - allow map pan but don't block page scroll
           touchAction: isMobile ? 'pan-y pinch-zoom' : 'none',
+          opacity: mapInitializing ? 0 : 1,
+          transition: 'opacity 0.3s ease-in-out',
         }} 
       />
 
