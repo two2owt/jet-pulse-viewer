@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { MapPin, TrendingUp, Layers, X, AlertCircle } from "lucide-react";
+import { MapPin, TrendingUp, Layers, X, AlertCircle, Route } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocationDensity } from "@/hooks/useLocationDensity";
+import { useMovementPaths } from "@/hooks/useMovementPaths";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -44,10 +45,20 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [mapStyle, setMapStyle] = useState<'dark' | 'light' | 'satellite' | 'streets'>('dark');
   const [show3DTerrain, setShow3DTerrain] = useState(false);
   
+  // Movement paths state
+  const [showMovementPaths, setShowMovementPaths] = useState(false);
+  const [pathTimeFilter, setPathTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
+  const [minPathFrequency, setMinPathFrequency] = useState(2);
+  
   const { densityData, loading: densityLoading, error: densityError, refresh: refreshDensity } = useLocationDensity({
     timeFilter,
     hourOfDay: hourFilter,
     dayOfWeek: dayFilter,
+  });
+
+  const { pathData, loading: pathsLoading, error: pathsError, refresh: refreshPaths } = useMovementPaths({
+    timeFilter: pathTimeFilter,
+    minFrequency: minPathFrequency,
   });
 
   // Handle map resize on viewport changes
@@ -577,6 +588,184 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     console.log('Density heatmap layer added with', densityData.stats.grid_cells, 'points');
   }, [mapLoaded, densityData, showDensityLayer]);
 
+  // Add/update movement paths layer
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !pathData) return;
+
+    const sourceId = 'movement-paths';
+    const lineLayerId = 'movement-paths-line';
+    const arrowLayerId = 'movement-paths-arrows';
+
+    try {
+      // Remove existing layers and source if they exist
+      if (map.current.getLayer(arrowLayerId)) {
+        map.current.removeLayer(arrowLayerId);
+      }
+      if (map.current.getLayer(lineLayerId)) {
+        map.current.removeLayer(lineLayerId);
+      }
+      if (map.current.getSource(sourceId)) {
+        map.current.removeSource(sourceId);
+      }
+    } catch (error) {
+      console.error('Error removing existing movement path layers:', error);
+      return;
+    }
+
+    if (!showMovementPaths) return;
+
+    // Add movement paths source
+    map.current.addSource(sourceId, {
+      type: 'geojson',
+      data: pathData.geojson,
+      lineMetrics: true, // Enable line gradient
+    });
+
+    // Add animated flow line layer
+    map.current.addLayer({
+      id: lineLayerId,
+      type: 'line',
+      source: sourceId,
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round',
+      },
+      paint: {
+        // Line width based on frequency
+        'line-width': [
+          'interpolate',
+          ['exponential', 1.5],
+          ['get', 'frequency'],
+          1, 3,
+          5, 6,
+          10, 10,
+          20, 14,
+        ],
+        // Color gradient based on frequency
+        'line-color': [
+          'interpolate',
+          ['linear'],
+          ['get', 'frequency'],
+          1, 'rgb(100, 200, 255)',     // light blue for low frequency
+          5, 'rgb(0, 255, 255)',        // cyan
+          10, 'rgb(255, 200, 0)',       // yellow
+          15, 'rgb(255, 100, 0)',       // orange
+          20, 'rgb(255, 0, 100)',       // pink-red
+        ],
+        'line-opacity': 0.8,
+        // Animated gradient dash for flow effect
+        'line-dasharray': [0, 4, 3],
+        'line-opacity-transition': {
+          duration: 1000,
+          delay: 0
+        }
+      },
+    });
+
+    // Add arrow symbols for direction
+    map.current.addLayer({
+      id: arrowLayerId,
+      type: 'symbol',
+      source: sourceId,
+      layout: {
+        'symbol-placement': 'line',
+        'symbol-spacing': 50,
+        'icon-image': 'arrow',
+        'icon-size': [
+          'interpolate',
+          ['linear'],
+          ['get', 'frequency'],
+          1, 0.5,
+          10, 0.7,
+          20, 1,
+        ],
+        'icon-rotate': 90,
+        'icon-rotation-alignment': 'map',
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+      },
+      paint: {
+        'icon-opacity': 0.9,
+        'icon-opacity-transition': {
+          duration: 1000,
+          delay: 200
+        }
+      },
+    });
+
+    // Add arrow icon if not exists
+    if (!map.current.hasImage('arrow')) {
+      const size = 64;
+      const arrowCanvas = document.createElement('canvas');
+      arrowCanvas.width = size;
+      arrowCanvas.height = size;
+      const ctx = arrowCanvas.getContext('2d')!;
+
+      // Draw arrow shape
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.beginPath();
+      ctx.moveTo(size / 2, size * 0.2);
+      ctx.lineTo(size * 0.8, size / 2);
+      ctx.lineTo(size * 0.6, size / 2);
+      ctx.lineTo(size * 0.6, size * 0.8);
+      ctx.lineTo(size * 0.4, size * 0.8);
+      ctx.lineTo(size * 0.4, size / 2);
+      ctx.lineTo(size * 0.2, size / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      // Add stroke
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      map.current.addImage('arrow', {
+        width: size,
+        height: size,
+        data: ctx.getImageData(0, 0, size, size).data as any,
+      });
+    }
+
+    // Animate the dash array for flow effect
+    let dashArraySequence = [
+      [0, 4, 3],
+      [0.5, 4, 2.5],
+      [1, 4, 2],
+      [1.5, 4, 1.5],
+      [2, 4, 1],
+      [2.5, 4, 0.5],
+      [3, 4, 0],
+      [0, 0.5, 3, 3.5],
+      [0, 1, 3, 3],
+      [0, 1.5, 3, 2.5],
+      [0, 2, 3, 2],
+      [0, 2.5, 3, 1.5],
+      [0, 3, 3, 1],
+      [0, 3.5, 3, 0.5],
+    ];
+
+    let step = 0;
+    const animateFlow = () => {
+      if (!map.current || !showMovementPaths) return;
+      
+      step = (step + 1) % dashArraySequence.length;
+      
+      if (map.current.getLayer(lineLayerId)) {
+        map.current.setPaintProperty(
+          lineLayerId,
+          'line-dasharray',
+          dashArraySequence[step]
+        );
+      }
+      
+      requestAnimationFrame(animateFlow);
+    };
+
+    animateFlow();
+
+    console.log('Movement paths layer added with', pathData.stats.total_paths, 'paths');
+  }, [mapLoaded, pathData, showMovementPaths]);
+
 
   // Function to update markers based on current zoom level
   const updateMarkers = () => {
@@ -1057,11 +1246,108 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             )}
           </div>
         )}
+        
+        {/* Movement Paths Toggle */}
+        <Button
+          onClick={() => setShowMovementPaths(!showMovementPaths)}
+          variant={showMovementPaths ? "default" : "secondary"}
+          size="sm"
+          className="bg-card/95 backdrop-blur-xl border border-border text-xs sm:text-sm shadow-lg w-full animate-fade-in"
+        >
+          <Route className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">{showMovementPaths ? "Hide" : "Show"} Flow Paths</span>
+          <span className="sm:hidden">Paths</span>
+        </Button>
+
+        {showMovementPaths && (
+          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-3 sm:p-4 space-y-2 shadow-lg animate-scale-in">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-foreground">Path Filters</p>
+              {pathsLoading && (
+                <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              )}
+            </div>
+
+            {/* Error UI */}
+            {pathsError && (
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-2 space-y-2">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-destructive" />
+                  <p className="text-xs text-destructive font-medium">Failed to load path data</p>
+                </div>
+                <Button
+                  onClick={refreshPaths}
+                  variant="outline"
+                  size="sm"
+                  className="w-full h-7 text-xs border-destructive/30 hover:bg-destructive/20"
+                >
+                  Retry
+                </Button>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Select value={pathTimeFilter} onValueChange={(v: any) => setPathTimeFilter(v)}>
+                <SelectTrigger className="h-8 text-xs bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="this_week">This Week</SelectItem>
+                  <SelectItem value="this_hour">This Hour</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">
+                  Min Frequency: {minPathFrequency}
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={minPathFrequency}
+                  onChange={(e) => setMinPathFrequency(parseInt(e.target.value))}
+                  className="w-full h-2 bg-background rounded-lg appearance-none cursor-pointer accent-primary"
+                />
+              </div>
+            </div>
+
+            {pathData && (
+              <div className="pt-2 border-t border-border/50 space-y-1">
+                <p className="text-xs text-muted-foreground">
+                  {pathData.stats.total_paths.toLocaleString()} paths
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {pathData.stats.total_movements.toLocaleString()} movements
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {pathData.stats.unique_users} users
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Enhanced Legend */}
       <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-card/95 backdrop-blur-xl px-3 py-2 sm:px-4 sm:py-3 rounded-xl border border-border z-10 shadow-lg max-w-[calc(100vw-24px)] sm:max-w-none animate-fade-in">
-        {showDensityLayer ? (
+        {showMovementPaths ? (
+          <>
+            <p className="text-[10px] sm:text-xs font-semibold text-foreground mb-1.5 sm:mb-2">User Flow Paths</p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
+              <div className="w-24 sm:w-32 h-4 sm:h-5 rounded-md shadow-inner" style={{
+                background: 'linear-gradient(to right, rgb(100, 200, 255), rgb(0, 255, 255), rgb(255, 200, 0), rgb(255, 100, 0), rgb(255, 0, 100))',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }} />
+              <div className="flex justify-between w-full text-[10px] sm:text-xs text-muted-foreground font-medium">
+                <span>Less Traffic</span>
+                <span>High Traffic</span>
+              </div>
+            </div>
+          </>
+        ) : showDensityLayer ? (
           <>
             <p className="text-[10px] sm:text-xs font-semibold text-foreground mb-1.5 sm:mb-2">User Density Heatmap</p>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
