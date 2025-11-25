@@ -8,6 +8,29 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    /* Safe area insets for notched devices */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+    
+    /* Fluid spacing system - adapts to viewport */
+    --space-xs: clamp(0.25rem, 0.5vw, 0.5rem);
+    --space-sm: clamp(0.5rem, 1vw, 0.75rem);
+    --space-md: clamp(0.75rem, 1.5vw, 1rem);
+    --space-lg: clamp(1rem, 2vw, 1.5rem);
+    --space-xl: clamp(1.5rem, 3vw, 2rem);
+    --space-2xl: clamp(2rem, 4vw, 3rem);
+    
+    /* Dynamic font sizes */
+    --text-xs: clamp(0.625rem, 1.5vw, 0.75rem);
+    --text-sm: clamp(0.75rem, 2vw, 0.875rem);
+    --text-base: clamp(0.875rem, 2.5vw, 1rem);
+    --text-lg: clamp(1rem, 3vw, 1.125rem);
+    --text-xl: clamp(1.125rem, 3.5vw, 1.25rem);
+    --text-2xl: clamp(1.25rem, 4vw, 1.5rem);
+    --text-3xl: clamp(1.5rem, 5vw, 1.875rem);
+  
     --background: 0 0% 6%;
     --foreground: 0 0% 98%;
 
@@ -170,6 +193,10 @@ All colors MUST be HSL.
     height: 100dvh;
     position: fixed;
     touch-action: pan-y;
+    padding-top: var(--safe-area-inset-top);
+    padding-right: var(--safe-area-inset-right);
+    padding-bottom: var(--safe-area-inset-bottom);
+    padding-left: var(--safe-area-inset-left);
   }
   
   #root {
@@ -182,6 +209,65 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  /* Safe area spacing utilities */
+  .safe-area-top {
+    padding-top: var(--safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: var(--safe-area-inset-bottom);
+  }
+  
+  .safe-area-left {
+    padding-left: var(--safe-area-inset-left);
+  }
+  
+  .safe-area-right {
+    padding-right: var(--safe-area-inset-right);
+  }
+  
+  .safe-area-inset {
+    padding-top: var(--safe-area-inset-top);
+    padding-right: var(--safe-area-inset-right);
+    padding-bottom: var(--safe-area-inset-bottom);
+    padding-left: var(--safe-area-inset-left);
+  }
+  
+  /* Fluid spacing utilities */
+  .space-fluid-xs { padding: var(--space-xs); }
+  .space-fluid-sm { padding: var(--space-sm); }
+  .space-fluid-md { padding: var(--space-md); }
+  .space-fluid-lg { padding: var(--space-lg); }
+  .space-fluid-xl { padding: var(--space-xl); }
+  .space-fluid-2xl { padding: var(--space-2xl); }
+  
+  .px-fluid-xs { padding-left: var(--space-xs); padding-right: var(--space-xs); }
+  .px-fluid-sm { padding-left: var(--space-sm); padding-right: var(--space-sm); }
+  .px-fluid-md { padding-left: var(--space-md); padding-right: var(--space-md); }
+  .px-fluid-lg { padding-left: var(--space-lg); padding-right: var(--space-lg); }
+  .px-fluid-xl { padding-left: var(--space-xl); padding-right: var(--space-xl); }
+  
+  .py-fluid-xs { padding-top: var(--space-xs); padding-bottom: var(--space-xs); }
+  .py-fluid-sm { padding-top: var(--space-sm); padding-bottom: var(--space-sm); }
+  .py-fluid-md { padding-top: var(--space-md); padding-bottom: var(--space-md); }
+  .py-fluid-lg { padding-top: var(--space-lg); padding-bottom: var(--space-lg); }
+  .py-fluid-xl { padding-top: var(--space-xl); padding-bottom: var(--space-xl); }
+  
+  .gap-fluid-xs { gap: var(--space-xs); }
+  .gap-fluid-sm { gap: var(--space-sm); }
+  .gap-fluid-md { gap: var(--space-md); }
+  .gap-fluid-lg { gap: var(--space-lg); }
+  .gap-fluid-xl { gap: var(--space-xl); }
+  
+  /* Responsive text sizing */
+  .text-fluid-xs { font-size: var(--text-xs); }
+  .text-fluid-sm { font-size: var(--text-sm); }
+  .text-fluid-base { font-size: var(--text-base); }
+  .text-fluid-lg { font-size: var(--text-lg); }
+  .text-fluid-xl { font-size: var(--text-xl); }
+  .text-fluid-2xl { font-size: var(--text-2xl); }
+  .text-fluid-3xl { font-size: var(--text-3xl); }
+
   .pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }
@@ -240,6 +326,13 @@ All colors MUST be HSL.
     .mapboxgl-ctrl-geolocate {
       width: 24px !important;
       height: 24px !important;
+    }
+  }
+  
+  /* Device-specific adjustments for ultra-small screens */
+  @media (max-width: 360px) {
+    .mapboxgl-ctrl-group {
+      transform: scale(0.65);
     }
   }
 }
