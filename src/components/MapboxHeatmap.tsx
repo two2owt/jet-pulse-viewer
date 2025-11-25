@@ -254,6 +254,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     geolocateControl.on('geolocate', (e: any) => {
       const { longitude, latitude } = e.coords;
       
+      // Center map on user location with smooth animation
+      if (map.current) {
+        map.current.flyTo({
+          center: [longitude, latitude],
+          zoom: Math.max(map.current.getZoom(), 13), // Ensure zoomed in enough
+          duration: 1500,
+          essential: true
+        });
+      }
+      
       // Create or update user marker
       if (!userMarker.current && map.current) {
         userMarker.current = new mapboxgl.Marker({
