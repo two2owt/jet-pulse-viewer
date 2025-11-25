@@ -89,6 +89,12 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Mixpanel API error:', response.status, errorText);
+      
+      // Provide specific error messages for common issues
+      if (response.status === 400 || response.status === 401) {
+        throw new Error(`Mixpanel authentication failed. Please verify your service account credentials are valid and have not expired. Status: ${response.status}`);
+      }
+      
       throw new Error(`Mixpanel API error: ${response.status} - ${errorText}`);
     }
 
