@@ -18,6 +18,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Favorites = lazy(() => import("./pages/Favorites"));
 const Social = lazy(() => import("./pages/Social"));
+const VerificationSuccess = lazy(() => import("./pages/VerificationSuccess"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-background">
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/social" element={<Social />} />
+          <Route path="/verification-success" element={<VerificationSuccess />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

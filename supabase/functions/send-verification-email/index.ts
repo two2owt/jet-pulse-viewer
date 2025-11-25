@@ -45,6 +45,10 @@ Deno.serve(async (req) => {
       };
     };
 
+    // Set custom redirect to verification success page
+    const baseUrl = redirect_to.split('/')[0] + '//' + redirect_to.split('/')[2];
+    const customRedirectTo = `${baseUrl}/verification-success`;
+
     console.log('Sending verification email to:', user.email);
     console.log('Action type:', email_action_type);
 
@@ -64,7 +68,7 @@ Deno.serve(async (req) => {
         supabase_url: Deno.env.get('SUPABASE_URL') ?? '',
         token,
         token_hash,
-        redirect_to,
+        redirect_to: customRedirectTo,
         email_action_type,
       })
     );
