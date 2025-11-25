@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,15 +24,36 @@ const passwordSchema = z.string()
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
+
+  // Check if user is coming from password reset email
+  useEffect(() => {
+    const checkResetMode = async () => {
+      const resetParam = searchParams.get('reset');
+      if (resetParam === 'true') {
+        // Verify there's a valid session from the reset link
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setIsResettingPassword(true);
+        } else {
+          toast.error("Invalid or expired reset link", {
+            description: "Please request a new password reset link.",
+          });
+        }
+      }
+    };
+    checkResetMode();
+  }, [searchParams]);
 
   // Validate inputs before submission
   const validateInputs = (): boolean => {
@@ -96,6 +117,49 @@ const Auth = () => {
           description: "Please check your email and try again.",
         });
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setValidationErrors({});
+
+    try {
+      // Validate password
+      const passwordResult = passwordSchema.safeParse(password);
+      if (!passwordResult.success) {
+        setValidationErrors({ password: passwordResult.error.errors[0].message });
+        return;
+      }
+
+      // Validate password confirmation
+      if (password !== confirmPassword) {
+        setValidationErrors({ confirmPassword: "Passwords do not match" });
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      });
+
+      if (error) throw error;
+
+      toast.success("Password updated successfully", {
+        description: "You can now sign in with your new password.",
+      });
+      
+      // Clear the form and redirect to sign in
+      setPassword("");
+      setConfirmPassword("");
+      setIsResettingPassword(false);
+      navigate("/auth");
+    } catch (error: any) {
+      toast.error("Error updating password", {
+        description: "Please try again or request a new reset link.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -219,7 +283,9 @@ const Auth = () => {
           </div>
           <h1 className="text-3xl font-bold text-foreground">Welcome to JET</h1>
           <p className="text-muted-foreground">
-            {isForgotPassword
+            {isResettingPassword
+              ? "Set your new password"
+              : isForgotPassword
               ? "Reset your password"
               : isSignUp
               ? "Create an account to get started"
@@ -228,25 +294,29 @@ const Auth = () => {
         </div>
 
         {/* Form */}
-        <form onSubmit={isForgotPassword ? handleForgotPassword : handleAuth} className="space-y-4">
-          <div className="space-y-2">
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setValidationErrors(prev => ({ ...prev, email: undefined }));
-              }}
-              required
-              className={`bg-card border-border ${validationErrors.email ? "border-destructive" : ""}`}
-              autoComplete="email"
-            />
-            {validationErrors.email && (
-              <p className="text-xs text-destructive">{validationErrors.email}</p>
-            )}
-          </div>
+        <form onSubmit={isResettingPassword ? handlePasswordReset : isForgotPassword ? handleForgotPassword : handleAuth} className="space-y-4">
+          {/* Email field - only show if not resetting password */}
+          {!isResettingPassword && (
+            <div className="space-y-2">
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setValidationErrors(prev => ({ ...prev, email: undefined }));
+                }}
+                required
+                className={`bg-card border-border ${validationErrors.email ? "border-destructive" : ""}`}
+                autoComplete="email"
+              />
+              {validationErrors.email && (
+                <p className="text-xs text-destructive">{validationErrors.email}</p>
+              )}
+            </div>
+          )}
 
+          {/* Password fields */}
           {!isForgotPassword && (
             <>
               <div className="space-y-2">
@@ -281,7 +351,7 @@ const Auth = () => {
                 )}
               </div>
 
-              {isSignUp && (
+              {(isSignUp || isResettingPassword) && (
                 <div className="space-y-2">
                   <div className="relative">
                     <Input
@@ -319,6 +389,8 @@ const Auth = () => {
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
+            ) : isResettingPassword ? (
+              "Update Password"
             ) : isForgotPassword ? (
               "Send Reset Link"
             ) : isSignUp ? (
@@ -330,33 +402,35 @@ const Auth = () => {
         </form>
 
         {/* Toggle & Forgot Password */}
-        <div className="text-center space-y-2">
-          {!isForgotPassword && !isSignUp && (
+        {!isResettingPassword && (
+          <div className="text-center space-y-2">
+            {!isForgotPassword && !isSignUp && (
+              <button
+                onClick={() => setIsForgotPassword(true)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors block w-full"
+              >
+                Forgot password?
+              </button>
+            )}
+            
             <button
-              onClick={() => setIsForgotPassword(true)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors block w-full"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setIsForgotPassword(false);
+                setValidationErrors({});
+                setPassword("");
+                setConfirmPassword("");
+              }}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              Forgot password?
+              {isForgotPassword 
+                ? "Back to sign in"
+                : isSignUp 
+                ? "Already have an account? Sign in" 
+                : "Don't have an account? Sign up"}
             </button>
-          )}
-          
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setIsForgotPassword(false);
-              setValidationErrors({});
-              setPassword("");
-              setConfirmPassword("");
-            }}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {isForgotPassword 
-              ? "Back to sign in"
-              : isSignUp 
-              ? "Already have an account? Sign in" 
-              : "Don't have an account? Sign up"}
-          </button>
-        </div>
+          </div>
+        )}
 
         {/* Features */}
         <div className="bg-card/50 rounded-xl p-4 space-y-2 border border-border/50">
