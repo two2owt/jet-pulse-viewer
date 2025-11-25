@@ -45,9 +45,21 @@ Deno.serve(async (req) => {
       };
     };
 
-    // Set custom redirect to verification success page
-    const baseUrl = redirect_to.split('/')[0] + '//' + redirect_to.split('/')[2];
+    console.log('Original redirect_to:', redirect_to);
+
+    // Determine the app URL - use redirect_to if valid, otherwise default to Lovable domain
+    let appUrl = redirect_to;
+    if (!appUrl || appUrl.includes('localhost')) {
+      // Default to the Lovable preview URL
+      appUrl = 'https://dafac772-7908-4bdb-873c-58a805d7581e.lovableproject.com';
+    }
+    
+    // Extract base URL properly
+    const baseUrl = new URL(appUrl).origin;
     const customRedirectTo = `${baseUrl}/verification-success`;
+    
+    console.log('Using app URL:', baseUrl);
+    console.log('Custom redirect to:', customRedirectTo);
 
     console.log('Sending verification email to:', user.email);
     console.log('Action type:', email_action_type);
