@@ -274,7 +274,7 @@ const Index = () => {
       {/* Intro Screen */}
       {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
       
-      <div className="min-h-screen bg-background pb-16 sm:pb-20 md:pb-24">
+      <div className="min-h-screen bg-background pb-[calc(4rem+var(--safe-area-inset-bottom))] sm:pb-[calc(5rem+var(--safe-area-inset-bottom))] md:pb-[calc(6rem+var(--safe-area-inset-bottom))]">
         {/* Header */}
         <Header 
           venues={mockVenues}
@@ -283,11 +283,11 @@ const Index = () => {
         />
 
       {/* Main Content */}
-      <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6'} space-y-3 sm:space-y-4 md:space-y-6`}>
+      <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-fluid-md py-fluid-md'} gap-fluid-md`}>
         {activeTab === "map" && (
           <div 
             ref={containerRef}
-            className="relative h-[calc(100vh-8rem)] sm:h-[calc(100vh-10rem)] md:h-[calc(100vh-12rem)] overflow-y-auto overflow-x-hidden -mx-3 sm:-mx-4 md:-mx-6"
+            className="relative h-[calc(100vh-8rem-var(--safe-area-inset-top)-var(--safe-area-inset-bottom))] sm:h-[calc(100vh-10rem-var(--safe-area-inset-top)-var(--safe-area-inset-bottom))] md:h-[calc(100vh-12rem-var(--safe-area-inset-top)-var(--safe-area-inset-bottom))] overflow-y-auto overflow-x-hidden -mx-3 sm:-mx-4 md:-mx-6"
             style={{ 
               WebkitOverflowScrolling: 'touch',
               touchAction: 'pan-y',
@@ -359,7 +359,7 @@ const Index = () => {
             {selectedVenue && (
               <div 
                 ref={jetCardRef} 
-                className="absolute bottom-4 left-4 right-4 sm:left-6 sm:right-6 md:left-8 md:right-8 lg:left-12 lg:right-12 z-20 animate-fade-in animate-scale-in max-w-2xl mx-auto"
+                className="absolute bottom-[calc(1rem+var(--safe-area-inset-bottom))] left-[calc(1rem+var(--safe-area-inset-left))] right-[calc(1rem+var(--safe-area-inset-right))] sm:left-[calc(1.5rem+var(--safe-area-inset-left))] sm:right-[calc(1.5rem+var(--safe-area-inset-right))] md:left-[calc(2rem+var(--safe-area-inset-left))] md:right-[calc(2rem+var(--safe-area-inset-right))] lg:left-[calc(3rem+var(--safe-area-inset-left))] lg:right-[calc(3rem+var(--safe-area-inset-right))] z-20 animate-fade-in animate-scale-in max-w-2xl mx-auto"
               >
                 <JetCard 
                   venue={selectedVenue} 
@@ -373,10 +373,10 @@ const Index = () => {
         )}
 
          {activeTab === "notifications" && (
-          <div className="space-y-3 sm:space-y-4 md:space-y-5 animate-fade-in px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
+          <div className="gap-fluid-md animate-fade-in px-fluid-md py-fluid-md">
             <div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2">Notifications</h2>
-              <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Stay updated with nearby deals and events</p>
+              <h2 className="text-fluid-2xl font-bold text-foreground mb-1 sm:mb-2">Notifications</h2>
+              <p className="text-fluid-sm text-muted-foreground">Stay updated with nearby deals and events</p>
             </div>
             
             {notificationsLoading ? (
@@ -409,7 +409,7 @@ const Index = () => {
         )}
 
         {activeTab === "explore" && (
-          <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
+          <div className="px-fluid-md py-fluid-md">
             <Suspense fallback={
               <div className="flex items-center justify-center h-96">
                 <div className="text-center space-y-3">

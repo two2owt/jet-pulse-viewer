@@ -82,9 +82,9 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
   };
 
   return (
-    <header className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
-        <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+    <header className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-40 safe-area-top">
+      <div className="max-w-7xl mx-auto px-fluid-md py-fluid-sm">
+        <div className="flex items-center gap-fluid-sm">
           {/* Logo */}
           <div 
             className="flex items-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"

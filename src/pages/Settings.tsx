@@ -206,11 +206,11 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-16 sm:pb-20">
+    <div className="min-h-screen bg-background pb-[calc(4rem+var(--safe-area-inset-bottom))] sm:pb-[calc(5rem+var(--safe-area-inset-bottom))]">
       {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-40">
-        <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
-          <div className="flex items-center gap-2 sm:gap-3">
+      <header className="bg-card border-b border-border sticky top-0 z-40 safe-area-top">
+        <div className="max-w-3xl mx-auto px-fluid-md py-fluid-sm">
+          <div className="flex items-center gap-fluid-sm">
             <Button
               variant="ghost"
               size="icon"
@@ -219,13 +219,13 @@ const Settings = () => {
             >
               <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">Settings</h1>
+            <h1 className="text-fluid-xl font-bold text-foreground">Settings</h1>
           </div>
         </div>
       </header>
 
       {/* Content */}
-      <main className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <main className="max-w-3xl mx-auto px-fluid-md py-fluid-lg gap-fluid-lg">
         {/* Profile Link */}
         <Card className="p-4 sm:p-5 md:p-6">
           <Button
