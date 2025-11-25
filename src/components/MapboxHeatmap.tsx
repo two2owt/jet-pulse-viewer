@@ -41,6 +41,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   const [hourFilter, setHourFilter] = useState<number | undefined>();
   const [dayFilter, setDayFilter] = useState<number | undefined>();
+  const [mapStyle, setMapStyle] = useState<'dark' | 'light' | 'satellite' | 'streets'>('dark');
+  const [show3DTerrain, setShow3DTerrain] = useState(false);
   
   const { densityData, loading: densityLoading, error: densityError, refresh: refreshDensity } = useLocationDensity({
     timeFilter,
@@ -88,18 +90,18 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       // Initialize map centered on selected city
       map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
+      style: `mapbox://styles/mapbox/${mapStyle}-v11`,
       center: [selectedCity.lng, selectedCity.lat],
       zoom: selectedCity.zoom,
-      pitch: isMobile ? 30 : 50, // Lower pitch on mobile for better usability
+      pitch: isMobile ? 30 : 50,
       bearing: 0,
       antialias: true,
-      attributionControl: false, // We'll add it back with custom position
-      // Optimize touch handling for better scroll compatibility
-      cooperativeGestures: isMobile, // Require ctrl/cmd + scroll to zoom on mobile
+      attributionControl: false,
+      cooperativeGestures: isMobile,
       touchZoomRotate: true,
-      touchPitch: !isMobile, // Disable pitch gestures on mobile to reduce conflicts
-      dragRotate: !isMobile, // Disable rotation drag on mobile
+      touchPitch: !isMobile,
+      dragRotate: !isMobile,
+      projection: 'globe' as any, // Enable globe projection
     });
 
     // Add attribution control in a better position
@@ -130,20 +132,40 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       console.error('MapboxHeatmap: Failed to initialize map', error);
     }
 
-    // Add atmospheric effects when style loads
+    // Add atmospheric effects and terrain when style loads
     map.current.on('style.load', () => {
       if (!map.current) return;
       
-      // Add fog/atmosphere for depth
-      map.current.setFog({
-        color: 'rgb(10, 10, 15)', // Dark atmosphere
-        'high-color': 'rgb(30, 20, 40)', // Subtle purple tint at horizon
+      // Dynamic fog based on map style
+      const fogConfig = mapStyle === 'dark' ? {
+        color: 'rgb(10, 10, 15)',
+        'high-color': 'rgb(30, 20, 40)',
         'horizon-blend': 0.05,
         'space-color': 'rgb(5, 5, 10)',
         'star-intensity': 0.2,
-      });
+      } : mapStyle === 'light' ? {
+        color: 'rgb(220, 220, 230)',
+        'high-color': 'rgb(180, 200, 230)',
+        'horizon-blend': 0.1,
+      } : {
+        color: 'rgb(186, 210, 235)',
+        'high-color': 'rgb(120, 170, 220)',
+        'horizon-blend': 0.08,
+      };
+      
+      map.current.setFog(fogConfig);
 
-      // Enhance 3D buildings for depth
+      // Add terrain source
+      if (!map.current.getSource('mapbox-dem')) {
+        map.current.addSource('mapbox-dem', {
+          type: 'raster-dem',
+          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          tileSize: 512,
+          maxzoom: 14,
+        });
+      }
+
+      // Enhance 3D buildings with dynamic styling
       const layers = map.current.getStyle().layers;
       if (layers) {
         const labelLayerId = layers.find(
@@ -151,6 +173,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         )?.id;
 
         if (labelLayerId && !map.current.getLayer('3d-buildings')) {
+          const buildingColor = mapStyle === 'dark' 
+            ? 'hsl(0, 0%, 15%)' 
+            : mapStyle === 'light' 
+            ? 'hsl(0, 0%, 85%)'
+            : 'hsl(0, 0%, 70%)';
+            
           map.current.addLayer(
             {
               id: '3d-buildings',
@@ -160,33 +188,28 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               type: 'fill-extrusion',
               minzoom: 14,
               paint: {
-                'fill-extrusion-color': 'hsl(0, 0%, 15%)',
+                'fill-extrusion-color': buildingColor,
                 'fill-extrusion-height': [
                   'interpolate',
                   ['linear'],
                   ['zoom'],
-                  14,
-                  0,
-                  14.05,
-                  ['get', 'height'],
+                  14, 0,
+                  14.05, ['get', 'height'],
                 ],
                 'fill-extrusion-base': [
                   'interpolate',
                   ['linear'],
                   ['zoom'],
-                  14,
-                  0,
-                  14.05,
-                  ['get', 'min_height'],
+                  14, 0,
+                  14.05, ['get', 'min_height'],
                 ],
-                'fill-extrusion-opacity': 0.8,
+                'fill-extrusion-opacity': mapStyle === 'satellite' ? 0.6 : 0.8,
               },
             },
             labelLayerId
           );
         }
       }
-      
     });
 
     // Add navigation controls
@@ -340,6 +363,41 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     });
   }, [selectedCity, mapLoaded]);
 
+  // Handle map style changes
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    
+    map.current.setStyle(`mapbox://styles/mapbox/${mapStyle}-v11`);
+  }, [mapStyle, mapLoaded]);
+
+  // Handle 3D terrain toggle
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    if (show3DTerrain) {
+      // Enable 3D terrain with exaggeration
+      map.current.setTerrain({ 
+        source: 'mapbox-dem', 
+        exaggeration: 1.5 
+      });
+      
+      // Animate to a better viewing angle for terrain
+      map.current.easeTo({
+        pitch: 60,
+        duration: 1000
+      });
+    } else {
+      // Disable terrain
+      map.current.setTerrain(null);
+      
+      // Return to normal viewing angle
+      map.current.easeTo({
+        pitch: isMobile ? 30 : 50,
+        duration: 1000
+      });
+    }
+  }, [show3DTerrain, mapLoaded, isMobile]);
+
   // Add/update density heatmap layer
   useEffect(() => {
     if (!map.current || !mapLoaded || !densityData) return;
@@ -372,96 +430,146 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       data: densityData.geojson,
     });
 
-    // Add heatmap layer
+    // Add enhanced heatmap layer with glow effect
     map.current.addLayer({
       id: layerId,
       type: 'heatmap',
       source: sourceId,
       paint: {
-        // Increase weight as density increases
+        // Enhanced weight calculation with exponential curve
         'heatmap-weight': [
           'interpolate',
-          ['linear'],
+          ['exponential', 1.5],
           ['get', 'density'],
           0, 0,
+          5, 0.5,
           10, 1,
         ],
-        // Increase intensity as zoom level increases for vibrant colors
+        // Dynamic intensity based on zoom with higher peak
         'heatmap-intensity': [
           'interpolate',
-          ['linear'],
+          ['exponential', 2],
           ['zoom'],
-          0, 1.5,
-          15, 4,
+          0, 2,
+          9, 3,
+          15, 5,
         ],
-        // Vibrant color ramp: blue → cyan → green → yellow → orange → red
+        // Enhanced vibrant color ramp with smooth gradients
         'heatmap-color': [
           'interpolate',
           ['linear'],
           ['heatmap-density'],
-          0, 'rgba(0, 0, 255, 0)',          // transparent blue
-          0.15, 'rgb(0, 191, 255)',          // cyan
-          0.3, 'rgb(0, 255, 127)',           // spring green
-          0.45, 'rgb(173, 255, 47)',         // green-yellow
-          0.6, 'rgb(255, 255, 0)',           // yellow
-          0.75, 'rgb(255, 165, 0)',          // orange
-          0.9, 'rgb(255, 69, 0)',            // orange-red
-          1, 'rgb(255, 0, 0)',               // red
+          0, 'rgba(0, 0, 0, 0)',              // transparent
+          0.1, 'rgba(65, 105, 225, 0.6)',     // royal blue with glow
+          0.2, 'rgba(0, 191, 255, 0.8)',      // deep sky blue
+          0.3, 'rgba(0, 255, 127, 0.85)',     // spring green
+          0.4, 'rgba(50, 205, 50, 0.9)',      // lime green
+          0.5, 'rgba(255, 255, 0, 0.95)',     // yellow
+          0.6, 'rgba(255, 215, 0, 0.95)',     // gold
+          0.7, 'rgba(255, 165, 0, 1)',        // orange
+          0.8, 'rgba(255, 69, 0, 1)',         // orange-red
+          0.9, 'rgba(255, 0, 0, 1)',          // red
+          1, 'rgba(139, 0, 0, 1)',            // dark red
         ],
-        // Larger radius for smooth, blob-like appearance
+        // Adaptive radius for better visualization at all zoom levels
         'heatmap-radius': [
           'interpolate',
-          ['linear'],
+          ['exponential', 1.8],
           ['zoom'],
-          0, 15,
-          9, 40,
-          15, 80,
+          0, 20,
+          9, 50,
+          12, 70,
+          15, 100,
         ],
-        // High opacity for vibrant appearance with smooth fade-in
+        // Smooth opacity curve for better blending
         'heatmap-opacity': [
           'interpolate',
           ['linear'],
           ['zoom'],
-          7, 0.9,
+          7, 0.95,
+          12, 0.9,
           15, 0.85,
         ],
-        // Add smooth opacity transition
         'heatmap-opacity-transition': {
-          duration: 800,
+          duration: 1000,
           delay: 0
         }
       },
     });
 
-    // Add circle layer for detailed view at high zoom
+    // Add enhanced circle layer for detailed view with pulsing animation
     map.current.addLayer({
       id: `${layerId}-point`,
       type: 'circle',
       source: sourceId,
-      minzoom: 14,
+      minzoom: 13,
       paint: {
+        // Dynamic radius based on density with exponential scaling
         'circle-radius': [
+          'interpolate',
+          ['exponential', 1.5],
+          ['get', 'density'],
+          0, 5,
+          5, 12,
+          10, 25,
+        ],
+        // Vibrant color gradient matching heatmap
+        'circle-color': [
           'interpolate',
           ['linear'],
           ['get', 'density'],
-          0, 4,
-          10, 20,
+          0, 'rgb(65, 105, 225)',
+          3, 'rgb(0, 255, 127)',
+          6, 'rgb(255, 215, 0)',
+          8, 'rgb(255, 69, 0)',
+          10, 'rgb(139, 0, 0)',
+        ],
+        'circle-opacity': 0.7,
+        'circle-blur': 0.3,
+        'circle-stroke-width': 2,
+        'circle-stroke-color': [
+          'interpolate',
+          ['linear'],
+          ['get', 'density'],
+          0, 'rgba(255, 255, 255, 0.6)',
+          10, 'rgba(255, 255, 255, 0.9)',
+        ],
+        'circle-stroke-opacity': 0.8,
+        'circle-opacity-transition': {
+          duration: 1000,
+          delay: 100
+        }
+      },
+    });
+
+    // Add outer glow layer for enhanced visual effect
+    map.current.addLayer({
+      id: `${layerId}-glow`,
+      type: 'circle',
+      source: sourceId,
+      minzoom: 13,
+      paint: {
+        'circle-radius': [
+          'interpolate',
+          ['exponential', 1.5],
+          ['get', 'density'],
+          0, 10,
+          5, 20,
+          10, 40,
         ],
         'circle-color': [
           'interpolate',
           ['linear'],
           ['get', 'density'],
-          0, 'rgb(103, 169, 207)',
-          5, 'rgb(239, 138, 98)',
-          10, 'rgb(178, 24, 43)',
+          0, 'rgba(65, 105, 225, 0.3)',
+          5, 'rgba(255, 215, 0, 0.4)',
+          10, 'rgba(255, 0, 0, 0.5)',
         ],
-        'circle-opacity': 0.6,
-        'circle-stroke-width': 1,
-        'circle-stroke-color': '#fff',
-        // Add smooth opacity transition
+        'circle-opacity': 0.3,
+        'circle-blur': 1,
         'circle-opacity-transition': {
-          duration: 800,
-          delay: 100
+          duration: 1000,
+          delay: 200
         }
       },
     });
@@ -797,13 +905,63 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </div>
       </div>
 
-      {/* Density Layer Controls - Bottom right inline with Activity Level legend */}
+      {/* Map Controls - Top left below logo */}
+      <div className="absolute top-20 left-3 sm:left-4 z-10 space-y-2 max-w-[200px]">
+        <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground mb-1">Map Style</p>
+          <div className="grid grid-cols-2 gap-1.5">
+            <Button
+              onClick={() => setMapStyle('dark')}
+              variant={mapStyle === 'dark' ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs"
+            >
+              Dark
+            </Button>
+            <Button
+              onClick={() => setMapStyle('light')}
+              variant={mapStyle === 'light' ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs"
+            >
+              Light
+            </Button>
+            <Button
+              onClick={() => setMapStyle('satellite')}
+              variant={mapStyle === 'satellite' ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs"
+            >
+              Satellite
+            </Button>
+            <Button
+              onClick={() => setMapStyle('streets')}
+              variant={mapStyle === 'streets' ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs"
+            >
+              Streets
+            </Button>
+          </div>
+          
+          <Button
+            onClick={() => setShow3DTerrain(!show3DTerrain)}
+            variant={show3DTerrain ? "default" : "outline"}
+            size="sm"
+            className="w-full h-7 text-xs mt-2"
+          >
+            {show3DTerrain ? "Disable" : "Enable"} 3D Terrain
+          </Button>
+        </div>
+      </div>
+
+      {/* Density Layer Controls - Bottom right */}
       <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10 space-y-2 max-w-[calc(100vw-32px)] sm:max-w-[280px]">
         <Button
           onClick={() => setShowDensityLayer(!showDensityLayer)}
           variant={showDensityLayer ? "default" : "secondary"}
           size="sm"
-          className="bg-card/95 backdrop-blur-xl border border-border text-xs sm:text-sm shadow-lg w-full"
+          className="bg-card/95 backdrop-blur-xl border border-border text-xs sm:text-sm shadow-lg w-full animate-fade-in"
         >
           <Layers className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
           <span className="hidden sm:inline">{showDensityLayer ? "Hide" : "Show"} Heat Layer</span>
@@ -811,7 +969,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Button>
 
         {showDensityLayer && (
-          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-3 sm:p-4 space-y-2 shadow-lg">
+          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-3 sm:p-4 space-y-2 shadow-lg animate-scale-in">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-semibold text-foreground">Heat Filters</p>
               {densityLoading && (
@@ -901,17 +1059,19 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         )}
       </div>
 
-      {/* Legend */}
-      <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-card/95 backdrop-blur-xl px-3 py-2 sm:px-4 sm:py-3 rounded-xl border border-border z-10 shadow-lg max-w-[calc(100vw-24px)] sm:max-w-none">
+      {/* Enhanced Legend */}
+      <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-card/95 backdrop-blur-xl px-3 py-2 sm:px-4 sm:py-3 rounded-xl border border-border z-10 shadow-lg max-w-[calc(100vw-24px)] sm:max-w-none animate-fade-in">
         {showDensityLayer ? (
           <>
-            <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground mb-1.5 sm:mb-2">User Density</p>
+            <p className="text-[10px] sm:text-xs font-semibold text-foreground mb-1.5 sm:mb-2">User Density Heatmap</p>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
-              <div className="w-16 sm:w-20 h-3 sm:h-4 rounded" style={{
-                background: 'linear-gradient(to right, rgb(103, 169, 207), rgb(209, 229, 240), rgb(253, 219, 199), rgb(239, 138, 98), rgb(178, 24, 43))'
+              <div className="w-24 sm:w-32 h-4 sm:h-5 rounded-md shadow-inner" style={{
+                background: 'linear-gradient(to right, rgba(65, 105, 225, 0.8), rgb(0, 255, 127), rgb(255, 255, 0), rgb(255, 165, 0), rgb(255, 0, 0), rgb(139, 0, 0))',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
               }} />
-              <div className="flex justify-between w-full text-[10px] sm:text-xs text-muted-foreground">
+              <div className="flex justify-between w-full text-[10px] sm:text-xs text-muted-foreground font-medium">
                 <span>Low</span>
+                <span>Medium</span>
                 <span>High</span>
               </div>
             </div>
@@ -937,17 +1097,23 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         )}
       </div>
 
-      {/* Heatmap Loading Overlay */}
+      {/* Enhanced Heatmap Loading Overlay */}
       {showDensityLayer && densityLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-sm z-20">
-          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-4 flex flex-col items-center gap-3 shadow-lg">
-            <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm font-medium text-foreground">Loading heatmap data...</p>
+        <div className="absolute inset-0 flex items-center justify-center bg-background/30 backdrop-blur-md z-20 animate-fade-in">
+          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-6 flex flex-col items-center gap-4 shadow-2xl animate-scale-in">
+            <div className="relative">
+              <div className="w-12 h-12 border-4 border-primary/30 rounded-full" />
+              <div className="absolute inset-0 w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-foreground mb-1">Loading Density Data</p>
+              <p className="text-xs text-muted-foreground">Analyzing user hotspots...</p>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Add pulse, bounce and heatmap animations + popup styles */}
+      {/* Enhanced animations and styles */}
       <style>{`
         @keyframes pulse {
           0%, 100% {
