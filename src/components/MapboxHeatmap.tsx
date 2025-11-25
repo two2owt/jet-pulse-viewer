@@ -33,6 +33,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const userMarker = useRef<mapboxgl.Marker | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const dealMarkersRef = useRef<mapboxgl.Marker[]>([]);
+  const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
   const isMobile = useIsMobile();
   
   // Density heatmap state
@@ -206,6 +207,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       showUserLocation: false, // Hide default marker, we'll use custom
     });
     
+    geolocateControlRef.current = geolocateControl;
     map.current.addControl(geolocateControl, "top-right");
     
     // Create custom marker element for user location
@@ -297,6 +299,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     map.current.on("load", () => {
       setMapLoaded(true);
       
+      // Automatically trigger geolocation when map loads
+      if (geolocateControlRef.current) {
+        // Wait a brief moment for the map to fully settle before triggering
+        setTimeout(() => {
+          geolocateControlRef.current?.trigger();
+        }, 500);
+      }
     });
 
     return () => {
