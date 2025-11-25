@@ -100,10 +100,12 @@ Deno.serve(async (req) => {
     const userPaths = new Map<string, LocationPoint[]>();
     
     for (const location of locations || []) {
-      if (!userPaths.has(location.user_id)) {
-        userPaths.set(location.user_id, []);
+      // Use user_id or 'anonymous' for null values
+      const userId = location.user_id || 'anonymous';
+      if (!userPaths.has(userId)) {
+        userPaths.set(userId, []);
       }
-      userPaths.get(location.user_id)!.push(location);
+      userPaths.get(userId)!.push(location);
     }
 
     // Analyze movements between locations
