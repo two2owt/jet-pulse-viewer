@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MapPin, TrendingUp } from "lucide-react";
+import { MapPin, TrendingUp, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { CITIES, type City } from "@/types/cities";
 
@@ -15,6 +15,7 @@ interface Venue {
   address?: string;
 }
 
+// Mock venues as fallback only
 const mockVenues: Venue[] = [
   { id: "1", name: "Rooftop 210", lat: 35.220, lng: -80.840, activity: 92, category: "Bar", neighborhood: "South End" },
   { id: "2", name: "Pin House", lat: 35.218, lng: -80.842, activity: 78, category: "Bar", neighborhood: "South End" },
@@ -43,16 +44,32 @@ const getActivityGlow = (activity: number) => {
 export const Heatmap = ({ 
   onVenueSelect,
   selectedCity,
-  onCityChange 
+  onCityChange,
+  venues: realVenues,
+  loading: venuesLoading 
 }: { 
   onVenueSelect: (venue: Venue) => void;
   selectedCity: City;
   onCityChange: (city: City) => void;
+  venues?: Venue[];
+  loading?: boolean;
 }) => {
   const [hoveredVenue, setHoveredVenue] = useState<string | null>(null);
 
+  // Use real venues if available, otherwise fall back to mock data
+  const venues = realVenues && realVenues.length > 0 ? realVenues : mockVenues;
+
   return (
     <div className="relative w-full h-full bg-gradient-to-br from-background via-muted/20 to-background rounded-2xl overflow-hidden">
+      {/* Loading Overlay */}
+      {venuesLoading && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-30 flex items-center justify-center">
+          <div className="text-center space-y-2">
+            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
+            <p className="text-sm text-muted-foreground">Loading venue activity...</p>
+          </div>
+        </div>
+      )}
 
       {/* City Selector */}
       <div className="absolute top-4 left-4 z-10">
@@ -89,7 +106,7 @@ export const Heatmap = ({
 
       {/* Venue Markers */}
       <div className="absolute inset-0 p-8">
-        {mockVenues.map((venue) => {
+        {venues.map((venue) => {
           const isHovered = hoveredVenue === venue.id;
           const activityColor = getActivityColor(venue.activity);
           const activityGlow = getActivityGlow(venue.activity);

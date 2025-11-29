@@ -20,6 +20,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useAutoScrapeVenueImages } from "@/hooks/useAutoScrapeVenueImages";
 import { useDeals } from "@/hooks/useDeals";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useVenueActivity } from "@/hooks/useVenueActivity";
 import { CITIES, type City } from "@/types/cities";
 import { Zap, Navigation, Map as MapIcon, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
@@ -63,7 +64,11 @@ const Index = () => {
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
   const { isScrapingActive } = useAutoScrapeVenueImages(true);
   const { deals, refresh: refreshDeals } = useDeals();
+  const { venues: realVenues, loading: venuesLoading, refresh: refreshVenues } = useVenueActivity();
   const jetCardRef = useRef<HTMLDivElement>(null);
+
+  // Use real venues when available, fallback to mock for compatibility
+  const venues = realVenues && realVenues.length > 0 ? realVenues : mockVenues;
 
   const handleIntroComplete = () => {
     localStorage.setItem('hasSeenIntro', 'true');
@@ -75,11 +80,12 @@ const Index = () => {
     try {
       await Promise.all([
         refreshDeals(),
+        refreshVenues(),
         // Add a small delay to show the refresh indicator
         new Promise(resolve => setTimeout(resolve, 500))
       ]);
       toast.success("Map refreshed", {
-        description: "Venue data and deals updated"
+        description: "Venue activity and deals updated"
       });
     } catch (error) {
       console.error("Error refreshing:", error);
@@ -157,8 +163,8 @@ const Index = () => {
   const handleVenueSelect = async (venue: Venue | string) => {
     // Handle both Venue object and venue name string
     if (typeof venue === 'string') {
-      // Find the venue by name in mockVenues
-      const foundVenue = mockVenues.find(v => v.name === venue);
+      // Find the venue by name in real venues or mock venues
+      const foundVenue = venues.find(v => v.name === venue);
       if (foundVenue) {
         // Fetch address from deals table
         const { data: dealData } = await supabase
@@ -277,7 +283,7 @@ const Index = () => {
       <div className="min-h-screen bg-background pb-[calc(4rem+var(--safe-area-inset-bottom))] sm:pb-[calc(5rem+var(--safe-area-inset-bottom))] md:pb-[calc(6rem+var(--safe-area-inset-bottom))]">
         {/* Header */}
         <Header 
-          venues={mockVenues}
+          venues={venues}
           deals={deals}
           onVenueSelect={handleVenueSelect}
         />
@@ -346,7 +352,7 @@ const Index = () => {
               }>
                 <MapboxHeatmap 
                   onVenueSelect={handleVenueSelect} 
-                  venues={mockVenues} 
+                  venues={venues} 
                   mapboxToken={mapboxToken}
                   selectedCity={selectedCity}
                   onCityChange={handleCityChange}
