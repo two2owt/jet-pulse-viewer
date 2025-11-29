@@ -830,9 +830,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         }
       });
 
-      // Adjust size based on proximity
+      // Adjust size based on proximity and activity level
       const proximityFactor = nearbyCount > 0 ? Math.max(0.75, 1 - (nearbyCount * 0.1)) : 1;
-      const markerSize = baseSize * proximityFactor;
+      const activitySizeFactor = venue.activity >= 80 ? 1.3 : venue.activity >= 60 ? 1.15 : 1;
+      const markerSize = baseSize * proximityFactor * activitySizeFactor;
 
       // Create custom glassmorphic marker element via JavaScript
       const el = document.createElement("div");
@@ -874,9 +875,18 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         will-change: transform;
       `;
 
-      // Add pulsing animation for high activity
+      // Add pulsating animation based on activity level
       if (venue.activity >= 80) {
-        pinEl.style.animation = "pulse 2s ease-in-out infinite";
+        // Most popular venues - intense pulsating
+        pinEl.style.animation = "venue-pulse-intense 1.5s ease-in-out infinite";
+        pinEl.style.setProperty('color', color);
+      } else if (venue.activity >= 60) {
+        // High traffic venues - moderate pulsating
+        pinEl.style.animation = "venue-pulse-moderate 2s ease-in-out infinite";
+        pinEl.style.setProperty('color', color);
+      } else if (venue.activity >= 40) {
+        // Medium traffic venues - subtle pulsating
+        pinEl.style.animation = "venue-pulse-subtle 2.5s ease-in-out infinite";
       }
 
       // Create inner content container (rotated back to normal)
@@ -936,12 +946,27 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         .setLngLat([venue.lng, venue.lat])
         .addTo(mapInstance);
 
-      // Create popup for the venue (like standard map pins)
+      // Create popup for the venue with enhanced information
+      const googleRatingHTML = venue.googleRating 
+        ? `<div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+             <span style="color: #FFD700; font-size: 12px;">★</span>
+             <span style="font-size: 11px; font-weight: 600; color: white;">${venue.googleRating.toFixed(1)}</span>
+             <span style="font-size: 10px; color: rgba(255, 255, 255, 0.6);">(${venue.googleTotalRatings} reviews)</span>
+           </div>`
+        : '';
+      
+      const isOpenHTML = venue.isOpen !== undefined
+        ? `<div style="margin-top: 4px;">
+             <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${venue.isOpen ? '#22c55e' : '#ef4444'}; margin-right: 4px;"></span>
+             <span style="font-size: 10px; font-weight: 600; color: ${venue.isOpen ? '#22c55e' : '#ef4444'};">${venue.isOpen ? 'OPEN NOW' : 'CLOSED'}</span>
+           </div>`
+        : '';
+
       const popup = new mapboxgl.Popup({
         offset: 25,
         closeButton: false,
         closeOnClick: true,
-        maxWidth: '200px',
+        maxWidth: '220px',
         className: 'venue-popup'
       }).setHTML(`
         <div style="padding: 8px;">
@@ -951,6 +976,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             <div style="width: 8px; height: 8px; border-radius: 50%; background: ${color};"></div>
             <span style="font-size: 11px; font-weight: 600; color: white;">${venue.activity}% Active</span>
           </div>
+          ${googleRatingHTML}
+          ${isOpenHTML}
         </div>
       `);
 
@@ -964,7 +991,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         // Bounce animation
         pinEl.style.animation = "bounce 0.6s ease-out";
         setTimeout(() => {
-          pinEl.style.animation = venue.activity >= 80 ? "pulse 2s ease-in-out infinite" : "";
+          // Restore appropriate pulsating animation after bounce
+          if (venue.activity >= 80) {
+            pinEl.style.animation = "venue-pulse-intense 1.5s ease-in-out infinite";
+          } else if (venue.activity >= 60) {
+            pinEl.style.animation = "venue-pulse-moderate 2s ease-in-out infinite";
+          } else if (venue.activity >= 40) {
+            pinEl.style.animation = "venue-pulse-subtle 2.5s ease-in-out infinite";
+          } else {
+            pinEl.style.animation = "";
+          }
         }, 600);
         
         // Open venue card
