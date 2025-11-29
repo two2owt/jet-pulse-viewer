@@ -13,6 +13,16 @@ interface Venue {
   neighborhood: string;
   imageUrl?: string;
   address?: string;
+  googleRating?: number | null;
+  googleTotalRatings?: number;
+  googleReviews?: Array<{
+    author: string;
+    rating: number;
+    text: string;
+    time: string | null;
+  }>;
+  isOpen?: boolean | null;
+  openingHours?: string[];
 }
 
 // Mock venues as fallback only
