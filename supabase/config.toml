@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.get-location-density]
 verify_jwt = false
 
+[functions.get-google-places-data]
+verify_jwt = false
+
 [functions.check-geofence]
 verify_jwt = true
 

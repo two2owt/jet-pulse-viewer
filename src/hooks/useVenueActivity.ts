@@ -2,6 +2,19 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Venue } from "@/components/Heatmap";
 
+interface GooglePlacesData {
+  rating: number | null;
+  totalRatings: number;
+  reviews: Array<{
+    author: string;
+    rating: number;
+    text: string;
+    time: string | null;
+  }>;
+  isOpen: boolean | null;
+  openingHours: string[];
+}
+
 interface VenueActivityData {
   venue_id: string;
   venue_name: string;
@@ -14,6 +27,52 @@ interface VenueActivityData {
   center_lng: number;
   venue_address: string | null;
 }
+
+/**
+ * Enrich venues with Google Places data
+ */
+const enrichWithGooglePlaces = async (venues: Venue[]): Promise<Venue[]> => {
+  // Only enrich top 10 venues by activity score to avoid API quota limits
+  const topVenues = venues
+    .sort((a, b) => b.activity - a.activity)
+    .slice(0, 10);
+  
+  const enrichmentPromises = topVenues.map(async (venue) => {
+    try {
+      console.log(`Fetching Google Places data for venue: ${venue.name}`);
+      
+      const { data, error } = await supabase.functions.invoke<GooglePlacesData>('get-google-places-data', {
+        body: { placeId: venue.id }
+      });
+
+      if (error) {
+        console.warn(`Failed to fetch Google Places data for ${venue.name}:`, error);
+        return venue;
+      }
+
+      return {
+        ...venue,
+        googleRating: data.rating,
+        googleTotalRatings: data.totalRatings,
+        googleReviews: data.reviews,
+        isOpen: data.isOpen,
+        openingHours: data.openingHours,
+      };
+    } catch (error) {
+      console.warn(`Error enriching venue ${venue.name}:`, error);
+      return venue;
+    }
+  });
+
+  const enrichedTopVenues = await Promise.all(enrichmentPromises);
+  
+  // Merge enriched top venues with remaining venues
+  const remainingVenues = venues.filter(
+    v => !enrichedTopVenues.find(ev => ev.id === v.id)
+  );
+  
+  return [...enrichedTopVenues, ...remainingVenues];
+};
 
 /**
  * Calculate activity score (0-100) based on venue metrics
@@ -176,7 +235,9 @@ export const useVenueActivity = () => {
         };
       });
 
-      setVenues(venuesWithActivity);
+      // Enrich top venues with Google Places data
+      const enrichedVenues = await enrichWithGooglePlaces(venuesWithActivity);
+      setVenues(enrichedVenues);
     } catch (err) {
       console.error('Error loading venue activity:', err);
       setError(err instanceof Error ? err.message : 'Failed to load venue data');
