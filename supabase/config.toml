@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.get-google-places-data]
 verify_jwt = false
 
+[functions.search-google-places-venues]
+verify_jwt = false
+
 [functions.check-geofence]
 verify_jwt = true
 
