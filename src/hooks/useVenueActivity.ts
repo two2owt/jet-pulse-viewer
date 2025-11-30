@@ -108,7 +108,38 @@ const calculateActivityScore = (data: VenueActivityData, nearbyUserCount: number
 };
 
 /**
- * Hook to fetch real venue activity data from Supabase
+ * Fetch popular venues from Google Places (for initial seed data)
+ */
+const fetchPopularVenuesFromGooglePlaces = async (): Promise<Venue[]> => {
+  try {
+    console.log('Fetching popular venues from Google Places...');
+    
+    // Charlotte coordinates (primary test city)
+    const charlotteLocation = { lat: 35.2271, lng: -80.8431 };
+    
+    const { data, error } = await supabase.functions.invoke('search-google-places-venues', {
+      body: { 
+        location: charlotteLocation,
+        radius: 8000, // 8km radius to cover Charlotte metro
+        categories: ['night_club', 'bar', 'restaurant', 'cafe', 'meal_takeaway']
+      }
+    });
+
+    if (error) {
+      console.error('Error fetching venues from Google Places:', error);
+      return [];
+    }
+
+    console.log(`Fetched ${data.venues?.length || 0} venues from Google Places`);
+    return data.venues || [];
+  } catch (error) {
+    console.error('Error in fetchPopularVenuesFromGooglePlaces:', error);
+    return [];
+  }
+};
+
+/**
+ * Hook to fetch real venue activity data from Supabase and Google Places
  */
 export const useVenueActivity = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -120,7 +151,10 @@ export const useVenueActivity = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch active deals with neighborhood data
+      // First, fetch popular venues from Google Places as the base dataset
+      const googleVenues = await fetchPopularVenuesFromGooglePlaces();
+      
+      // Then, enhance with our own platform data (deals, engagement, etc.)
       const { data: deals, error: dealsError } = await supabase
           .from('deals')
           .select(`
@@ -139,39 +173,41 @@ export const useVenueActivity = () => {
           .gte('expires_at', new Date().toISOString())
           .lte('starts_at', new Date().toISOString());
 
-      if (dealsError) throw dealsError;
+      if (dealsError) {
+        console.warn('Error fetching deals:', dealsError);
+      }
 
-      // Manually aggregate venue metrics
-      const venueMap = new Map<string, VenueActivityData>();
+      // Aggregate venue metrics from deals
+      const venueEngagementMap = new Map<string, {
+        dealCount: number;
+        recentDealCount: number;
+        favoriteCount: number;
+        shareCount: number;
+      }>();
+      
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       deals?.forEach((deal: any) => {
         const key = deal.venue_id;
-        const existing = venueMap.get(key);
+        const existing = venueEngagementMap.get(key);
         const isRecent = new Date(deal.created_at) > sevenDaysAgo;
 
         if (existing) {
-          existing.deal_count++;
-          if (isRecent) existing.recent_deal_count++;
+          existing.dealCount++;
+          if (isRecent) existing.recentDealCount++;
         } else {
-          venueMap.set(key, {
-            venue_id: deal.venue_id,
-            venue_name: deal.venue_name,
-            neighborhood_name: deal.neighborhoods?.name || 'Unknown',
-            deal_count: 1,
-            recent_deal_count: isRecent ? 1 : 0,
-            favorite_count: 0, // Will be updated below
-            share_count: 0, // Will be updated below
-            center_lat: deal.neighborhoods?.center_lat || 0,
-            center_lng: deal.neighborhoods?.center_lng || 0,
-            venue_address: deal.venue_address,
+          venueEngagementMap.set(key, {
+            dealCount: 1,
+            recentDealCount: isRecent ? 1 : 0,
+            favoriteCount: 0,
+            shareCount: 0,
           });
         }
       });
 
-      // Fetch engagement metrics (favorites and shares)
-      const venueIds = Array.from(venueMap.keys());
+      // Fetch engagement metrics (favorites and shares) for venues with deals
+      const venueIds = Array.from(venueEngagementMap.keys());
       
       if (venueIds.length > 0) {
         const { data: dealIds } = await supabase
@@ -194,50 +230,44 @@ export const useVenueActivity = () => {
             .select('deal_id')
             .in('deal_id', dealIdsArray);
 
-          // Update venue map with engagement data
+          // Update engagement map
           dealIds.forEach(dealMapping => {
-            const venue = venueMap.get(dealMapping.venue_id);
-            if (venue) {
-              venue.favorite_count += favorites?.filter(f => f.deal_id === dealMapping.id).length || 0;
-              venue.share_count += shares?.filter(s => s.deal_id === dealMapping.id).length || 0;
+            const engagement = venueEngagementMap.get(dealMapping.venue_id);
+            if (engagement) {
+              engagement.favoriteCount += favorites?.filter(f => f.deal_id === dealMapping.id).length || 0;
+              engagement.shareCount += shares?.filter(s => s.deal_id === dealMapping.id).length || 0;
             }
           });
         }
       }
 
-      // Fetch nearby user traffic from user_locations (last 24 hours)
-      const oneDayAgo = new Date();
-      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-
-      const { data: userLocations } = await supabase
-        .from('user_locations')
-        .select('latitude, longitude, current_neighborhood_id')
-        .gte('created_at', oneDayAgo.toISOString());
-
-      // Convert to venues with activity scores
-      const venuesWithActivity: Venue[] = Array.from(venueMap.values()).map(venueData => {
-        // Count users near this venue (within 0.01 degrees ~ 1km)
-        const nearbyUsers = userLocations?.filter(loc => {
-          const latDiff = Math.abs(loc.latitude - venueData.center_lat);
-          const lngDiff = Math.abs(loc.longitude - venueData.center_lng);
-          return latDiff < 0.01 && lngDiff < 0.01;
-        }).length || 0;
-
-        return {
-          id: venueData.venue_id,
-          name: venueData.venue_name,
-          lat: venueData.center_lat,
-          lng: venueData.center_lng,
-          activity: calculateActivityScore(venueData, nearbyUsers),
-          category: 'Venue', // Can be enhanced with venue type classification
-          neighborhood: venueData.neighborhood_name,
-          address: venueData.venue_address || undefined,
-        };
+      // Enhance Google Places venues with our engagement data
+      const enhancedVenues = googleVenues.map(venue => {
+        const engagement = venueEngagementMap.get(venue.id);
+        
+        if (engagement) {
+          // Boost activity score for venues with deals/engagement
+          const engagementBoost = Math.min(30, 
+            (engagement.dealCount * 5) + 
+            (engagement.recentDealCount * 10) + 
+            (engagement.favoriteCount * 2) + 
+            (engagement.shareCount * 2)
+          );
+          
+          return {
+            ...venue,
+            activity: Math.min(100, venue.activity + engagementBoost),
+          };
+        }
+        
+        return venue;
       });
 
-      // Enrich top venues with Google Places data
-      const enrichedVenues = await enrichWithGooglePlaces(venuesWithActivity);
-      setVenues(enrichedVenues);
+      // Sort by activity score
+      const sortedVenues = enhancedVenues.sort((a, b) => b.activity - a.activity);
+      
+      console.log(`Loaded ${sortedVenues.length} venues with activity scores`);
+      setVenues(sortedVenues);
     } catch (err) {
       console.error('Error loading venue activity:', err);
       setError(err instanceof Error ? err.message : 'Failed to load venue data');
