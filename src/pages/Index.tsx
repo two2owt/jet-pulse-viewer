@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { type Venue } from "@/components/Heatmap";
+import { type Venue } from "@/components/MapboxHeatmap";
 import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationCard, type Notification } from "@/components/NotificationCard";

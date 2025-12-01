@@ -8,8 +8,30 @@ import { useMovementPaths } from "@/hooks/useMovementPaths";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import type { Venue } from "./Heatmap";
 import { CITIES, type City } from "@/types/cities";
+
+// Venue type definition
+export interface Venue {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  activity: number;
+  category: string;
+  neighborhood: string;
+  imageUrl?: string;
+  address?: string;
+  googleRating?: number | null;
+  googleTotalRatings?: number;
+  googleReviews?: Array<{
+    author: string;
+    rating: number;
+    text: string;
+    time: string | null;
+  }>;
+  isOpen?: boolean | null;
+  openingHours?: string[];
+}
 import locationTrackerIcon from "@/assets/location-tracker.png";
 
 interface MapboxHeatmapProps {

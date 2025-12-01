@@ -5,7 +5,7 @@ import { OptimizedImage } from "./ui/optimized-image";
 import { glideHaptic } from "@/lib/haptics";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import type { Venue } from "./Heatmap";
+import type { Venue } from "./MapboxHeatmap";
 
 interface JetCardProps {
   venue: Venue;

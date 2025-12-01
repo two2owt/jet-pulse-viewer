@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Venue } from "@/components/Heatmap";
+import type { Venue } from "@/components/MapboxHeatmap";
 
 interface GooglePlacesData {
   rating: number | null;

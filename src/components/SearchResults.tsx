@@ -1,7 +1,7 @@
 import { MapPin, Tag, Clock, X } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import type { Venue } from "./Heatmap";
+import type { Venue } from "./MapboxHeatmap";
 import type { Database } from "@/integrations/supabase/types";
 
 type Deal = Database['public']['Tables']['deals']['Row'];

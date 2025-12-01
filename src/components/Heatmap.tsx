@@ -2,28 +2,7 @@ import { useState } from "react";
 import { MapPin, TrendingUp, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { CITIES, type City } from "@/types/cities";
-
-interface Venue {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  activity: number; // 0-100
-  category: string;
-  neighborhood: string;
-  imageUrl?: string;
-  address?: string;
-  googleRating?: number | null;
-  googleTotalRatings?: number;
-  googleReviews?: Array<{
-    author: string;
-    rating: number;
-    text: string;
-    time: string | null;
-  }>;
-  isOpen?: boolean | null;
-  openingHours?: string[];
-}
+import { type Venue } from "@/components/MapboxHeatmap";
 
 
 const getActivityColor = (activity: number) => {
@@ -200,5 +179,3 @@ export const Heatmap = ({
     </div>
   );
 };
-
-export type { Venue };
