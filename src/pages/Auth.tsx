@@ -359,8 +359,8 @@ const Auth = () => {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* Matte black/grey overlay */}
-      <div className="absolute inset-0 bg-black/85" />
+      {/* Animated matte black/grey gradient overlay */}
+      <div className="absolute inset-0 auth-gradient-overlay" />
       <div className="w-full max-w-md space-y-6 relative z-10">
         {/* Header */}
         <div className="text-center space-y-3">

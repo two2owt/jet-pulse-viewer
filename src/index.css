@@ -348,6 +348,53 @@ All colors MUST be HSL.
     }
   }
 
+  @keyframes gradient-shift {
+    0%, 100% {
+      background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.88) 0%,
+        rgba(20, 20, 25, 0.85) 25%,
+        rgba(0, 0, 0, 0.88) 50%,
+        rgba(15, 15, 20, 0.86) 75%,
+        rgba(0, 0, 0, 0.88) 100%
+      );
+    }
+    25% {
+      background: linear-gradient(
+        135deg,
+        rgba(15, 15, 20, 0.86) 0%,
+        rgba(0, 0, 0, 0.88) 25%,
+        rgba(20, 20, 25, 0.85) 50%,
+        rgba(0, 0, 0, 0.88) 75%,
+        rgba(15, 15, 20, 0.86) 100%
+      );
+    }
+    50% {
+      background: linear-gradient(
+        135deg,
+        rgba(20, 20, 25, 0.85) 0%,
+        rgba(15, 15, 20, 0.86) 25%,
+        rgba(0, 0, 0, 0.88) 50%,
+        rgba(20, 20, 25, 0.85) 75%,
+        rgba(0, 0, 0, 0.88) 100%
+      );
+    }
+    75% {
+      background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.88) 0%,
+        rgba(20, 20, 25, 0.85) 25%,
+        rgba(15, 15, 20, 0.86) 50%,
+        rgba(0, 0, 0, 0.88) 75%,
+        rgba(20, 20, 25, 0.85) 100%
+      );
+    }
+  }
+
+  .auth-gradient-overlay {
+    animation: gradient-shift 12s ease-in-out infinite;
+  }
+
   .glow-subtle {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
     transition: box-shadow 0.3s ease-in-out;
