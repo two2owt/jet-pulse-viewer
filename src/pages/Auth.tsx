@@ -8,6 +8,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { Footer } from "@/components/Footer";
 import jetLogo from "@/assets/jet-auth-logo.png";
+import authBackground from "@/assets/auth-background.png";
 
 // Enhanced validation schemas
 const emailSchema = z.string()
@@ -349,8 +350,18 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: `url(${authBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      {/* Matte black/grey overlay */}
+      <div className="absolute inset-0 bg-black/85" />
+      <div className="w-full max-w-md space-y-6 relative z-10">
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="w-24 h-24 flex items-center justify-center mx-auto">
