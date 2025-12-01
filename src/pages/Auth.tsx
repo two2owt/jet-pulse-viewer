@@ -8,7 +8,8 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { Footer } from "@/components/Footer";
 import jetLogo from "@/assets/jet-auth-logo.png";
-import authBackground from "@/assets/auth-background.webp";
+import authBackgroundOriginal from "@/assets/auth-background.webp";
+import { processAuthBackground } from "@/utils/processAuthBackground";
 
 // Enhanced validation schemas
 const emailSchema = z.string()
@@ -39,6 +40,14 @@ const Auth = () => {
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
+  const [authBackground, setAuthBackground] = useState(authBackgroundOriginal);
+
+  // Process background to remove watermark on mount
+  useEffect(() => {
+    processAuthBackground().then(processedBg => {
+      setAuthBackground(processedBg);
+    });
+  }, []);
 
   // Check if user is coming from password reset email
   useEffect(() => {
