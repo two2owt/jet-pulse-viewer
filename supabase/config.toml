@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.get-mixpanel-analytics]
 verify_jwt = true
+
+[functions.remove-image-watermark]
+verify_jwt = false
