@@ -8,7 +8,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { Footer } from "@/components/Footer";
 import jetLogo from "@/assets/jet-auth-logo.png";
-import authBackground from "@/assets/auth-background.png";
+import authBackground from "@/assets/auth-background.webp";
 
 // Enhanced validation schemas
 const emailSchema = z.string()
