@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { SearchResults } from "./SearchResults";
 import { ThemeToggle } from "./ThemeToggle";
-import type { Venue } from "./Heatmap";
+import type { Venue } from "./MapboxHeatmap";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
