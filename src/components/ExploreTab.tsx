@@ -10,6 +10,8 @@ import { Button } from "./ui/button";
 import { EmptyState } from "./EmptyState";
 import { calculateDistance, getDynamicRadius, formatDistance } from "@/utils/geospatialUtils";
 import { useFavorites } from "@/hooks/useFavorites";
+import { Sheet, SheetContent } from "./ui/sheet";
+import { DealDetailCard } from "./DealDetailCard";
 import type { User } from "@supabase/supabase-js";
 
 interface Deal {
@@ -45,6 +47,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   
   const { isFavorite, toggleFavorite } = useFavorites(user?.id);
 
@@ -266,15 +269,27 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
   };
 
   const handleDealClick = (deal: Deal) => {
+    setSelectedDeal(deal);
     if (onVenueSelect) {
       onVenueSelect(deal.venue_name);
     }
-    toast.success(`Selected ${deal.venue_name}`, {
-      description: deal.title
-    });
+  };
+
+  const handleCloseDealCard = () => {
+    setSelectedDeal(null);
   };
 
   return (
+    <>
+      {/* Deal Detail Sheet */}
+      <Sheet open={!!selectedDeal} onOpenChange={(open) => !open && handleCloseDealCard()}>
+        <SheetContent side="bottom" className="h-auto max-h-[90vh] p-0 rounded-t-2xl overflow-auto">
+          {selectedDeal && (
+            <DealDetailCard deal={selectedDeal} onClose={handleCloseDealCard} />
+          )}
+        </SheetContent>
+      </Sheet>
+
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
@@ -486,5 +501,6 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
         </div>
       )}
     </div>
+    </>
   );
 };
