@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+interface Profile {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
 interface Connection {
   id: string;
   user_id: string;
@@ -8,6 +14,7 @@ interface Connection {
   status: "pending" | "accepted" | "blocked";
   created_at: string;
   updated_at: string;
+  profile?: Profile;
 }
 
 export const useConnections = (userId?: string) => {
@@ -33,10 +40,38 @@ export const useConnections = (userId?: string) => {
 
       if (error) throw error;
 
-      const accepted = (data?.filter((c) => c.status === "accepted") || []) as Connection[];
-      const pending = (data?.filter(
+      // Get all friend IDs to fetch their profiles
+      const friendIds = data?.map((c) => 
+        c.user_id === userId ? c.friend_id : c.user_id
+      ) || [];
+
+      // Fetch profiles for all friends
+      let profilesMap: Record<string, Profile> = {};
+      if (friendIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url")
+          .in("id", friendIds);
+        
+        profilesMap = (profiles || []).reduce((acc, p) => {
+          acc[p.id] = p;
+          return acc;
+        }, {} as Record<string, Profile>);
+      }
+
+      // Attach profiles to connections
+      const connectionsWithProfiles = (data || []).map((c) => {
+        const friendId = c.user_id === userId ? c.friend_id : c.user_id;
+        return {
+          ...c,
+          profile: profilesMap[friendId],
+        };
+      }) as Connection[];
+
+      const accepted = connectionsWithProfiles.filter((c) => c.status === "accepted");
+      const pending = connectionsWithProfiles.filter(
         (c) => c.status === "pending" && c.friend_id === userId
-      ) || []) as Connection[];
+      );
 
       setConnections(accepted);
       setPendingRequests(pending);
