@@ -4,6 +4,7 @@ import { useConnections } from "@/hooks/useConnections";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Users, UserPlus, Loader2, Check, X, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
@@ -170,11 +171,16 @@ export default function Social() {
                   className="bg-card border border-border rounded-xl p-4 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Users className="w-6 h-6 text-primary" />
-                    </div>
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={request.profile?.avatar_url || undefined} alt={request.profile?.display_name || "User"} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {request.profile?.display_name?.charAt(0)?.toUpperCase() || <Users className="w-6 h-6" />}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
-                      <p className="font-semibold text-foreground">Friend Request</p>
+                      <p className="font-semibold text-foreground">
+                        {request.profile?.display_name || "Friend Request"}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         Wants to connect with you
                       </p>
@@ -223,10 +229,15 @@ export default function Social() {
                   className="bg-card border border-border rounded-xl p-4 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Users className="w-5 h-5 text-primary" />
-                    </div>
-                    <p className="font-medium text-foreground">Friend</p>
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={connection.profile?.avatar_url || undefined} alt={connection.profile?.display_name || "Friend"} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {connection.profile?.display_name?.charAt(0)?.toUpperCase() || <Users className="w-5 h-5" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className="font-medium text-foreground">
+                      {connection.profile?.display_name || "Friend"}
+                    </p>
                   </div>
                   <Button
                     size="sm"
@@ -253,9 +264,12 @@ export default function Social() {
                 className="bg-card border border-border rounded-xl p-4 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
-                    <Users className="w-5 h-5 text-accent" />
-                  </div>
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={profile.avatar_url || undefined} alt={profile.display_name || "User"} />
+                    <AvatarFallback className="bg-accent/10 text-accent">
+                      {profile.display_name?.charAt(0)?.toUpperCase() || <Users className="w-5 h-5" />}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
                     <p className="font-medium text-foreground">
                       {profile.display_name || "User"}
