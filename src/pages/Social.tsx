@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { EmptyState } from "@/components/EmptyState";
+import { ConnectionProfileDialog } from "@/components/ConnectionProfileDialog";
 
 interface Profile {
   id: string;
@@ -23,6 +24,7 @@ export default function Social() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("social");
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const { notifications } = useNotifications();
 
   useEffect(() => {
@@ -223,31 +225,37 @@ export default function Social() {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {connections.map((connection) => (
-                <div
-                  key={connection.id}
-                  className="bg-card border border-border rounded-xl p-4 flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={connection.profile?.avatar_url || undefined} alt={connection.profile?.display_name || "Friend"} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {connection.profile?.display_name?.charAt(0)?.toUpperCase() || <Users className="w-5 h-5" />}
-                      </AvatarFallback>
-                    </Avatar>
-                    <p className="font-medium text-foreground">
-                      {connection.profile?.display_name || "Friend"}
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleRemoveConnection(connection.id)}
+              {connections.map((connection) => {
+                const friendId = connection.user_id === user?.id ? connection.friend_id : connection.user_id;
+                return (
+                  <div
+                    key={connection.id}
+                    className="bg-card border border-border rounded-xl p-4 flex items-center justify-between"
                   >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
+                    <button
+                      className="flex items-center gap-3 text-left flex-1 min-w-0"
+                      onClick={() => setSelectedProfileId(friendId)}
+                    >
+                      <Avatar className="w-10 h-10 flex-shrink-0">
+                        <AvatarImage src={connection.profile?.avatar_url || undefined} alt={connection.profile?.display_name || "Friend"} />
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {connection.profile?.display_name?.charAt(0)?.toUpperCase() || <Users className="w-5 h-5" />}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="font-medium text-foreground truncate">
+                        {connection.profile?.display_name || "Friend"}
+                      </p>
+                    </button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleRemoveConnection(connection.id)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -294,6 +302,13 @@ export default function Social() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         notificationCount={notifications.filter(n => !n.read).length}
+      />
+
+      {/* Connection Profile Dialog */}
+      <ConnectionProfileDialog
+        connectionId={selectedProfileId}
+        isOpen={!!selectedProfileId}
+        onClose={() => setSelectedProfileId(null)}
       />
     </>
   );

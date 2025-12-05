@@ -216,6 +216,7 @@ export type Database = {
           location_consent_given: boolean | null
           onboarding_completed: boolean | null
           preferences: Json | null
+          privacy_settings: Json | null
           pronouns: string | null
           tiktok_url: string | null
           twitter_url: string | null
@@ -238,6 +239,7 @@ export type Database = {
           location_consent_given?: boolean | null
           onboarding_completed?: boolean | null
           preferences?: Json | null
+          privacy_settings?: Json | null
           pronouns?: string | null
           tiktok_url?: string | null
           twitter_url?: string | null
@@ -260,6 +262,7 @@ export type Database = {
           location_consent_given?: boolean | null
           onboarding_completed?: boolean | null
           preferences?: Json | null
+          privacy_settings?: Json | null
           pronouns?: string | null
           tiktok_url?: string | null
           twitter_url?: string | null
