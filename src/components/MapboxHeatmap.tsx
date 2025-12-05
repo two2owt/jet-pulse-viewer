@@ -1253,7 +1253,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Density Layer Controls - Bottom right, offset from Mapbox controls */}
       <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-14 z-10 space-y-2 max-w-[calc(100vw-80px)] sm:max-w-[280px]">
         <Button
-          onClick={() => setShowDensityLayer(!showDensityLayer)}
+          onClick={() => {
+            const newState = !showDensityLayer;
+            setShowDensityLayer(newState);
+            // Reset to "All Time" when enabling the layer
+            if (newState) {
+              setTimeFilter('all');
+              setHourFilter(undefined);
+              setDayFilter(undefined);
+            }
+          }}
           variant={showDensityLayer ? "default" : "secondary"}
           size="sm"
           className="bg-card/95 backdrop-blur-xl border border-border text-xs sm:text-sm shadow-lg w-full animate-fade-in"
