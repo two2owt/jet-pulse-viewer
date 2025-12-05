@@ -515,6 +515,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      cleanup_old_search_history: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
