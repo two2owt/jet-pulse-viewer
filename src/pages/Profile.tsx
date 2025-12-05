@@ -10,11 +10,12 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useConnections } from "@/hooks/useConnections";
-import { 
+import {
   User, 
   Camera, 
   Edit2, 
@@ -71,11 +72,31 @@ const avatarFileSchema = z.object({
   name: z.string().regex(/\.(jpg|jpeg|png|webp|gif)$/i, 'Invalid file extension')
 });
 
+const GENDER_OPTIONS = [
+  { value: "woman", label: "Woman" },
+  { value: "man", label: "Man" },
+  { value: "non-binary", label: "Non-binary" },
+  { value: "prefer-not-to-say", label: "Prefer not to say" },
+  { value: "other", label: "Other" },
+];
+
+const PRONOUN_OPTIONS = [
+  { value: "she/her", label: "She/Her" },
+  { value: "he/him", label: "He/Him" },
+  { value: "they/them", label: "They/Them" },
+  { value: "she/they", label: "She/They" },
+  { value: "he/they", label: "He/They" },
+  { value: "prefer-not-to-say", label: "Prefer not to say" },
+  { value: "other", label: "Other" },
+];
+
 interface Profile {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  gender: string | null;
+  pronouns: string | null;
   instagram_url: string | null;
   twitter_url: string | null;
   facebook_url: string | null;
@@ -95,6 +116,8 @@ export default function Profile() {
   const [facebookUrl, setFacebookUrl] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [tiktokUrl, setTiktokUrl] = useState("");
+  const [gender, setGender] = useState("");
+  const [pronouns, setPronouns] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -164,6 +187,8 @@ export default function Profile() {
         setProfile(data);
         setDisplayName(data.display_name || "");
         setBio(data.bio || "");
+        setGender(data.gender || "");
+        setPronouns(data.pronouns || "");
         setInstagramUrl(data.instagram_url || "");
         setTwitterUrl(data.twitter_url || "");
         setFacebookUrl(data.facebook_url || "");
@@ -257,6 +282,18 @@ export default function Profile() {
     }
   };
 
+  const checkDisplayNameUnique = async (name: string): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("display_name", name)
+      .neq("id", user?.id || "")
+      .limit(1);
+    
+    if (error) return true;
+    return !data || data.length === 0;
+  };
+
   const handleSaveProfile = async () => {
     if (!user) return;
     
@@ -265,6 +302,12 @@ export default function Profile() {
         display_name: displayName,
         bio: bio || undefined,
       });
+
+      // Validate gender is required
+      if (!gender) {
+        toast.error("Gender required", { description: "Please select your gender" });
+        return;
+      }
 
       const validatedSocial = socialMediaSchema.parse({
         instagram_url: instagramUrl || '',
@@ -276,11 +319,21 @@ export default function Profile() {
 
       setIsSaving(true);
 
+      // Check unique display name
+      const isUnique = await checkDisplayNameUnique(validatedData.display_name);
+      if (!isUnique) {
+        toast.error("Display name taken", { description: "This display name is already in use. Please choose another." });
+        setIsSaving(false);
+        return;
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
           display_name: validatedData.display_name,
           bio: validatedData.bio || null,
+          gender: gender,
+          pronouns: pronouns || null,
           instagram_url: validatedSocial.instagram_url || null,
           twitter_url: validatedSocial.twitter_url || null,
           facebook_url: validatedSocial.facebook_url || null,
@@ -289,7 +342,13 @@ export default function Profile() {
         })
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') {
+          toast.error("Display name taken", { description: "This display name is already in use. Please choose another." });
+          return;
+        }
+        throw error;
+      }
 
       toast.success('Profile updated');
       setIsEditing(false);
@@ -468,6 +527,40 @@ export default function Profile() {
                     {bio.length}/500
                   </p>
                 )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Gender <span className="text-destructive">*</span></Label>
+                  <Select value={gender} onValueChange={setGender} disabled={!isEditing}>
+                    <SelectTrigger className="bg-card">
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GENDER_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Pronouns <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Select value={pronouns} onValueChange={setPronouns} disabled={!isEditing}>
+                    <SelectTrigger className="bg-card">
+                      <SelectValue placeholder="Select pronouns" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRONOUN_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {isEditing && (
