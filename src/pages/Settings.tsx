@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone, User, Heart, Shield } from "lucide-react";
+import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone, User, Heart, Shield, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useTheme } from "next-themes";
@@ -14,6 +14,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { Footer } from "@/components/Footer";
 import PreferencesEditor from "@/components/settings/PreferencesEditor";
 import PrivacySettings from "@/components/settings/PrivacySettings";
+import { DeleteAccountDialog } from "@/components/settings/DeleteAccountDialog";
 const preferencesSchema = z.object({
   notifications_enabled: z.boolean(),
   location_tracking_enabled: z.boolean(),
@@ -502,6 +503,25 @@ const Settings = () => {
             <ReportIssueDialog />
           </div>
         </Card>
+
+        {/* Danger Zone - Account Deletion */}
+        {userId && (
+          <Card className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6 border-destructive/50">
+            <div>
+              <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
+                <h2 className="text-base sm:text-lg font-bold text-destructive">Danger Zone</h2>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Permanently delete your account and all associated data
+              </p>
+            </div>
+
+            <Separator />
+
+            <DeleteAccountDialog userId={userId} />
+          </Card>
+        )}
 
         {/* Save Button */}
         <Button
