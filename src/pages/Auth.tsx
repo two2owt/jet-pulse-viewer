@@ -381,26 +381,28 @@ const Auth = () => {
     >
       {/* Animated matte black/grey gradient overlay */}
       <div className="absolute inset-0 auth-gradient-overlay" />
-      <div className="w-full max-w-md space-y-6 relative z-10">
-        {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="w-24 h-24 flex items-center justify-center mx-auto">
-            <img src={jetLogo} alt="JET Logo" className="w-full h-full object-contain" />
+      <div className="w-full max-w-md relative z-10">
+        {/* Glassmorphic Card */}
+        <div className="backdrop-blur-xl bg-background/20 border border-border/30 rounded-2xl p-8 shadow-2xl space-y-6">
+          {/* Header */}
+          <div className="text-center space-y-3">
+            <div className="w-24 h-24 flex items-center justify-center mx-auto">
+              <img src={jetLogo} alt="JET Logo" className="w-full h-full object-contain drop-shadow-lg" />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground drop-shadow-sm">Welcome to JET</h1>
+            <p className="text-muted-foreground">
+              {isResettingPassword
+                ? "Set your new password"
+                : isForgotPassword
+                ? "Reset your password"
+                : isSignUp
+                ? "Create an account to get started"
+                : "Sign in to discover what's hot in your area"}
+            </p>
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Welcome to JET</h1>
-          <p className="text-muted-foreground">
-            {isResettingPassword
-              ? "Set your new password"
-              : isForgotPassword
-              ? "Reset your password"
-              : isSignUp
-              ? "Create an account to get started"
-              : "Sign in to discover what's hot in your area"}
-          </p>
-        </div>
 
-        {/* Form */}
-        <form onSubmit={isResettingPassword ? handlePasswordReset : isForgotPassword ? handleForgotPassword : handleAuth} className="space-y-4">
+          {/* Form */}
+          <form onSubmit={isResettingPassword ? handlePasswordReset : isForgotPassword ? handleForgotPassword : handleAuth} className="space-y-4">
           {/* Email field - only show if not resetting password */}
           {!isResettingPassword && (
             <div className="space-y-2">
@@ -609,15 +611,16 @@ const Auth = () => {
           </div>
         )}
 
-        {/* Features */}
-        <div className="bg-card/50 rounded-xl p-4 space-y-2 border border-border/50">
-          <p className="text-xs font-semibold text-foreground">With an account you can:</p>
-          <ul className="text-xs text-muted-foreground space-y-1">
-            <li>• Get real-time notifications for nearby deals</li>
-            <li>• Save your favorite venues</li>
-            <li>• Receive personalized recommendations</li>
-            <li>• Track your activity and rewards</li>
-          </ul>
+          {/* Features */}
+          <div className="bg-card/30 backdrop-blur-sm rounded-xl p-4 space-y-2 border border-border/30">
+            <p className="text-xs font-semibold text-foreground">With an account you can:</p>
+            <ul className="text-xs text-muted-foreground space-y-1">
+              <li>• Get real-time notifications for nearby deals</li>
+              <li>• Save your favorite venues</li>
+              <li>• Receive personalized recommendations</li>
+              <li>• Track your activity and rewards</li>
+            </ul>
+          </div>
         </div>
 
         <Footer />
