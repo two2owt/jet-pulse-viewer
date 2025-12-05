@@ -6,6 +6,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { analytics } from "@/lib/analytics";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -42,6 +43,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <PageTracker />
+      <PWAInstallPrompt />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Index />} />
