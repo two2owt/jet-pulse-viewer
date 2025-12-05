@@ -9,7 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
-import { CITIES, type City } from "@/types/cities";
+import { CITIES, type City, getDistanceKm } from "@/types/cities";
 
 // Venue type definition
 export interface Venue {
@@ -1198,11 +1198,23 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               </div>
             </SelectItem>
             <div className="h-px bg-border my-1" />
-            {CITIES.map((city) => (
-              <SelectItem key={city.id} value={city.id}>
-                {city.name}, {city.state}
-              </SelectItem>
-            ))}
+            {CITIES.map((city) => {
+              const distance = userLocation 
+                ? getDistanceKm(userLocation.lat, userLocation.lng, city.lat, city.lng)
+                : null;
+              return (
+                <SelectItem key={city.id} value={city.id}>
+                  <div className="flex items-center justify-between w-full gap-3">
+                    <span>{city.name}, {city.state}</span>
+                    {distance !== null && (
+                      <span className="text-xs text-muted-foreground">
+                        {distance < 1 ? '<1' : Math.round(distance)} mi
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>
