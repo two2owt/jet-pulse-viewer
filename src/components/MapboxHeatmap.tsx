@@ -77,6 +77,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   
   // User location state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [detectedCity, setDetectedCity] = useState<City | null>(null); // City detected from user's location
   const [isUsingCurrentLocation, setIsUsingCurrentLocation] = useState(true); // Default to current location
   
   const { densityData, loading: densityLoading, error: densityError, refresh: refreshDensity } = useLocationDensity({
@@ -329,6 +330,25 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       
       // Update user location state
       setUserLocation({ lat: latitude, lng: longitude });
+      
+      // Find the nearest city to detect which metro area user is in
+      let nearestCity = CITIES[0];
+      let minDistance = Infinity;
+      
+      CITIES.forEach(city => {
+        const distance = Math.sqrt(
+          Math.pow(city.lat - latitude, 2) + 
+          Math.pow(city.lng - longitude, 2)
+        );
+        
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestCity = city;
+        }
+      });
+      
+      // Set detected city based on location
+      setDetectedCity(nearestCity);
       
       // Only fly to user location if using current location mode
       if (map.current) {
@@ -1161,15 +1181,20 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             <div className="flex items-center gap-1.5 sm:gap-2">
               <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
               <span className="font-semibold">
-                {isUsingCurrentLocation ? "Current Location" : `${selectedCity.name}, ${selectedCity.state}`}
+                {isUsingCurrentLocation 
+                  ? (detectedCity ? `${detectedCity.name}, ${detectedCity.state}` : "Locating...") 
+                  : `${selectedCity.name}, ${selectedCity.state}`}
               </span>
+              {isUsingCurrentLocation && detectedCity && (
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+              )}
             </div>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="current-location">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                Current Location
+                {detectedCity ? `${detectedCity.name}, ${detectedCity.state} (Current)` : "Use Current Location"}
               </div>
             </SelectItem>
             <div className="h-px bg-border my-1" />
