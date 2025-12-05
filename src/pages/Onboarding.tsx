@@ -101,14 +101,65 @@ const Onboarding = () => {
     }
   };
 
+  const calculateAge = (birthdate: string): number => {
+    const today = new Date();
+    const birth = new Date(birthdate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const checkDisplayNameUnique = async (name: string): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("display_name", name)
+      .neq("id", userId || "")
+      .limit(1);
+    
+    if (error) return true; // Allow on error to not block user
+    return !data || data.length === 0;
+  };
+
   const handleStep1Next = async () => {
+    // Validate display name
     if (!displayName.trim()) {
-      toast.error("Please enter a display name");
+      toast.error("Display name required", { description: "Please enter a display name" });
+      return;
+    }
+
+    // Validate birthdate
+    if (!birthdate) {
+      toast.error("Birthdate required", { description: "Please enter your birthdate" });
+      return;
+    }
+
+    // Validate age is 18+
+    const age = calculateAge(birthdate);
+    if (age < 18) {
+      toast.error("Age restriction", { description: "You must be 18 or older to create an account" });
+      return;
+    }
+
+    // Validate gender
+    if (!gender) {
+      toast.error("Gender required", { description: "Please select your gender" });
       return;
     }
     
     setIsLoading(true);
     try {
+      // Check if display name is unique
+      const isUnique = await checkDisplayNameUnique(displayName.trim());
+      if (!isUnique) {
+        toast.error("Display name taken", { description: "This display name is already in use. Please choose another." });
+        setIsLoading(false);
+        return;
+      }
+
       let avatarUrl = null;
       
       // Upload avatar if provided
@@ -134,17 +185,23 @@ const Onboarding = () => {
         .from("profiles")
         .upsert({
           id: userId,
-          display_name: displayName,
+          display_name: displayName.trim(),
           bio: bio || null,
           avatar_url: avatarUrl,
-          birthdate: birthdate || null,
-          gender: gender || null,
+          birthdate: birthdate,
+          gender: gender,
           pronouns: pronouns || null,
         }, {
           onConflict: 'id'
         });
       
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') {
+          toast.error("Display name taken", { description: "This display name is already in use. Please choose another." });
+          return;
+        }
+        throw error;
+      }
       
       setStep(2);
     } catch (error: any) {
@@ -223,7 +280,7 @@ const Onboarding = () => {
               {step === 2 && "Set Personal Preferences"}
               {step === 3 && "Review Suggestions"}
             </h1>
-            {step < 3 && (
+            {step === 2 && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -272,7 +329,7 @@ const Onboarding = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
+              <Label htmlFor="displayName">Display Name <span className="text-destructive">*</span></Label>
               <Input
                 id="displayName"
                 placeholder="Enter your name"
@@ -296,7 +353,7 @@ const Onboarding = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="birthdate">Birthdate</Label>
+              <Label htmlFor="birthdate">Birthdate <span className="text-destructive">*</span></Label>
               <Input
                 id="birthdate"
                 type="date"
@@ -308,7 +365,7 @@ const Onboarding = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Gender</Label>
+                <Label>Gender <span className="text-destructive">*</span></Label>
                 <Select value={gender} onValueChange={setGender}>
                   <SelectTrigger className="bg-card">
                     <SelectValue placeholder="Select gender" />
@@ -324,7 +381,7 @@ const Onboarding = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Pronouns</Label>
+                <Label>Pronouns <span className="text-muted-foreground text-xs">(optional)</span></Label>
                 <Select value={pronouns} onValueChange={setPronouns}>
                   <SelectTrigger className="bg-card">
                     <SelectValue placeholder="Select pronouns" />
