@@ -526,7 +526,7 @@ const Auth = () => {
                       className="mt-0.5"
                     />
                     <label htmlFor="locationConsent" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
-                      I consent to location tracking to receive personalized deal notifications. Location data is obfuscated after 7 days and deleted after 30 days. You can disable this anytime in Settings.
+                      I consent to location tracking to receive personalized and nearby push notification deals. You can disable location tracking anytime in your profile settings.
                     </label>
                   </div>
                 </div>
