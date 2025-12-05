@@ -33,6 +33,9 @@ verify_jwt = true
 [functions.send-admin-notification]
 verify_jwt = true
 
+[functions.send-friend-request-email]
+verify_jwt = true
+
 # Auth hooks and internal triggers - intentionally public
 [functions.notify-admin-new-deal]
 verify_jwt = false

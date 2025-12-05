@@ -98,6 +98,23 @@ export const useConnections = (userId?: string) => {
 
       if (error) throw error;
 
+      // Get sender's display name for the email notification
+      const { data: senderProfile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", userId)
+        .single();
+
+      // Send email notification (fire and forget - don't block on this)
+      supabase.functions.invoke("send-friend-request-email", {
+        body: {
+          recipientUserId: friendId,
+          senderDisplayName: senderProfile?.display_name || "Someone",
+        },
+      }).catch((emailError) => {
+        console.error("Failed to send friend request email:", emailError);
+      });
+
       return { success: true, data };
     } catch (error) {
       console.error("Error sending friend request:", error);

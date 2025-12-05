@@ -1,0 +1,166 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
+import { Resend } from 'https://esm.sh/resend@4.0.0';
+
+const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string);
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface FriendRequestEmailRequest {
+  recipientUserId: string;
+  senderDisplayName: string;
+}
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { 
+      status: 405,
+      headers: corsHeaders 
+    });
+  }
+
+  try {
+    // Verify JWT
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    // Create Supabase admin client to access user emails
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
+
+    const { recipientUserId, senderDisplayName }: FriendRequestEmailRequest = await req.json();
+
+    console.log('Sending friend request email notification');
+    console.log('Recipient user ID:', recipientUserId);
+    console.log('Sender display name:', senderDisplayName);
+
+    if (!recipientUserId || !senderDisplayName) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    // Get recipient's email from auth.users using admin client
+    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(recipientUserId);
+
+    if (userError || !userData?.user?.email) {
+      console.error('Error fetching user email:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Could not find recipient email' }),
+        { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    const recipientEmail = userData.user.email;
+    console.log('Sending to:', recipientEmail);
+
+    // Escape HTML in display name
+    const escapedName = senderDisplayName
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+    const appUrl = 'https://dafac772-7908-4bdb-873c-58a805d7581e.lovableproject.com';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;">
+          <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+            <!-- Logo -->
+            <div style="text-align: center; margin-bottom: 32px;">
+              <img src="https://dafac772-7908-4bdb-873c-58a805d7581e.lovableproject.com/jet-email-logo.png" alt="JET" style="width: 80px; height: auto;" />
+            </div>
+            
+            <!-- Card -->
+            <div style="background: linear-gradient(145deg, rgba(30, 30, 35, 0.95), rgba(20, 20, 25, 0.98)); border-radius: 16px; padding: 32px; border: 1px solid rgba(255, 255, 255, 0.1);">
+              <h1 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0 0 16px 0; text-align: center;">
+                New Friend Request! 🎉
+              </h1>
+              
+              <p style="color: #a1a1aa; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
+                <strong style="color: #f472b6;">${escapedName}</strong> wants to connect with you on JET.
+              </p>
+              
+              <p style="color: #71717a; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
+                Accept their request to share deals and discover new spots together!
+              </p>
+              
+              <!-- CTA Button -->
+              <div style="text-align: center;">
+                <a href="${appUrl}/social" style="display: inline-block; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 12px;">
+                  View Request
+                </a>
+              </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style="text-align: center; margin-top: 32px;">
+              <p style="color: #52525b; font-size: 12px; margin: 0;">
+                You're receiving this because you have a JET account.
+              </p>
+              <p style="color: #52525b; font-size: 12px; margin: 8px 0 0 0;">
+                © ${new Date().getFullYear()} JET. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const { error: emailError } = await resend.emails.send({
+      from: 'JET <onboarding@resend.dev>',
+      to: [recipientEmail],
+      subject: `${escapedName} sent you a friend request on JET`,
+      html,
+    });
+
+    if (emailError) {
+      console.error('Resend error:', emailError);
+      throw emailError;
+    }
+
+    console.log('Friend request email sent successfully');
+
+    return new Response(
+      JSON.stringify({ success: true }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    );
+  } catch (error) {
+    console.error('Error sending friend request email:', error);
+    return new Response(
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'Failed to send email',
+      }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    );
+  }
+});
