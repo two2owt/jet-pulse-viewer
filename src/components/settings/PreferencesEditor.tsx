@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Sparkles, ChevronDown, ChevronUp, Check, Loader2 } from "lucide-react";
+import { MapPin, Sparkles, ChevronDown, ChevronUp, Check, Loader2, UtensilsCrossed, Wine, Moon, CalendarDays, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -308,13 +308,13 @@ const PreferencesEditor = ({ userId, onSaved }: PreferencesEditorProps) => {
 
   const CategoryCard = ({
     category,
-    icon,
+    Icon,
     isSelected,
     isExpanded,
     children,
   }: {
     category: string;
-    icon: string;
+    Icon: LucideIcon;
     isSelected: boolean;
     isExpanded: boolean;
     children?: React.ReactNode;
@@ -331,7 +331,7 @@ const PreferencesEditor = ({ userId, onSaved }: PreferencesEditorProps) => {
         className="w-full p-3 flex items-center justify-between"
       >
         <div className="flex items-center gap-3">
-          <span className="text-xl">{icon}</span>
+          <Icon className={cn("w-5 h-5", isSelected ? "text-primary" : "text-muted-foreground")} />
           <span className={cn(
             "font-medium text-sm",
             isSelected ? "text-foreground" : "text-muted-foreground"
@@ -378,7 +378,7 @@ const PreferencesEditor = ({ userId, onSaved }: PreferencesEditorProps) => {
         <div className="space-y-2">
           <CategoryCard
             category="Food"
-            icon="🍔"
+            Icon={UtensilsCrossed}
             isSelected={selectedCategories.includes("Food")}
             isExpanded={expandedCategory === "Food"}
           >
@@ -404,7 +404,7 @@ const PreferencesEditor = ({ userId, onSaved }: PreferencesEditorProps) => {
 
           <CategoryCard
             category="Drinks"
-            icon="🍸"
+            Icon={Wine}
             isSelected={selectedCategories.includes("Drinks")}
             isExpanded={expandedCategory === "Drinks"}
           >
@@ -430,7 +430,7 @@ const PreferencesEditor = ({ userId, onSaved }: PreferencesEditorProps) => {
 
           <CategoryCard
             category="Nightlife"
-            icon="🌙"
+            Icon={Moon}
             isSelected={selectedCategories.includes("Nightlife")}
             isExpanded={expandedCategory === "Nightlife"}
           >
@@ -456,7 +456,7 @@ const PreferencesEditor = ({ userId, onSaved }: PreferencesEditorProps) => {
 
           <CategoryCard
             category="Events"
-            icon="🎉"
+            Icon={CalendarDays}
             isSelected={selectedCategories.includes("Events")}
             isExpanded={expandedCategory === "Events"}
           >
