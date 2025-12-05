@@ -88,9 +88,16 @@ export const usePushNotifications = () => {
         await triggerHaptic('medium');
         
         // Handle navigation based on notification data
-        if (notification.notification.data?.dealId) {
-          // Navigate to deal details
-          console.log('Navigate to deal:', notification.notification.data.dealId);
+        const data = notification.notification.data;
+        if (data?.dealId) {
+          // Navigate to deal using URL params (will be handled by useDeepLinking)
+          window.location.href = `${window.location.origin}/?deal=${data.dealId}`;
+        } else if (data?.venueName) {
+          // Navigate to venue
+          window.location.href = `${window.location.origin}/?venue=${encodeURIComponent(data.venueName)}`;
+        } else if (data?.tab) {
+          // Navigate to specific tab
+          window.location.href = `${window.location.origin}/?tab=${data.tab}`;
         }
       }
     );
