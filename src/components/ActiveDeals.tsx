@@ -1,6 +1,6 @@
-import { useEffect, useState, memo } from "react";
+import { useEffect, useState, memo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, MapPin, TrendingUp, ChevronDown, ChevronUp, Heart, Share2 } from "lucide-react";
+import { Clock, MapPin, TrendingUp, ChevronDown, ChevronUp, Heart, Share2, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { OptimizedImage } from "./ui/optimized-image";
 import { DealCardSkeleton } from "./skeletons/DealCardSkeleton";
@@ -11,6 +11,32 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { shareDeal } from "@/utils/shareUtils";
 import { glideHaptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
+import { Badge } from "./ui/badge";
+
+interface UserPreferences {
+  categories?: string[];
+}
+
+// Map deal_type values to preference categories
+const dealTypeToCategory: Record<string, string> = {
+  'food': 'Food',
+  'Food': 'Food',
+  'restaurant': 'Food',
+  'dining': 'Food',
+  'drinks': 'Drinks',
+  'Drinks': 'Drinks',
+  'bar': 'Drinks',
+  'cocktail': 'Drinks',
+  'coffee': 'Drinks',
+  'nightlife': 'Nightlife',
+  'Nightlife': 'Nightlife',
+  'club': 'Nightlife',
+  'lounge': 'Nightlife',
+  'events': 'Events',
+  'Events': 'Events',
+  'concert': 'Events',
+  'festival': 'Events',
+};
 
 interface Deal {
   id: string;
@@ -30,9 +56,12 @@ interface ActiveDealsProps {
 
 export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
   const [deals, setDeals] = useState<Deal[]>([]);
+  const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+  const [preferenceFilterEnabled, setPreferenceFilterEnabled] = useState(true);
   const [isOpen, setIsOpen] = useState(() => {
     const saved = localStorage.getItem('activeDealsOpen');
     return saved !== null ? JSON.parse(saved) : false;
@@ -41,19 +70,58 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
 
   const { isFavorite, toggleFavorite } = useFavorites(user?.id);
 
+  const loadUserPreferences = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('preferences')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      
+      const prefs = data?.preferences as UserPreferences | null;
+      setUserPreferences(prefs);
+    } catch (err) {
+      console.error('Error loading user preferences:', err);
+    }
+  }, []);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserPreferences(session.user.id);
+      }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserPreferences(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [loadUserPreferences]);
+
+  // Apply preference filtering
+  useEffect(() => {
+    if (!preferenceFilterEnabled || !userPreferences?.categories || userPreferences.categories.length === 0) {
+      setFilteredDeals(deals);
+      return;
+    }
+
+    const filtered = deals.filter(deal => {
+      const dealCategory = dealTypeToCategory[deal.deal_type] || deal.deal_type;
+      return userPreferences.categories!.some(cat => 
+        cat.toLowerCase() === dealCategory.toLowerCase()
+      );
+    });
+    setFilteredDeals(filtered);
+  }, [deals, userPreferences, preferenceFilterEnabled]);
 
   useEffect(() => {
     localStorage.setItem('activeDealsOpen', JSON.stringify(isOpen));
@@ -180,6 +248,36 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
     );
   }
 
+  if (filteredDeals.length === 0 && deals.length > 0) {
+    return (
+      <div className="space-y-3 animate-fade-in">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-bold text-foreground">Active Deals</h3>
+          {userPreferences?.categories && userPreferences.categories.length > 0 && (
+            <Badge 
+              variant={preferenceFilterEnabled ? "default" : "outline"}
+              className="text-xs flex items-center gap-1 cursor-pointer"
+              onClick={() => setPreferenceFilterEnabled(!preferenceFilterEnabled)}
+            >
+              <Sparkles className="w-3 h-3" />
+              {preferenceFilterEnabled ? "Personalized" : "Show All"}
+            </Badge>
+          )}
+        </div>
+        <div className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-2xl p-8 border border-border/50 text-center space-y-3">
+          <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-primary/60" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-base font-semibold text-foreground">No matching deals</p>
+            <p className="text-sm text-muted-foreground">Tap "Personalized" to see all {deals.length} deals</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (deals.length === 0) {
     return (
       <div className="space-y-3 animate-fade-in">
@@ -200,8 +298,8 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
     );
   }
 
-  const visibleDeals = showAll ? deals : deals.slice(0, INITIAL_DISPLAY);
-  const hasMore = deals.length > INITIAL_DISPLAY;
+  const visibleDeals = showAll ? filteredDeals : filteredDeals.slice(0, INITIAL_DISPLAY);
+  const hasMore = filteredDeals.length > INITIAL_DISPLAY;
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3 animate-fade-in">
@@ -210,8 +308,21 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
           <TrendingUp className="w-5 h-5 text-primary" />
           <h3 className="text-lg font-bold text-foreground">Active Deals</h3>
           <div className="bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs font-bold">
-            {deals.length}
+            {filteredDeals.length}
           </div>
+          {userPreferences?.categories && userPreferences.categories.length > 0 && (
+            <Badge 
+              variant={preferenceFilterEnabled ? "default" : "outline"}
+              className="text-xs flex items-center gap-1 cursor-pointer ml-auto mr-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreferenceFilterEnabled(!preferenceFilterEnabled);
+              }}
+            >
+              <Sparkles className="w-3 h-3" />
+              {preferenceFilterEnabled ? "Personalized" : "Show All"}
+            </Badge>
+          )}
           {isOpen ? (
             <ChevronUp className="w-4 h-4 text-muted-foreground ml-auto" />
           ) : (
@@ -331,7 +442,7 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
             ) : (
               <>
                 <ChevronDown className="w-4 h-4 mr-1" />
-                Show More ({deals.length - INITIAL_DISPLAY} more)
+                Show More ({filteredDeals.length - INITIAL_DISPLAY} more)
               </>
             )}
           </Button>
