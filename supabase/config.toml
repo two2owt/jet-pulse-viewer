@@ -1,16 +1,16 @@
 project_id = "zbrscuoqmkdbmdimdnqu"
 
 [functions.get-mapbox-token]
-verify_jwt = false
+verify_jwt = true
 
 [functions.get-location-density]
-verify_jwt = false
+verify_jwt = true
 
 [functions.get-google-places-data]
-verify_jwt = false
+verify_jwt = true
 
 [functions.search-google-places-venues]
-verify_jwt = false
+verify_jwt = true
 
 [functions.check-geofence]
 verify_jwt = true
