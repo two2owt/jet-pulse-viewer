@@ -24,5 +24,21 @@ verify_jwt = true
 [functions.get-mixpanel-analytics]
 verify_jwt = true
 
+[functions.get-movement-paths]
+verify_jwt = true
+
+[functions.send-push-notification]
+verify_jwt = true
+
+[functions.send-admin-notification]
+verify_jwt = true
+
 [functions.remove-image-watermark]
+verify_jwt = true
+
+# Auth hooks and internal triggers - intentionally public
+[functions.notify-admin-new-deal]
+verify_jwt = false
+
+[functions.send-verification-email]
 verify_jwt = false
