@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { OptimizedImage } from "./ui/optimized-image";
-import { Search, MapPin, Clock, TrendingUp, Filter, X, Navigation, Heart } from "lucide-react";
+import { Search, MapPin, Clock, TrendingUp, Filter, X, Navigation, Heart, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { EmptyState } from "./EmptyState";
@@ -13,6 +13,53 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { Sheet, SheetContent } from "./ui/sheet";
 import { DealDetailCard } from "./DealDetailCard";
 import type { User } from "@supabase/supabase-js";
+
+interface UserPreferences {
+  categories?: string[];
+  food?: {
+    cuisineType?: string[];
+    dietaryPreference?: string[];
+    mealOccasion?: string[];
+  };
+  drink?: {
+    coffeeTea?: string[];
+    barCocktail?: string[];
+    atmosphere?: string[];
+  };
+  nightlife?: {
+    venueType?: string[];
+    musicPreference?: string[];
+    crowdVibe?: string[];
+  };
+  events?: {
+    eventType?: string[];
+    groupType?: string[];
+    timeSetting?: string[];
+  };
+  trendingVenues?: boolean;
+  activityInArea?: boolean;
+}
+
+// Map deal_type values to preference categories
+const dealTypeToCategory: Record<string, string> = {
+  'food': 'Food',
+  'Food': 'Food',
+  'restaurant': 'Food',
+  'dining': 'Food',
+  'drinks': 'Drinks',
+  'Drinks': 'Drinks',
+  'bar': 'Drinks',
+  'cocktail': 'Drinks',
+  'coffee': 'Drinks',
+  'nightlife': 'Nightlife',
+  'Nightlife': 'Nightlife',
+  'club': 'Nightlife',
+  'lounge': 'Nightlife',
+  'events': 'Events',
+  'Events': 'Events',
+  'concert': 'Events',
+  'festival': 'Events',
+};
 
 interface Deal {
   id: string;
@@ -48,8 +95,27 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+  const [preferenceFilterEnabled, setPreferenceFilterEnabled] = useState(true);
   
   const { isFavorite, toggleFavorite } = useFavorites(user?.id);
+
+  const loadUserPreferences = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('preferences')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      
+      const prefs = data?.preferences as UserPreferences | null;
+      setUserPreferences(prefs);
+    } catch (err) {
+      console.error('Error loading user preferences:', err);
+    }
+  }, []);
 
   useEffect(() => {
     getUserLocation();
@@ -57,14 +123,20 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
     // Get current user
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserPreferences(session.user.id);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserPreferences(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [loadUserPreferences]);
 
   useEffect(() => {
     // Load deals only after we have attempted to get location
@@ -76,7 +148,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
 
   useEffect(() => {
     filterDeals();
-  }, [searchQuery, deals, selectedCategories]);
+  }, [searchQuery, deals, selectedCategories, userPreferences, preferenceFilterEnabled]);
 
   const getUserLocation = () => {
     if (!navigator.geolocation) {
@@ -168,6 +240,18 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
     console.log('Starting filterDeals with', deals.length, 'deals');
     console.log('User location available:', !!userLocation);
     
+    // Apply preference-based filter first if enabled
+    if (preferenceFilterEnabled && userPreferences?.categories && userPreferences.categories.length > 0) {
+      const beforeFilter = filtered.length;
+      filtered = filtered.filter(deal => {
+        const dealCategory = dealTypeToCategory[deal.deal_type] || deal.deal_type;
+        return userPreferences.categories!.some(cat => 
+          cat.toLowerCase() === dealCategory.toLowerCase()
+        );
+      });
+      console.log(`Preference filter: ${beforeFilter} -> ${filtered.length} deals`);
+    }
+    
     // Apply location-based filter if user location is available
     if (userLocation) {
       const beforeFilter = filtered.length;
@@ -198,7 +282,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
       console.log('No user location - showing all deals');
     }
     
-    // Apply category filter
+    // Apply category filter (manual override)
     if (selectedCategories.length > 0) {
       const beforeFilter = filtered.length;
       filtered = filtered.filter(deal => 
@@ -294,7 +378,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-foreground mb-2">Explore Deals</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm text-muted-foreground">
             {userLocation 
               ? "Showing deals near you" 
@@ -304,6 +388,16 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
             <Badge variant="secondary" className="text-xs flex items-center gap-1">
               <Navigation className="w-3 h-3" />
               Location Active
+            </Badge>
+          )}
+          {userPreferences?.categories && userPreferences.categories.length > 0 && (
+            <Badge 
+              variant={preferenceFilterEnabled ? "default" : "outline"}
+              className="text-xs flex items-center gap-1 cursor-pointer"
+              onClick={() => setPreferenceFilterEnabled(!preferenceFilterEnabled)}
+            >
+              <Sparkles className="w-3 h-3" />
+              {preferenceFilterEnabled ? "Personalized" : "Show All"}
             </Badge>
           )}
         </div>
