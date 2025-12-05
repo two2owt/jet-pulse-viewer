@@ -1,34 +1,57 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { Resend } from "https://esm.sh/resend@4.0.0";
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const ADMIN_EMAIL = "creativebreakroominfo@gmail.com";
+
+// HTML escape function to prevent XSS/injection
+function escapeHtml(text: string): string {
+  const htmlEntities: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return text.replace(/[&<>"']/g, (char) => htmlEntities[char] || char);
+}
 
 serve(async (req) => {
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
     const payload = await req.json();
     const deal = payload.record;
 
-    // Call the send-admin-notification function
-    const { error } = await supabase.functions.invoke("send-admin-notification", {
-      body: {
-        type: "new_deal",
-        subject: "New Deal Created",
-        message: `A new deal has been created on JetStream.`,
-        details: {
-          "Deal Title": deal.title,
-          "Venue": deal.venue_name,
-          "Deal Type": deal.deal_type,
-          "Description": deal.description,
-          "Starts At": new Date(deal.starts_at).toLocaleString(),
-          "Expires At": new Date(deal.expires_at).toLocaleString(),
-        },
-      },
+    const subject = "New Deal Created";
+    const safeSubject = escapeHtml(subject);
+    
+    const details: Record<string, string> = {
+      "Deal Title": deal.title || "N/A",
+      "Venue": deal.venue_name || "N/A",
+      "Deal Type": deal.deal_type || "N/A",
+      "Description": deal.description || "N/A",
+      "Starts At": deal.starts_at ? new Date(deal.starts_at).toLocaleString() : "N/A",
+      "Expires At": deal.expires_at ? new Date(deal.expires_at).toLocaleString() : "N/A",
+    };
+
+    const emailHtml = `
+      <h2>${safeSubject}</h2>
+      <p>A new deal has been created on JetStream.</p>
+      <h3>Details:</h3>
+      <ul>
+        ${Object.entries(details)
+          .map(([key, value]) => `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(value)}</li>`)
+          .join("")}
+      </ul>
+    `;
+
+    const emailResponse = await resend.emails.send({
+      from: "JetStream Notifications <onboarding@resend.dev>",
+      to: [ADMIN_EMAIL],
+      subject: `[JetStream Admin] ${safeSubject}`,
+      html: emailHtml,
     });
 
-    if (error) throw error;
+    console.log("Admin notification sent successfully for new deal:", emailResponse);
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { "Content-Type": "application/json" },
