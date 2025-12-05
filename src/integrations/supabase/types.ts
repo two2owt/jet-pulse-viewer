@@ -206,6 +206,7 @@ export type Database = {
           created_at: string
           data_processing_consent: boolean | null
           data_processing_consent_date: string | null
+          discoverable: boolean | null
           display_name: string | null
           facebook_url: string | null
           gender: string | null
@@ -229,6 +230,7 @@ export type Database = {
           created_at?: string
           data_processing_consent?: boolean | null
           data_processing_consent_date?: string | null
+          discoverable?: boolean | null
           display_name?: string | null
           facebook_url?: string | null
           gender?: string | null
@@ -252,6 +254,7 @@ export type Database = {
           created_at?: string
           data_processing_consent?: boolean | null
           data_processing_consent_date?: string | null
+          discoverable?: boolean | null
           display_name?: string | null
           facebook_url?: string | null
           gender?: string | null
@@ -504,25 +507,38 @@ export type Database = {
       }
     }
     Views: {
+      discoverable_profiles: {
+        Row: {
+          avatar_url: string | null
+          display_name: string | null
+          id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          display_name?: string | null
+          id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          display_name?: string | null
+          id?: string | null
+        }
+        Relationships: []
+      }
       profiles_secure: {
         Row: {
           avatar_url: string | null
           bio: string | null
           birthdate: string | null
           created_at: string | null
-          data_processing_consent: boolean | null
-          data_processing_consent_date: string | null
+          discoverable: boolean | null
           display_name: string | null
           facebook_url: string | null
           gender: string | null
           id: string | null
           instagram_url: string | null
           linkedin_url: string | null
-          location_consent_date: string | null
-          location_consent_given: boolean | null
           onboarding_completed: boolean | null
-          preferences: Json | null
-          privacy_settings: Json | null
           pronouns: string | null
           tiktok_url: string | null
           twitter_url: string | null
@@ -533,19 +549,14 @@ export type Database = {
           bio?: never
           birthdate?: never
           created_at?: string | null
-          data_processing_consent?: never
-          data_processing_consent_date?: never
+          discoverable?: boolean | null
           display_name?: string | null
           facebook_url?: never
           gender?: never
           id?: string | null
           instagram_url?: never
           linkedin_url?: never
-          location_consent_date?: never
-          location_consent_given?: never
           onboarding_completed?: boolean | null
-          preferences?: never
-          privacy_settings?: never
           pronouns?: never
           tiktok_url?: never
           twitter_url?: never
@@ -556,19 +567,14 @@ export type Database = {
           bio?: never
           birthdate?: never
           created_at?: string | null
-          data_processing_consent?: never
-          data_processing_consent_date?: never
+          discoverable?: boolean | null
           display_name?: string | null
           facebook_url?: never
           gender?: never
           id?: string | null
           instagram_url?: never
           linkedin_url?: never
-          location_consent_date?: never
-          location_consent_given?: never
           onboarding_completed?: boolean | null
-          preferences?: never
-          privacy_settings?: never
           pronouns?: never
           tiktok_url?: never
           twitter_url?: never

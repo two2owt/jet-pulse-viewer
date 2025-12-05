@@ -10,6 +10,7 @@ export interface PrivacySettings {
   show_facebook: boolean;
   show_linkedin: boolean;
   show_tiktok: boolean;
+  show_discoverable: boolean;
 }
 
 export interface ProfileData {
@@ -53,6 +54,7 @@ const defaultPrivacySettings: PrivacySettings = {
   show_facebook: true,
   show_linkedin: true,
   show_tiktok: true,
+  show_discoverable: true,
 };
 
 export function applyPrivacyFilter(

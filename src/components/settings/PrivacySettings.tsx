@@ -20,6 +20,7 @@ interface PrivacySettingsData {
   show_facebook: boolean;
   show_linkedin: boolean;
   show_tiktok: boolean;
+  show_discoverable: boolean;
 }
 
 const defaultPrivacySettings: PrivacySettingsData = {
@@ -32,6 +33,7 @@ const defaultPrivacySettings: PrivacySettingsData = {
   show_facebook: true,
   show_linkedin: true,
   show_tiktok: true,
+  show_discoverable: true,
 };
 
 const PrivacySettings = ({ userId }: PrivacySettingsProps) => {
@@ -75,9 +77,13 @@ const PrivacySettings = ({ userId }: PrivacySettingsProps) => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Update both privacy_settings JSON and the discoverable column
       const { error } = await supabase
         .from("profiles")
-        .update({ privacy_settings: JSON.parse(JSON.stringify(settings)) })
+        .update({ 
+          privacy_settings: JSON.parse(JSON.stringify(settings)),
+          discoverable: settings.show_discoverable
+        })
         .eq("id", userId);
 
       if (error) throw error;
@@ -101,6 +107,12 @@ const PrivacySettings = ({ userId }: PrivacySettingsProps) => {
     );
   }
 
+  const discoverabilityItem = { 
+    key: "show_discoverable" as const, 
+    label: "Discoverable", 
+    description: "Allow others to find you in Discover People" 
+  };
+
   const settingItems = [
     { key: "show_bio" as const, label: "Bio", description: "Show your bio to connections" },
     { key: "show_birthdate" as const, label: "Birthdate", description: "Show your birthdate to connections" },
@@ -118,6 +130,28 @@ const PrivacySettings = ({ userId }: PrivacySettingsProps) => {
 
   return (
     <div className="space-y-4">
+      {/* Discoverability */}
+      <div className="space-y-3">
+        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Discoverability</p>
+        <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+          <div className="space-y-0.5 flex-1 min-w-0">
+            <label className="text-xs sm:text-sm font-medium text-foreground block">
+              {discoverabilityItem.label}
+            </label>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              {discoverabilityItem.description}
+            </p>
+          </div>
+          <Switch
+            checked={settings[discoverabilityItem.key]}
+            onCheckedChange={() => handleToggle(discoverabilityItem.key)}
+            className="flex-shrink-0"
+          />
+        </div>
+      </div>
+
+      <Separator />
+
       {/* Profile Fields */}
       <div className="space-y-3">
         <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Profile Information</p>

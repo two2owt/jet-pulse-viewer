@@ -60,10 +60,11 @@ export default function Social() {
 
   const fetchProfiles = async () => {
     try {
+      // Use discoverable_profiles view which only shows users who opted into discovery
+      // and excludes already connected or pending users
       const { data, error } = await supabase
-        .from("profiles")
+        .from("discoverable_profiles")
         .select("id, display_name, avatar_url")
-        .neq("id", user?.id)
         .limit(20);
 
       if (error) throw error;
