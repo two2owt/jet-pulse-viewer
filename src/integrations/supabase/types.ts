@@ -203,11 +203,15 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          data_processing_consent: boolean | null
+          data_processing_consent_date: string | null
           display_name: string | null
           facebook_url: string | null
           id: string
           instagram_url: string | null
           linkedin_url: string | null
+          location_consent_date: string | null
+          location_consent_given: boolean | null
           onboarding_completed: boolean | null
           preferences: Json | null
           tiktok_url: string | null
@@ -218,11 +222,15 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          data_processing_consent?: boolean | null
+          data_processing_consent_date?: string | null
           display_name?: string | null
           facebook_url?: string | null
           id: string
           instagram_url?: string | null
           linkedin_url?: string | null
+          location_consent_date?: string | null
+          location_consent_given?: boolean | null
           onboarding_completed?: boolean | null
           preferences?: Json | null
           tiktok_url?: string | null
@@ -233,11 +241,15 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          data_processing_consent?: boolean | null
+          data_processing_consent_date?: string | null
           display_name?: string | null
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
           linkedin_url?: string | null
+          location_consent_date?: string | null
+          location_consent_given?: boolean | null
           onboarding_completed?: boolean | null
           preferences?: Json | null
           tiktok_url?: string | null
@@ -490,6 +502,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      obfuscate_coordinates: {
+        Args: { lat: number; lng: number }
+        Returns: {
+          obfuscated_lat: number
+          obfuscated_lng: number
+        }[]
+      }
+      process_location_data_retention: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

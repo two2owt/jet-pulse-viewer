@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
@@ -36,11 +37,13 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
+  const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string; confirmPassword?: string; consent?: string }>({});
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
   const [authBackground, setAuthBackground] = useState(authBackgroundOriginal);
+  const [dataProcessingConsent, setDataProcessingConsent] = useState(false);
+  const [locationConsent, setLocationConsent] = useState(false);
 
   // Process background to remove watermark on mount
   useEffect(() => {
@@ -80,7 +83,7 @@ const Auth = () => {
 
   // Validate inputs before submission
   const validateInputs = (): boolean => {
-    const errors: { email?: string; password?: string; confirmPassword?: string } = {};
+    const errors: { email?: string; password?: string; confirmPassword?: string; consent?: string } = {};
     
     // Validate email
     const emailResult = emailSchema.safeParse(email);
@@ -98,6 +101,11 @@ const Auth = () => {
       // Validate password confirmation for signup
       if (isSignUp && password !== confirmPassword) {
         errors.confirmPassword = "Passwords do not match";
+      }
+      
+      // Validate consent for signup
+      if (isSignUp && !dataProcessingConsent) {
+        errors.consent = "You must agree to the Privacy Policy and Terms of Service";
       }
     }
     
@@ -261,7 +269,7 @@ const Auth = () => {
           ? 'https://dafac772-7908-4bdb-873c-58a805d7581e.lovableproject.com'
           : window.location.origin;
         
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
@@ -286,12 +294,24 @@ const Auth = () => {
           throw error;
         }
 
+        // Store consent in profile after signup
+        if (signUpData.user) {
+          await supabase.from("profiles").update({
+            data_processing_consent: dataProcessingConsent,
+            data_processing_consent_date: new Date().toISOString(),
+            location_consent_given: locationConsent,
+            location_consent_date: locationConsent ? new Date().toISOString() : null,
+          }).eq("id", signUpData.user.id);
+        }
+
         toast.success("Check your email!", {
           description: "We sent you a verification link. Please verify your email to continue.",
         });
         setShowResendVerification(true);
         setPassword("");
         setConfirmPassword("");
+        setDataProcessingConsent(false);
+        setLocationConsent(false);
         return;
       } else {
         const { error, data } = await supabase.auth.signInWithPassword({
@@ -474,6 +494,50 @@ const Auth = () => {
                   )}
                 </div>
               )}
+
+              {/* Consent checkboxes for signup */}
+              {isSignUp && (
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-start space-x-3">
+                    <Checkbox
+                      id="dataConsent"
+                      checked={dataProcessingConsent}
+                      onCheckedChange={(checked) => {
+                        setDataProcessingConsent(checked === true);
+                        setValidationErrors(prev => ({ ...prev, consent: undefined }));
+                      }}
+                      className="mt-0.5"
+                    />
+                    <label htmlFor="dataConsent" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                      I agree to the{" "}
+                      <Link to="/privacy-policy" className="text-primary hover:underline" target="_blank">
+                        Privacy Policy
+                      </Link>{" "}
+                      and{" "}
+                      <Link to="/terms-of-service" className="text-primary hover:underline" target="_blank">
+                        Terms of Service
+                      </Link>
+                      . I understand my data will be processed securely with automatic deletion after 30 days of inactivity.
+                      <span className="text-destructive">*</span>
+                    </label>
+                  </div>
+                  {validationErrors.consent && (
+                    <p className="text-xs text-destructive ml-6">{validationErrors.consent}</p>
+                  )}
+                  
+                  <div className="flex items-start space-x-3">
+                    <Checkbox
+                      id="locationConsent"
+                      checked={locationConsent}
+                      onCheckedChange={(checked) => setLocationConsent(checked === true)}
+                      className="mt-0.5"
+                    />
+                    <label htmlFor="locationConsent" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                      I consent to location tracking to receive personalized deal notifications. Location data is obfuscated after 7 days and deleted after 30 days. You can disable this anytime in Settings.
+                    </label>
+                  </div>
+                </div>
+              )}
             </>
           )}
 
@@ -540,6 +604,8 @@ const Auth = () => {
                 setValidationErrors({});
                 setPassword("");
                 setConfirmPassword("");
+                setDataProcessingConsent(false);
+                setLocationConsent(false);
               }}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
