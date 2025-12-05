@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { MapPin, Sparkles, ChevronDown, ChevronUp, Check } from "lucide-react";
+import { MapPin, Sparkles, ChevronDown, ChevronUp, Check, UtensilsCrossed, Wine, Moon, CalendarDays, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PreferencesStepProps {
@@ -231,13 +231,13 @@ const PreferencesStep = ({ onBack, onNext, isLoading }: PreferencesStepProps) =>
 
   const CategoryCard = ({
     category,
-    icon,
+    Icon,
     isSelected,
     isExpanded,
     children,
   }: {
     category: string;
-    icon: string;
+    Icon: LucideIcon;
     isSelected: boolean;
     isExpanded: boolean;
     children?: React.ReactNode;
@@ -254,7 +254,7 @@ const PreferencesStep = ({ onBack, onNext, isLoading }: PreferencesStepProps) =>
         className="w-full p-3 flex items-center justify-between"
       >
         <div className="flex items-center gap-3">
-          <span className="text-xl">{icon}</span>
+          <Icon className={cn("w-5 h-5", isSelected ? "text-primary" : "text-muted-foreground")} />
           <span className={cn(
             "font-medium text-sm",
             isSelected ? "text-foreground" : "text-muted-foreground"
@@ -302,7 +302,7 @@ const PreferencesStep = ({ onBack, onNext, isLoading }: PreferencesStepProps) =>
           <div className="space-y-2">
             <CategoryCard
               category="Food"
-              icon="🍔"
+              Icon={UtensilsCrossed}
               isSelected={selectedCategories.includes("Food")}
               isExpanded={expandedCategory === "Food"}
             >
@@ -328,7 +328,7 @@ const PreferencesStep = ({ onBack, onNext, isLoading }: PreferencesStepProps) =>
 
             <CategoryCard
               category="Drinks"
-              icon="🍸"
+              Icon={Wine}
               isSelected={selectedCategories.includes("Drinks")}
               isExpanded={expandedCategory === "Drinks"}
             >
@@ -354,7 +354,7 @@ const PreferencesStep = ({ onBack, onNext, isLoading }: PreferencesStepProps) =>
 
             <CategoryCard
               category="Nightlife"
-              icon="🌙"
+              Icon={Moon}
               isSelected={selectedCategories.includes("Nightlife")}
               isExpanded={expandedCategory === "Nightlife"}
             >
@@ -380,7 +380,7 @@ const PreferencesStep = ({ onBack, onNext, isLoading }: PreferencesStepProps) =>
 
             <CategoryCard
               category="Events"
-              icon="🎉"
+              Icon={CalendarDays}
               isSelected={selectedCategories.includes("Events")}
               isExpanded={expandedCategory === "Events"}
             >
