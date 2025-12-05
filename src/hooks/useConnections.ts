@@ -133,6 +133,26 @@ export const useConnections = (userId?: string) => {
 
       if (error) throw error;
 
+      // The user_id in the connection is the original sender
+      const originalSenderId = data.user_id;
+
+      // Get accepter's display name for the email notification
+      const { data: accepterProfile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", userId)
+        .single();
+
+      // Send email notification to the original sender (fire and forget)
+      supabase.functions.invoke("send-friend-accepted-email", {
+        body: {
+          recipientUserId: originalSenderId,
+          accepterDisplayName: accepterProfile?.display_name || "Someone",
+        },
+      }).catch((emailError) => {
+        console.error("Failed to send friend accepted email:", emailError);
+      });
+
       setPendingRequests((prev) => prev.filter((c) => c.id !== connectionId));
       setConnections((prev) => [...prev, data as Connection]);
       return { success: true, data };
