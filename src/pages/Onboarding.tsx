@@ -6,11 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Zap, MapPin, Sparkles, Loader2, Upload, Calendar } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { Zap, Sparkles, Loader2, Upload } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const DEAL_TYPES = ["Food", "Drinks", "Nightlife", "Events"];
+import PreferencesStep, { PreferencesData } from "@/components/onboarding/PreferencesStep";
+import { Json } from "@/integrations/supabase/types";
 
 const GENDER_OPTIONS = [
   { value: "woman", label: "Woman" },
@@ -46,9 +45,7 @@ const Onboarding = () => {
   const [pronouns, setPronouns] = useState("");
   
   // Step 2: Preferences
-  const [selectedDealTypes, setSelectedDealTypes] = useState<string[]>(DEAL_TYPES);
-  const [trendingVenues, setTrendingVenues] = useState(true);
-  const [activityInArea, setActivityInArea] = useState(false);
+  const [savedPreferences, setSavedPreferences] = useState<PreferencesData | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -211,21 +208,26 @@ const Onboarding = () => {
     }
   };
 
-  const handleStep2Next = async () => {
+  const handleStep2Next = async (preferences: PreferencesData) => {
     setIsLoading(true);
+    setSavedPreferences(preferences);
     try {
+      const preferencesJson = {
+        categories: preferences.categories,
+        food: preferences.food,
+        drink: preferences.drink,
+        nightlife: preferences.nightlife,
+        events: preferences.events,
+        trendingVenues: preferences.trendingVenues,
+        activityInArea: preferences.activityInArea,
+      };
+      
       const { error } = await supabase
         .from("profiles")
-        .upsert({
-          id: userId,
-          preferences: {
-            dealTypes: selectedDealTypes,
-            trendingVenues,
-            activityInArea,
-          },
-        }, {
-          onConflict: 'id'
-        });
+        .update({
+          preferences: preferencesJson as unknown as Json,
+        })
+        .eq('id', userId);
       
       if (error) throw error;
       
@@ -260,11 +262,6 @@ const Onboarding = () => {
     }
   };
 
-  const toggleDealType = (type: string) => {
-    setSelectedDealTypes(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
-    );
-  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -409,74 +406,11 @@ const Onboarding = () => {
 
         {/* Step 2: Preferences */}
         {step === 2 && (
-          <div className="space-y-6 bg-card border border-border rounded-2xl p-6">
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base mb-3 block">What interests you?</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {DEAL_TYPES.map((type) => (
-                    <Button
-                      key={type}
-                      variant={selectedDealTypes.includes(type) ? "default" : "outline"}
-                      onClick={() => toggleDealType(type)}
-                      className="h-12"
-                    >
-                      {type}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t border-border">
-                <Label className="text-base">Live Discovery</Label>
-                
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <MapPin className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="font-medium text-sm">Trending Venues</p>
-                      <p className="text-xs text-muted-foreground">See what's popular now</p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={trendingVenues}
-                    onCheckedChange={setTrendingVenues}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="font-medium text-sm">Activity in Your Area</p>
-                      <p className="text-xs text-muted-foreground">Get location-based alerts</p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={activityInArea}
-                    onCheckedChange={setActivityInArea}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setStep(1)}
-                className="flex-1"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={handleStep2Next}
-                disabled={isLoading || selectedDealTypes.length === 0}
-                className="flex-1 bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 text-primary-foreground font-semibold"
-              >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Next"}
-              </Button>
-            </div>
-          </div>
+          <PreferencesStep
+            onBack={() => setStep(1)}
+            onNext={handleStep2Next}
+            isLoading={isLoading}
+          />
         )}
 
         {/* Step 3: Suggestions */}
@@ -491,29 +425,31 @@ const Onboarding = () => {
                 </p>
               </div>
 
-              <div className="space-y-3">
-                <h4 className="font-semibold text-sm">Your Preferences:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedDealTypes.map((type) => (
-                    <span
-                      key={type}
-                      className="px-3 py-1 bg-primary/20 text-primary text-xs font-medium rounded-full"
-                    >
-                      {type}
-                    </span>
-                  ))}
+              {savedPreferences && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-sm">Your Preferences:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {savedPreferences.categories.map((type) => (
+                      <span
+                        key={type}
+                        className="px-3 py-1 bg-primary/20 text-primary text-xs font-medium rounded-full"
+                      >
+                        {type}
+                      </span>
+                    ))}
+                  </div>
+                  {savedPreferences.trendingVenues && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" /> Trending venues enabled
+                    </p>
+                  )}
+                  {savedPreferences.activityInArea && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" /> Location-based alerts enabled
+                    </p>
+                  )}
                 </div>
-                {trendingVenues && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <MapPin className="w-4 h-4" /> Trending venues enabled
-                  </p>
-                )}
-                {activityInArea && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" /> Location-based alerts enabled
-                  </p>
-                )}
-              </div>
+              )}
             </div>
 
             <Button
