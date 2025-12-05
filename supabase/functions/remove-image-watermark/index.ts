@@ -27,7 +27,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
+        model: "google/gemini-2.5-flash-image",
         messages: [
           {
             role: "user",
@@ -56,9 +56,12 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    console.log('AI response structure:', JSON.stringify(Object.keys(data)));
+    
     const editedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!editedImageUrl) {
+      console.error('Full AI response:', JSON.stringify(data));
       throw new Error('No edited image returned from Lovable AI');
     }
 
