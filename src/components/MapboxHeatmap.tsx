@@ -8,6 +8,7 @@ import { useMovementPaths } from "@/hooks/useMovementPaths";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { CITIES, type City } from "@/types/cities";
 
 // Venue type definition
@@ -1185,58 +1186,72 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </div>
       </div>
 
-      {/* Map Controls - Top left below logo */}
-      <div className="absolute top-20 left-3 sm:left-4 z-10 space-y-2 max-w-[200px]">
-        <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground mb-1">Map Style</p>
-          <div className="grid grid-cols-2 gap-1.5">
+      {/* Map Controls - Top left below city selector, collapsible on mobile */}
+      <div className="absolute top-16 sm:top-20 left-3 sm:left-4 z-10 space-y-2">
+        <Collapsible defaultOpen={!isMobile}>
+          <CollapsibleTrigger asChild>
             <Button
-              onClick={() => setMapStyle('dark')}
-              variant={mapStyle === 'dark' ? "default" : "outline"}
+              variant="secondary"
               size="sm"
-              className="h-7 text-xs"
+              className="bg-card/95 backdrop-blur-xl border border-border text-xs shadow-lg h-8 sm:h-9 px-2 sm:px-3"
             >
-              Dark
+              <Layers className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              <span className="hidden sm:inline">Map Style</span>
+              <span className="sm:hidden">Style</span>
             </Button>
-            <Button
-              onClick={() => setMapStyle('light')}
-              variant={mapStyle === 'light' ? "default" : "outline"}
-              size="sm"
-              className="h-7 text-xs"
-            >
-              Light
-            </Button>
-            <Button
-              onClick={() => setMapStyle('satellite')}
-              variant={mapStyle === 'satellite' ? "default" : "outline"}
-              size="sm"
-              className="h-7 text-xs"
-            >
-              Satellite
-            </Button>
-            <Button
-              onClick={() => setMapStyle('streets')}
-              variant={mapStyle === 'streets' ? "default" : "outline"}
-              size="sm"
-              className="h-7 text-xs"
-            >
-              Streets
-            </Button>
-          </div>
-          
-          <Button
-            onClick={() => setShow3DTerrain(!show3DTerrain)}
-            variant={show3DTerrain ? "default" : "outline"}
-            size="sm"
-            className="w-full h-7 text-xs mt-2"
-          >
-            {show3DTerrain ? "Disable" : "Enable"} 3D Terrain
-          </Button>
-        </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2">
+            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2 max-w-[160px] sm:max-w-[200px]">
+              <div className="grid grid-cols-2 gap-1.5">
+                <Button
+                  onClick={() => setMapStyle('dark')}
+                  variant={mapStyle === 'dark' ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-[10px] sm:text-xs px-2"
+                >
+                  Dark
+                </Button>
+                <Button
+                  onClick={() => setMapStyle('light')}
+                  variant={mapStyle === 'light' ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-[10px] sm:text-xs px-2"
+                >
+                  Light
+                </Button>
+                <Button
+                  onClick={() => setMapStyle('satellite')}
+                  variant={mapStyle === 'satellite' ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-[10px] sm:text-xs px-2"
+                >
+                  Satellite
+                </Button>
+                <Button
+                  onClick={() => setMapStyle('streets')}
+                  variant={mapStyle === 'streets' ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-[10px] sm:text-xs px-2"
+                >
+                  Streets
+                </Button>
+              </div>
+              
+              <Button
+                onClick={() => setShow3DTerrain(!show3DTerrain)}
+                variant={show3DTerrain ? "default" : "outline"}
+                size="sm"
+                className="w-full h-7 text-[10px] sm:text-xs mt-1"
+              >
+                {show3DTerrain ? "Disable" : "Enable"} 3D
+              </Button>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
-      {/* Density Layer Controls - Bottom right */}
-      <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10 space-y-2 max-w-[calc(100vw-32px)] sm:max-w-[280px]">
+      {/* Density Layer Controls - Bottom right, offset from Mapbox controls */}
+      <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-14 z-10 space-y-2 max-w-[calc(100vw-80px)] sm:max-w-[280px]">
         <Button
           onClick={() => setShowDensityLayer(!showDensityLayer)}
           variant={showDensityLayer ? "default" : "secondary"}
@@ -1422,8 +1437,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         )}
       </div>
 
-      {/* Enhanced Legend */}
-      <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-card/95 backdrop-blur-xl px-3 py-2 sm:px-4 sm:py-3 rounded-xl border border-border z-10 shadow-lg max-w-[calc(100vw-24px)] sm:max-w-none animate-fade-in">
+      {/* Enhanced Legend - Bottom left, compact on mobile */}
+      <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-card/95 backdrop-blur-xl px-2 py-1.5 sm:px-4 sm:py-3 rounded-xl border border-border z-10 shadow-lg max-w-[140px] sm:max-w-none animate-fade-in">
         {showMovementPaths ? (
           <>
             <p className="text-[10px] sm:text-xs font-semibold text-foreground mb-1.5 sm:mb-2">User Flow Paths</p>
