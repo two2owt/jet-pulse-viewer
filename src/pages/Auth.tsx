@@ -36,7 +36,7 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string; confirmPassword?: string; consent?: string }>({});
+  const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string; confirmPassword?: string; consent?: string; locationConsent?: string }>({});
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
@@ -74,7 +74,7 @@ const Auth = () => {
 
   // Validate inputs before submission
   const validateInputs = (): boolean => {
-    const errors: { email?: string; password?: string; confirmPassword?: string; consent?: string } = {};
+    const errors: { email?: string; password?: string; confirmPassword?: string; consent?: string; locationConsent?: string } = {};
     
     // Validate email
     const emailResult = emailSchema.safeParse(email);
@@ -97,6 +97,11 @@ const Auth = () => {
       // Validate consent for signup
       if (isSignUp && !dataProcessingConsent) {
         errors.consent = "You must agree to the Privacy Policy and Terms of Service";
+      }
+      
+      // Validate location consent for signup
+      if (isSignUp && !locationConsent) {
+        errors.locationConsent = "Location consent is required to receive personalized deals";
       }
     }
     
@@ -522,13 +527,20 @@ const Auth = () => {
                     <Checkbox
                       id="locationConsent"
                       checked={locationConsent}
-                      onCheckedChange={(checked) => setLocationConsent(checked === true)}
+                      onCheckedChange={(checked) => {
+                        setLocationConsent(checked === true);
+                        setValidationErrors(prev => ({ ...prev, locationConsent: undefined }));
+                      }}
                       className="mt-0.5"
                     />
                     <label htmlFor="locationConsent" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
-                      I consent to location tracking to receive personalized deal notifications. Location data is obfuscated after 7 days and deleted after 30 days. You can disable this anytime in Settings.
+                      I consent to location tracking to receive personalized deals and push notifications. You can disable this anytime in your Profile Settings.
+                      <span className="text-destructive">*</span>
                     </label>
                   </div>
+                  {validationErrors.locationConsent && (
+                    <p className="text-xs text-destructive ml-6">{validationErrors.locationConsent}</p>
+                  )}
                 </div>
               )}
             </>
