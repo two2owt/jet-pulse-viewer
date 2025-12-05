@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, lazy, Suspense, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { type Venue } from "@/components/MapboxHeatmap";
@@ -8,6 +8,7 @@ import { NotificationCard, type Notification } from "@/components/NotificationCa
 import { Header } from "@/components/Header";
 import { IntroScreen } from "@/components/IntroScreen";
 import { glideHaptic, soarHaptic } from "@/lib/haptics";
+import { useDeepLinking } from "@/hooks/useDeepLinking";
 
 // Lazy load heavy components
 const MapboxHeatmap = lazy(() => import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap })));
@@ -59,6 +60,7 @@ const Index = () => {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
+  const [deepLinkedDeal, setDeepLinkedDeal] = useState<any>(null);
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
   const { getVenueImage } = useVenueImages();
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
@@ -69,6 +71,77 @@ const Index = () => {
 
   // Use real venues when available, fallback to mock for compatibility
   const venues = realVenues && realVenues.length > 0 ? realVenues : mockVenues;
+
+  // Handle deep linked deal - select the venue associated with the deal
+  const handleDeepLinkDeal = useCallback(async (dealId: string, dealData: any) => {
+    setDeepLinkedDeal(dealData);
+    setActiveTab("map");
+    
+    // Find or create venue data from the deal
+    const venueFromDeal: Venue = {
+      id: dealData.venue_id,
+      name: dealData.venue_name,
+      lat: selectedCity.lat, // Default to city center if no coords
+      lng: selectedCity.lng,
+      activity: 80,
+      category: dealData.deal_type || "Deal",
+      neighborhood: "",
+      address: dealData.venue_address,
+      imageUrl: dealData.image_url || getVenueImage(dealData.venue_name),
+    };
+
+    // Try to find the venue in our venue list for better coordinates
+    const existingVenue = venues.find(v => 
+      v.name.toLowerCase() === dealData.venue_name.toLowerCase()
+    );
+
+    if (existingVenue) {
+      setSelectedVenue({
+        ...existingVenue,
+        imageUrl: dealData.image_url || getVenueImage(existingVenue.name) || existingVenue.imageUrl,
+        address: dealData.venue_address || existingVenue.address
+      });
+    } else {
+      setSelectedVenue(venueFromDeal);
+    }
+
+    // Scroll to JetCard
+    setTimeout(() => {
+      jetCardRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }, 300);
+  }, [venues, selectedCity, getVenueImage]);
+
+  // Handle deep linked venue
+  const handleDeepLinkVenue = useCallback((venueName: string) => {
+    setActiveTab("map");
+    const venue = venues.find(v => 
+      v.name.toLowerCase() === venueName.toLowerCase()
+    );
+    
+    if (venue) {
+      const venueWithImage = {
+        ...venue,
+        imageUrl: getVenueImage(venue.name) || venue.imageUrl,
+      };
+      setSelectedVenue(venueWithImage);
+      
+      setTimeout(() => {
+        jetCardRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 300);
+    }
+  }, [venues, getVenueImage]);
+
+  // Initialize deep linking
+  useDeepLinking({
+    onDealOpen: handleDeepLinkDeal,
+    onVenueOpen: handleDeepLinkVenue,
+  });
 
   const handleIntroComplete = () => {
     localStorage.setItem('hasSeenIntro', 'true');

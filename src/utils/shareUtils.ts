@@ -7,6 +7,11 @@ interface Deal {
   description: string;
 }
 
+interface Venue {
+  id?: string;
+  name: string;
+}
+
 export const shareDeal = async (deal: Deal, userId: string | undefined) => {
   const shareUrl = `${window.location.origin}/?deal=${deal.id}`;
   const shareText = `Check out this deal: ${deal.title} at ${deal.venue_name}`;
@@ -49,4 +54,44 @@ export const shareDeal = async (deal: Deal, userId: string | undefined) => {
       return { success: false, method: "clipboard" };
     }
   }
+};
+
+export const shareVenue = async (venue: Venue) => {
+  const shareUrl = `${window.location.origin}/?venue=${encodeURIComponent(venue.name)}`;
+  const shareText = `Check out ${venue.name} on JET!`;
+
+  // Use Web Share API if available
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: venue.name,
+        text: shareText,
+        url: shareUrl,
+      });
+      return { success: true, method: "native" };
+    } catch (error) {
+      if ((error as Error).name !== "AbortError") {
+        console.error("Error sharing venue:", error);
+      }
+      return { success: false, method: "native" };
+    }
+  } else {
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      return { success: true, method: "clipboard" };
+    } catch (error) {
+      console.error("Error copying to clipboard:", error);
+      return { success: false, method: "clipboard" };
+    }
+  }
+};
+
+// Generate a deep link URL for a deal
+export const getDealDeepLink = (dealId: string) => {
+  return `${window.location.origin}/?deal=${dealId}`;
+};
+
+// Generate a deep link URL for a venue
+export const getVenueDeepLink = (venueName: string) => {
+  return `${window.location.origin}/?venue=${encodeURIComponent(venueName)}`;
 };
