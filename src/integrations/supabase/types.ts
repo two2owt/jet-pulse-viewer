@@ -511,6 +511,10 @@ export type Database = {
         Args: { _field_name: string; _profile_id: string; _viewer_id: string }
         Returns: boolean
       }
+      check_connection_rate_limit: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
