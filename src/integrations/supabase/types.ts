@@ -202,11 +202,13 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          birthdate: string | null
           created_at: string
           data_processing_consent: boolean | null
           data_processing_consent_date: string | null
           display_name: string | null
           facebook_url: string | null
+          gender: string | null
           id: string
           instagram_url: string | null
           linkedin_url: string | null
@@ -214,6 +216,7 @@ export type Database = {
           location_consent_given: boolean | null
           onboarding_completed: boolean | null
           preferences: Json | null
+          pronouns: string | null
           tiktok_url: string | null
           twitter_url: string | null
           updated_at: string
@@ -221,11 +224,13 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          birthdate?: string | null
           created_at?: string
           data_processing_consent?: boolean | null
           data_processing_consent_date?: string | null
           display_name?: string | null
           facebook_url?: string | null
+          gender?: string | null
           id: string
           instagram_url?: string | null
           linkedin_url?: string | null
@@ -233,6 +238,7 @@ export type Database = {
           location_consent_given?: boolean | null
           onboarding_completed?: boolean | null
           preferences?: Json | null
+          pronouns?: string | null
           tiktok_url?: string | null
           twitter_url?: string | null
           updated_at?: string
@@ -240,11 +246,13 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          birthdate?: string | null
           created_at?: string
           data_processing_consent?: boolean | null
           data_processing_consent_date?: string | null
           display_name?: string | null
           facebook_url?: string | null
+          gender?: string | null
           id?: string
           instagram_url?: string | null
           linkedin_url?: string | null
@@ -252,6 +260,7 @@ export type Database = {
           location_consent_given?: boolean | null
           onboarding_completed?: boolean | null
           preferences?: Json | null
+          pronouns?: string | null
           tiktok_url?: string | null
           twitter_url?: string | null
           updated_at?: string

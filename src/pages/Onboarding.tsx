@@ -6,10 +6,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Zap, MapPin, Sparkles, Loader2, Upload } from "lucide-react";
+import { Zap, MapPin, Sparkles, Loader2, Upload, Calendar } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const DEAL_TYPES = ["Food", "Drinks", "Nightlife", "Events"];
+
+const GENDER_OPTIONS = [
+  { value: "woman", label: "Woman" },
+  { value: "man", label: "Man" },
+  { value: "non-binary", label: "Non-binary" },
+  { value: "prefer-not-to-say", label: "Prefer not to say" },
+  { value: "other", label: "Other" },
+];
+
+const PRONOUN_OPTIONS = [
+  { value: "she/her", label: "She/Her" },
+  { value: "he/him", label: "He/Him" },
+  { value: "they/them", label: "They/Them" },
+  { value: "she/they", label: "She/They" },
+  { value: "he/they", label: "He/They" },
+  { value: "prefer-not-to-say", label: "Prefer not to say" },
+  { value: "other", label: "Other" },
+];
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -22,6 +41,9 @@ const Onboarding = () => {
   const [bio, setBio] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [birthdate, setBirthdate] = useState("");
+  const [gender, setGender] = useState("");
+  const [pronouns, setPronouns] = useState("");
   
   // Step 2: Preferences
   const [selectedDealTypes, setSelectedDealTypes] = useState<string[]>(DEAL_TYPES);
@@ -115,6 +137,9 @@ const Onboarding = () => {
           display_name: displayName,
           bio: bio || null,
           avatar_url: avatarUrl,
+          birthdate: birthdate || null,
+          gender: gender || null,
+          pronouns: pronouns || null,
         }, {
           onConflict: 'id'
         });
@@ -268,6 +293,51 @@ const Onboarding = () => {
                 rows={3}
               />
               <p className="text-xs text-muted-foreground text-right">{bio.length}/200</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="birthdate">Birthdate</Label>
+              <Input
+                id="birthdate"
+                type="date"
+                value={birthdate}
+                onChange={(e) => setBirthdate(e.target.value)}
+                className="bg-card"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Gender</Label>
+                <Select value={gender} onValueChange={setGender}>
+                  <SelectTrigger className="bg-card">
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GENDER_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Pronouns</Label>
+                <Select value={pronouns} onValueChange={setPronouns}>
+                  <SelectTrigger className="bg-card">
+                    <SelectValue placeholder="Select pronouns" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRONOUN_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Button
