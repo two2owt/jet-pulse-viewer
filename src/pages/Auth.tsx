@@ -510,7 +510,7 @@ const Auth = () => {
                       <Link to="/terms-of-service" className="text-primary hover:underline" target="_blank">
                         Terms of Service
                       </Link>
-                      . I understand my data will be processed securely with automatic deletion after 30 days of inactivity.
+                      . I understand my data will be processed securely after inactivity.
                       <span className="text-destructive">*</span>
                     </label>
                   </div>
