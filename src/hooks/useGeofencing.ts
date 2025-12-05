@@ -66,35 +66,40 @@ export const useGeofencing = (enabled: boolean = true) => {
         setCurrentNeighborhood(null);
       }
 
-      // Show notifications for new deals
+      // Show in-app notifications for new deals (push is handled server-side)
       if (data.entered_new_neighborhood && data.deals.length > 0) {
         toast.success(`Welcome to ${data.current_neighborhood?.name}!`, {
           description: `${data.deals.length} active ${data.deals.length === 1 ? 'deal' : 'deals'} nearby`,
         });
 
-        // Show first deal notification
+        // Show first deal notification after a short delay
         const firstDeal = data.deals[0];
         setTimeout(() => {
           toast(firstDeal.title, {
             description: `${firstDeal.description} at ${firstDeal.venue_name}`,
             duration: 5000,
-          });
-        }, 1000);
-
-        // Send push notification for new neighborhood entry
-        try {
-          await supabase.functions.invoke('send-push-notification', {
-            body: {
-              title: `Welcome to ${data.current_neighborhood?.name}!`,
-              body: `${data.deals.length} active ${data.deals.length === 1 ? 'deal' : 'deals'} nearby`,
-              data: {
-                neighborhoodId: data.current_neighborhood?.id,
-                dealId: firstDeal.id,
+            action: {
+              label: "View",
+              onClick: () => {
+                window.location.href = `/?deal=${firstDeal.id}`;
               },
             },
           });
-        } catch (error) {
-          console.error('Error sending push notification:', error);
+        }, 1000);
+
+        // Show additional deals if there are more
+        if (data.deals.length > 1) {
+          setTimeout(() => {
+            toast.info(`${data.deals.length - 1} more ${data.deals.length === 2 ? 'deal' : 'deals'} nearby`, {
+              description: "Tap to explore all deals",
+              action: {
+                label: "Explore",
+                onClick: () => {
+                  window.location.href = "/?tab=explore";
+                },
+              },
+            });
+          }, 3000);
         }
       }
 

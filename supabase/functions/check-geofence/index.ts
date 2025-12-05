@@ -12,6 +12,7 @@ serve(async (req) => {
   }
 
   try {
+    // User client for auth
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -20,6 +21,12 @@ serve(async (req) => {
           headers: { Authorization: req.headers.get('Authorization')! },
         },
       }
+    );
+
+    // Service role client for inserting notifications
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
     // Get user from JWT
@@ -46,7 +53,7 @@ serve(async (req) => {
 
     // Check if user is inside any neighborhood (using simple bounding box check)
     let currentNeighborhood = null;
-    for (const neighborhood of neighborhoods) {
+    for (const neighborhood of neighborhoods || []) {
       const boundaryPoints = neighborhood.boundary_points as number[][];
       
       // Simple point-in-polygon check using ray casting
@@ -82,6 +89,7 @@ serve(async (req) => {
       (!lastLocation || lastLocation.current_neighborhood_id !== currentNeighborhood.id);
 
     let dealsToNotify = [];
+    let notificationsSent = 0;
 
     if (enteredNewNeighborhood) {
       console.log('User entered new neighborhood:', currentNeighborhood.name);
@@ -103,11 +111,11 @@ serve(async (req) => {
         console.log('Found', deals.length, 'active deals');
         dealsToNotify = deals;
 
-        // Log notifications (don't send duplicates within last hour)
+        // Log notifications and send push (don't send duplicates within last hour)
         for (const deal of deals) {
           // Check if we already sent this notification recently
           const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-          const { data: recentNotif } = await supabaseClient
+          const { data: recentNotif } = await supabaseAdmin
             .from('notification_logs')
             .select('id')
             .eq('user_id', user.id)
@@ -116,15 +124,45 @@ serve(async (req) => {
             .maybeSingle();
 
           if (!recentNotif) {
-            await supabaseClient.from('notification_logs').insert({
+            // Insert notification log using admin client (bypasses RLS)
+            const { error: insertError } = await supabaseAdmin.from('notification_logs').insert({
               user_id: user.id,
               deal_id: deal.id,
               neighborhood_id: currentNeighborhood.id,
-              notification_type: deal.deal_type,
+              notification_type: 'geofence_deal',
               title: `🔥 ${deal.title}`,
               message: `${deal.description} at ${deal.venue_name}`,
             });
+
+            if (insertError) {
+              console.error('Error inserting notification:', insertError);
+            } else {
+              notificationsSent++;
+              console.log('Notification logged for deal:', deal.id);
+            }
+
+            // Try to send push notification to user's devices
+            await sendPushToUser(supabaseAdmin, user.id, {
+              title: `🔥 ${deal.title}`,
+              body: `${deal.description} at ${deal.venue_name}`,
+              data: {
+                dealId: deal.id,
+                venueName: deal.venue_name,
+                neighborhoodId: currentNeighborhood.id,
+              },
+            });
           }
+        }
+
+        // Send welcome notification for the neighborhood
+        if (notificationsSent > 0) {
+          await supabaseAdmin.from('notification_logs').insert({
+            user_id: user.id,
+            neighborhood_id: currentNeighborhood.id,
+            notification_type: 'neighborhood_entry',
+            title: `📍 Welcome to ${currentNeighborhood.name}!`,
+            message: `${notificationsSent} active ${notificationsSent === 1 ? 'deal' : 'deals'} nearby`,
+          });
         }
       }
     }
@@ -135,7 +173,7 @@ serve(async (req) => {
         current_neighborhood: currentNeighborhood,
         entered_new_neighborhood: enteredNewNeighborhood,
         deals: dealsToNotify,
-        notifications_triggered: dealsToNotify.length,
+        notifications_triggered: notificationsSent,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -157,6 +195,8 @@ serve(async (req) => {
 
 // Ray casting algorithm for point-in-polygon test
 function isPointInPolygon(lat: number, lng: number, polygon: number[][]): boolean {
+  if (!polygon || polygon.length < 3) return false;
+  
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
     const xi = polygon[i][0];
@@ -170,4 +210,76 @@ function isPointInPolygon(lat: number, lng: number, polygon: number[][]): boolea
     if (intersect) inside = !inside;
   }
   return inside;
+}
+
+// Send push notification to a specific user's devices
+async function sendPushToUser(
+  supabase: any, 
+  userId: string, 
+  notification: { title: string; body: string; data?: Record<string, any> }
+) {
+  try {
+    // Get user's active push subscriptions
+    const { data: subscriptions, error } = await supabase
+      .from('push_subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('active', true);
+
+    if (error || !subscriptions || subscriptions.length === 0) {
+      console.log('No active push subscriptions for user:', userId);
+      return;
+    }
+
+    console.log(`Sending push to ${subscriptions.length} device(s) for user ${userId}`);
+
+    const FCM_SERVER_KEY = Deno.env.get('FCM_SERVER_KEY');
+
+    for (const subscription of subscriptions) {
+      try {
+        // For FCM (Android)
+        if (FCM_SERVER_KEY && subscription.endpoint) {
+          const response = await fetch('https://fcm.googleapis.com/fcm/send', {
+            method: 'POST',
+            headers: {
+              'Authorization': `key=${FCM_SERVER_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: subscription.endpoint,
+              notification: {
+                title: notification.title,
+                body: notification.body,
+                sound: 'default',
+                badge: 1,
+                click_action: 'OPEN_DEAL',
+              },
+              data: notification.data || {},
+              priority: 'high',
+            }),
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('FCM error:', errorText);
+            
+            // If token is invalid, mark subscription as inactive
+            if (response.status === 404 || errorText.includes('NotRegistered')) {
+              await supabase
+                .from('push_subscriptions')
+                .update({ active: false })
+                .eq('id', subscription.id);
+              console.log('Marked invalid subscription as inactive:', subscription.id);
+            }
+          } else {
+            console.log('Push sent successfully to:', subscription.id);
+          }
+        }
+      } catch (pushError) {
+        console.error('Error sending push to subscription:', pushError);
+      }
+    }
+  } catch (error) {
+    console.error('Error in sendPushToUser:', error);
+  }
 }
