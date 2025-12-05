@@ -9,7 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
-import { CITIES, type City, getNearbyCities, isWithinMetro } from "@/types/cities";
+import { CITIES, type City } from "@/types/cities";
 
 // Venue type definition
 export interface Venue {
@@ -75,9 +75,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [pathTimeFilter, setPathTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   const [minPathFrequency, setMinPathFrequency] = useState(2);
   
-  // User location state for filtering cities
+  // User location state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [availableCities, setAvailableCities] = useState<City[]>([]);
+  const [isUsingCurrentLocation, setIsUsingCurrentLocation] = useState(true); // Default to current location
   
   const { densityData, loading: densityLoading, error: densityError, refresh: refreshDensity } = useLocationDensity({
     timeFilter,
@@ -330,15 +330,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       // Update user location state
       setUserLocation({ lat: latitude, lng: longitude });
       
-      // Filter available cities to only those user is within
-      const nearbyCities = getNearbyCities(latitude, longitude);
-      setAvailableCities(nearbyCities);
-      
-      // Center map on user location with smooth animation
+      // Only fly to user location if using current location mode
       if (map.current) {
         map.current.flyTo({
           center: [longitude, latitude],
-          zoom: Math.max(map.current.getZoom(), 13), // Ensure zoomed in enough
+          zoom: Math.max(map.current.getZoom(), 13),
           duration: 1500,
           essential: true
         });
@@ -354,27 +350,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           .addTo(map.current);
       } else if (userMarker.current) {
         userMarker.current.setLngLat([longitude, latitude]);
-      }
-      
-      // Find the nearest city that user is within
-      let nearestCity: City | null = null;
-      let minDistance = Infinity;
-      
-      nearbyCities.forEach(city => {
-        const distance = Math.sqrt(
-          Math.pow(city.lat - latitude, 2) + 
-          Math.pow(city.lng - longitude, 2)
-        );
-        
-        if (distance < minDistance) {
-          minDistance = distance;
-          nearestCity = city;
-        }
-      });
-      
-      // Update to nearest city if user is within a metro area and it's different from current
-      if (nearestCity && nearestCity.id !== selectedCity.id) {
-        onCityChange(nearestCity);
       }
     });
     
@@ -1164,42 +1139,48 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         }} 
       />
 
-      {/* City Selector - Only show cities user is within */}
-      {availableCities.length > 0 && (
-        <div className="absolute top-4 left-4 sm:top-5 sm:left-5 z-10 max-w-[calc(100vw-120px)] sm:max-w-[280px]">
-          <Select
-            value={selectedCity.id}
-            onValueChange={(cityId) => {
-              const city = availableCities.find(c => c.id === cityId);
+      {/* City Selector with Current Location option */}
+      <div className="absolute top-4 left-4 sm:top-5 sm:left-5 z-10 max-w-[calc(100vw-120px)] sm:max-w-[280px]">
+        <Select
+          value={isUsingCurrentLocation ? "current-location" : selectedCity.id}
+          onValueChange={(value) => {
+            if (value === "current-location") {
+              setIsUsingCurrentLocation(true);
+              // Trigger geolocation to center on current location
+              if (geolocateControlRef.current) {
+                geolocateControlRef.current.trigger();
+              }
+            } else {
+              setIsUsingCurrentLocation(false);
+              const city = CITIES.find(c => c.id === value);
               if (city) onCityChange(city);
-            }}
-          >
-            <SelectTrigger className="w-auto text-xs sm:text-sm">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                <span className="font-semibold">{selectedCity.name}, {selectedCity.state}</span>
+            }
+          }}
+        >
+          <SelectTrigger className="w-auto text-xs sm:text-sm">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+              <span className="font-semibold">
+                {isUsingCurrentLocation ? "Current Location" : `${selectedCity.name}, ${selectedCity.state}`}
+              </span>
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="current-location">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                Current Location
               </div>
-            </SelectTrigger>
-            <SelectContent>
-              {availableCities.map((city) => (
-                <SelectItem key={city.id} value={city.id}>
-                  {city.name}, {city.state}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-      
-      {/* Location indicator when not in any metro area */}
-      {userLocation && availableCities.length === 0 && (
-        <div className="absolute top-4 left-4 sm:top-5 sm:left-5 z-10 max-w-[calc(100vw-120px)] sm:max-w-[280px]">
-          <div className="bg-card/95 backdrop-blur-xl px-3 py-2 rounded-lg border border-border flex items-center gap-2 shadow-lg">
-            <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-            <span className="text-xs sm:text-sm font-medium text-foreground">Your Location</span>
-          </div>
-        </div>
-      )}
+            </SelectItem>
+            <div className="h-px bg-border my-1" />
+            {CITIES.map((city) => (
+              <SelectItem key={city.id} value={city.id}>
+                {city.name}, {city.state}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Live Indicator - Top Right, offset from map controls */}
       <div className="absolute top-4 right-16 sm:top-5 sm:right-20 z-10">
