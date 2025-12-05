@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone, User } from "lucide-react";
+import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone, User, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useTheme } from "next-themes";
 import { ReportIssueDialog } from "@/components/ReportIssueDialog";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { Footer } from "@/components/Footer";
+import PreferencesEditor from "@/components/settings/PreferencesEditor";
 
 const preferencesSchema = z.object({
   notifications_enabled: z.boolean(),
@@ -34,6 +35,7 @@ const Settings = () => {
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(false);
@@ -54,6 +56,8 @@ const Settings = () => {
         setIsLoading(false);
         return;
       }
+
+      setUserId(session.user.id);
 
       const { data, error } = await supabase
         .from('user_preferences')
@@ -225,7 +229,7 @@ const Settings = () => {
       </header>
 
       {/* Content */}
-      <main className="max-w-3xl mx-auto px-fluid-md py-fluid-lg gap-fluid-lg">
+      <main className="max-w-3xl mx-auto px-fluid-md py-fluid-lg space-y-4 sm:space-y-6">
         {/* Profile Link */}
         <Card className="p-4 sm:p-5 md:p-6">
           <Button
@@ -244,6 +248,26 @@ const Settings = () => {
             </div>
           </Button>
         </Card>
+
+        {/* Personal Preferences Section */}
+        {userId && (
+          <Card className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                <h2 className="text-base sm:text-lg font-bold text-foreground">Personal Preferences</h2>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Customize your interests for personalized recommendations
+              </p>
+            </div>
+
+            <Separator />
+
+            <PreferencesEditor userId={userId} />
+          </Card>
+        )}
+
         {/* Notifications Section */}
         <Card className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
           <div>
