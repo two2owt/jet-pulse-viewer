@@ -4,8 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Users, Loader2, Calendar, User2, Instagram, Twitter, Facebook, Linkedin } from "lucide-react";
-import { applyPrivacyFilter, ProfileData } from "@/hooks/usePrivacyFilteredProfile";
+import { Users, Loader2, Calendar, Instagram, Twitter, Facebook, Linkedin } from "lucide-react";
 
 interface ConnectionProfileDialogProps {
   connectionId: string | null;
@@ -20,8 +19,23 @@ const TikTokIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+interface SecureProfile {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  birthdate: string | null;
+  gender: string | null;
+  pronouns: string | null;
+  instagram_url: string | null;
+  twitter_url: string | null;
+  facebook_url: string | null;
+  linkedin_url: string | null;
+  tiktok_url: string | null;
+}
+
 export function ConnectionProfileDialog({ connectionId, isOpen, onClose }: ConnectionProfileDialogProps) {
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [profile, setProfile] = useState<SecureProfile | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -35,14 +49,15 @@ export function ConnectionProfileDialog({ connectionId, isOpen, onClose }: Conne
     
     setLoading(true);
     try {
+      // Use profiles_secure view - privacy settings are already applied at database level
       const { data, error } = await supabase
-        .from("profiles")
-        .select("id, display_name, avatar_url, bio, birthdate, gender, pronouns, instagram_url, twitter_url, facebook_url, linkedin_url, tiktok_url, privacy_settings")
+        .from("profiles_secure")
+        .select("id, display_name, avatar_url, bio, birthdate, gender, pronouns, instagram_url, twitter_url, facebook_url, linkedin_url, tiktok_url")
         .eq("id", connectionId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      setProfile(data as unknown as ProfileData);
+      setProfile(data);
     } catch (error) {
       console.error("Error fetching profile:", error);
     } finally {
@@ -50,7 +65,8 @@ export function ConnectionProfileDialog({ connectionId, isOpen, onClose }: Conne
     }
   };
 
-  const filteredProfile = profile ? applyPrivacyFilter(profile, false) : null;
+  // profiles_secure view already applies privacy filters, no client-side filtering needed
+  const filteredProfile = profile;
 
   const socialLinks = filteredProfile ? [
     { url: filteredProfile.instagram_url, icon: Instagram, label: "Instagram" },

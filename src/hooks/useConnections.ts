@@ -45,11 +45,11 @@ export const useConnections = (userId?: string) => {
         c.user_id === userId ? c.friend_id : c.user_id
       ) || [];
 
-      // Fetch profiles for all friends
+      // Fetch profiles for all friends using profiles_secure view for privacy enforcement
       let profilesMap: Record<string, Profile> = {};
       if (friendIds.length > 0) {
         const { data: profiles } = await supabase
-          .from("profiles")
+          .from("profiles_secure")
           .select("id, display_name, avatar_url")
           .in("id", friendIds);
         
