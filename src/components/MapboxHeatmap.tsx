@@ -324,6 +324,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       return el;
     };
     
+    // Track if this is the initial geolocate (for auto-centering on load)
+    let isInitialGeolocate = true;
+    
     // Listen for geolocate events to update city and marker
     geolocateControl.on('geolocate', (e: any) => {
       const { longitude, latitude } = e.coords;
@@ -350,14 +353,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       // Set detected city based on location
       setDetectedCity(nearestCity);
       
-      // Only fly to user location if using current location mode
-      if (map.current) {
+      // Only fly to user location on initial load (default behavior)
+      // After that, users can pan/zoom freely without being pulled back
+      if (isInitialGeolocate && map.current) {
         map.current.flyTo({
           center: [longitude, latitude],
           zoom: Math.max(map.current.getZoom(), 13),
           duration: 1500,
           essential: true
         });
+        isInitialGeolocate = false;
       }
       
       // Create or update user marker
@@ -1166,14 +1171,33 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           onValueChange={(value) => {
             if (value === "current-location") {
               setIsUsingCurrentLocation(true);
-              // Trigger geolocation to center on current location
-              if (geolocateControlRef.current) {
+              // Fly to user's current location if known
+              if (userLocation && map.current) {
+                map.current.flyTo({
+                  center: [userLocation.lng, userLocation.lat],
+                  zoom: Math.max(map.current.getZoom(), 13),
+                  duration: 1500,
+                  essential: true
+                });
+              } else if (geolocateControlRef.current) {
+                // Trigger geolocation if location not yet known
                 geolocateControlRef.current.trigger();
               }
             } else {
               setIsUsingCurrentLocation(false);
               const city = CITIES.find(c => c.id === value);
-              if (city) onCityChange(city);
+              if (city) {
+                onCityChange(city);
+                // Fly to selected city
+                if (map.current) {
+                  map.current.flyTo({
+                    center: [city.lng, city.lat],
+                    zoom: city.zoom,
+                    duration: 1500,
+                    essential: true
+                  });
+                }
+              }
             }
           }}
         >
