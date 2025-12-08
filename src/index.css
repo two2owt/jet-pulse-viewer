@@ -60,14 +60,14 @@ All colors MUST be HSL.
     --input: 0 0% 17%;
     --ring: 24 100% 60%;
 
-    --hot: 24 100% 60%;
-    --warm: 14 100% 62%;
-    --cool: 0 0% 45%;
+    --hot: 0 85% 55%;
+    --warm: 45 100% 55%;
+    --cool: 210 100% 55%;
     --cold: 0 0% 30%;
 
-    --gradient-hot: linear-gradient(135deg, hsl(24 100% 60%), hsl(320 80% 65%));
-    --gradient-warm: linear-gradient(135deg, hsl(14 100% 62%), hsl(24 100% 60%));
-    --gradient-cool: linear-gradient(135deg, hsl(0 0% 45%), hsl(0 0% 30%));
+    --gradient-hot: linear-gradient(135deg, hsl(0 85% 55%), hsl(0 85% 45%));
+    --gradient-warm: linear-gradient(135deg, hsl(45 100% 55%), hsl(35 100% 50%));
+    --gradient-cool: linear-gradient(135deg, hsl(210 100% 55%), hsl(220 100% 45%));
     --gradient-primary: linear-gradient(135deg, hsl(24 100% 60%), hsl(320 80% 65%));
     --gradient-jet: linear-gradient(135deg, hsl(0 0% 6%), hsl(0 0% 12%));
     

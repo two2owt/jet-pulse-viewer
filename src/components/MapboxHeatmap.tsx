@@ -44,10 +44,10 @@ interface MapboxHeatmapProps {
 }
 
 const getActivityColor = (activity: number) => {
-  if (activity >= 80) return "hsl(24, 100%, 60%)"; // sunset orange
-  if (activity >= 60) return "hsl(14, 100%, 62%)"; // warm orange
-  if (activity >= 40) return "hsl(320, 80%, 65%)"; // sunset pink
-  return "hsl(0, 0%, 45%)"; // cool gray
+  if (activity >= 80) return "hsl(0, 85%, 55%)"; // hot red
+  if (activity >= 60) return "hsl(45, 100%, 55%)"; // warm yellow
+  if (activity >= 40) return "hsl(210, 100%, 55%)"; // cool blue
+  return "hsl(0, 0%, 45%)"; // cold gray
 };
 
 export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange }: MapboxHeatmapProps) => {
