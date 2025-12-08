@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const hookSecret = Deno.env.get("NOTIFY_ADMIN_HOOK_SECRET");
 const ADMIN_EMAIL = "creativebreakroominfo@gmail.com";
 
 // HTML escape function to prevent XSS/injection
@@ -17,9 +19,36 @@ function escapeHtml(text: string): string {
 }
 
 serve(async (req) => {
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
   try {
-    const payload = await req.json();
-    const deal = payload.record;
+    // Verify webhook secret to prevent unauthorized calls
+    if (!hookSecret) {
+      console.error("NOTIFY_ADMIN_HOOK_SECRET not configured");
+      return new Response(JSON.stringify({ error: "Server configuration error" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 500,
+      });
+    }
+
+    const payload = await req.text();
+    const headers = Object.fromEntries(req.headers);
+    
+    // Verify the webhook signature
+    const wh = new Webhook(hookSecret);
+    let deal;
+    try {
+      const verified = wh.verify(payload, headers) as { record: any };
+      deal = verified.record;
+    } catch (verifyError) {
+      console.error("Webhook verification failed:", verifyError);
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
 
     const subject = "New Deal Created";
     const safeSubject = escapeHtml(subject);
