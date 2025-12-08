@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { MapPin, TrendingUp, Layers, X, AlertCircle, Route } from "lucide-react";
+import { MapPin, TrendingUp, Layers, X, AlertCircle, Route, Play, Pause, SkipBack, SkipForward, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocationDensity } from "@/hooks/useLocationDensity";
 import { useMovementPaths } from "@/hooks/useMovementPaths";
+import { useHeatmapTimelapse } from "@/hooks/useHeatmapTimelapse";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -70,6 +71,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [mapStyle, setMapStyle] = useState<'dark' | 'light' | 'satellite' | 'streets'>('dark');
   const [show3DTerrain, setShow3DTerrain] = useState(false);
   
+  // Time-lapse mode state
+  const [timelapseMode, setTimelapseMode] = useState(false);
+  
   // Movement paths state
   const [showMovementPaths, setShowMovementPaths] = useState(false);
   const [pathTimeFilter, setPathTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
@@ -82,7 +86,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   
   const { densityData, loading: densityLoading, error: densityError, refresh: refreshDensity } = useLocationDensity({
     timeFilter,
-    hourOfDay: hourFilter,
+    hourOfDay: timelapseMode ? undefined : hourFilter,
     dayOfWeek: dayFilter,
   });
 
@@ -90,6 +94,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     timeFilter: pathTimeFilter,
     minFrequency: minPathFrequency,
   });
+  
+  // Time-lapse hook
+  const timelapse = useHeatmapTimelapse(dayFilter);
 
   // Handle map resize on viewport changes
   useEffect(() => {
@@ -455,9 +462,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     }
   }, [show3DTerrain, mapLoaded, isMobile]);
 
-  // Add/update density heatmap layer with lazy loading
+  // Add/update density heatmap layer with lazy loading (supports timelapse mode)
   useEffect(() => {
-    if (!map.current || !mapLoaded || !densityData) return;
+    // Use timelapse data when in timelapse mode, otherwise use regular density data
+    const activeData = timelapseMode && timelapse.currentData 
+      ? timelapse.currentData 
+      : densityData;
+      
+    if (!map.current || !mapLoaded || !activeData) return;
 
     const sourceId = 'location-density';
     const layerId = 'location-density-heat';
@@ -484,7 +496,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     // Add density data source
     map.current.addSource(sourceId, {
       type: 'geojson',
-      data: densityData.geojson,
+      data: activeData.geojson,
     });
 
     // Add enhanced heatmap layer with glow effect
@@ -631,8 +643,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       },
     });
 
-    console.log('Density heatmap layer added with', densityData.stats.grid_cells, 'points');
-  }, [mapLoaded, densityData, showDensityLayer]);
+    console.log('Density heatmap layer added with', activeData.stats.grid_cells, 'points', timelapseMode ? `(hour ${timelapse.currentHour})` : '');
+  }, [mapLoaded, densityData, showDensityLayer, timelapseMode, timelapse.currentData, timelapse.currentHour]);
 
   // Add/update movement paths layer
   useEffect(() => {
@@ -1341,7 +1353,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-3 sm:p-4 space-y-2 shadow-lg animate-scale-in">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-semibold text-foreground">Heat Filters</p>
-              {densityLoading && (
+              {(densityLoading || timelapse.loading) && (
                 <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               )}
             </div>
@@ -1364,42 +1376,194 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               </div>
             )}
 
-            <div className="space-y-2">
-              <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
-                <SelectTrigger className="h-8 text-xs bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="this_week">This Week</SelectItem>
-                  <SelectItem value="this_hour">This Hour</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={hourFilter?.toString() || "all"}
-                onValueChange={(v) => setHourFilter(v === "all" ? undefined : parseInt(v))}
+            {/* Time-lapse Toggle */}
+            <div className="flex items-center justify-between p-2 bg-background/50 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2">
+                <Clock className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-medium">Time-lapse Mode</span>
+              </div>
+              <Button
+                onClick={() => {
+                  const newMode = !timelapseMode;
+                  setTimelapseMode(newMode);
+                  if (newMode && timelapse.hourlyData.length === 0) {
+                    timelapse.loadHourlyData();
+                  }
+                }}
+                variant={timelapseMode ? "default" : "outline"}
+                size="sm"
+                className="h-6 text-[10px] px-2"
               >
-                <SelectTrigger className="h-8 text-xs bg-background">
-                  <SelectValue placeholder="Hour of day" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Hours</SelectItem>
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <SelectItem key={i} value={i.toString()}>
-                      {i}:00 - {i + 1}:00
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {timelapseMode ? "On" : "Off"}
+              </Button>
+            </div>
 
+            {/* Time-lapse Controls */}
+            {timelapseMode && (
+              <div className="space-y-3 p-2 bg-primary/5 rounded-lg border border-primary/20">
+                {/* Current time display */}
+                <div className="text-center">
+                  <p className="text-lg font-bold text-primary">{timelapse.formatHour(timelapse.currentHour)}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {timelapse.currentData 
+                      ? `${timelapse.currentData.stats.total_points.toLocaleString()} visits`
+                      : 'Loading...'}
+                  </p>
+                </div>
+
+                {/* Playback controls */}
+                <div className="flex items-center justify-center gap-2">
+                  <Button
+                    onClick={timelapse.stepBackward}
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    disabled={timelapse.loading}
+                  >
+                    <SkipBack className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    onClick={timelapse.togglePlay}
+                    variant="default"
+                    size="sm"
+                    className="h-10 w-10 p-0 rounded-full"
+                    disabled={timelapse.loading || timelapse.hourlyData.length === 0}
+                  >
+                    {timelapse.isPlaying ? (
+                      <Pause className="w-5 h-5" />
+                    ) : (
+                      <Play className="w-5 h-5 ml-0.5" />
+                    )}
+                  </Button>
+                  <Button
+                    onClick={timelapse.stepForward}
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    disabled={timelapse.loading}
+                  >
+                    <SkipForward className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Hour slider */}
+                <div className="space-y-1">
+                  <input
+                    type="range"
+                    min="0"
+                    max="23"
+                    value={timelapse.currentHour}
+                    onChange={(e) => timelapse.setHour(parseInt(e.target.value))}
+                    className="w-full h-2 bg-background rounded-lg appearance-none cursor-pointer accent-primary"
+                    disabled={timelapse.loading}
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>12 AM</span>
+                    <span>12 PM</span>
+                    <span>11 PM</span>
+                  </div>
+                </div>
+
+                {/* Speed control */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">Speed:</span>
+                  <div className="flex gap-1 flex-1">
+                    {[2, 1, 0.5].map((speed) => (
+                      <Button
+                        key={speed}
+                        onClick={() => timelapse.setSpeed(speed)}
+                        variant={timelapse.speed === speed ? "default" : "outline"}
+                        size="sm"
+                        className="h-6 flex-1 text-[10px] px-1"
+                      >
+                        {speed === 2 ? '0.5x' : speed === 1 ? '1x' : '2x'}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Loading indicator */}
+                {timelapse.loading && (
+                  <div className="flex items-center justify-center gap-2 p-2 bg-background/50 rounded">
+                    <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs text-muted-foreground">Loading hourly data...</span>
+                  </div>
+                )}
+
+                {timelapse.error && (
+                  <div className="flex items-center gap-2 p-2 bg-destructive/10 rounded">
+                    <AlertCircle className="w-4 h-4 text-destructive" />
+                    <span className="text-xs text-destructive">{timelapse.error}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Regular filters (disabled in timelapse mode) */}
+            {!timelapseMode && (
+              <div className="space-y-2">
+                <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
+                  <SelectTrigger className="h-8 text-xs bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="this_week">This Week</SelectItem>
+                    <SelectItem value="this_hour">This Hour</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={hourFilter?.toString() || "all"}
+                  onValueChange={(v) => setHourFilter(v === "all" ? undefined : parseInt(v))}
+                >
+                  <SelectTrigger className="h-8 text-xs bg-background">
+                    <SelectValue placeholder="Hour of day" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Hours</SelectItem>
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <SelectItem key={i} value={i.toString()}>
+                        {i}:00 - {i + 1}:00
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={dayFilter?.toString() || "all"}
+                  onValueChange={(v) => setDayFilter(v === "all" ? undefined : parseInt(v))}
+                >
+                  <SelectTrigger className="h-8 text-xs bg-background">
+                    <SelectValue placeholder="Day of week" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Days</SelectItem>
+                    <SelectItem value="0">Sunday</SelectItem>
+                    <SelectItem value="1">Monday</SelectItem>
+                    <SelectItem value="2">Tuesday</SelectItem>
+                    <SelectItem value="3">Wednesday</SelectItem>
+                    <SelectItem value="4">Thursday</SelectItem>
+                    <SelectItem value="5">Friday</SelectItem>
+                    <SelectItem value="6">Saturday</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Day filter for timelapse mode */}
+            {timelapseMode && (
               <Select
                 value={dayFilter?.toString() || "all"}
-                onValueChange={(v) => setDayFilter(v === "all" ? undefined : parseInt(v))}
+                onValueChange={(v) => {
+                  setDayFilter(v === "all" ? undefined : parseInt(v));
+                  // Reload timelapse data with new day filter
+                  setTimeout(() => timelapse.loadHourlyData(), 100);
+                }}
               >
                 <SelectTrigger className="h-8 text-xs bg-background">
-                  <SelectValue placeholder="Day of week" />
+                  <SelectValue placeholder="Filter by day" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Days</SelectItem>
@@ -1412,15 +1576,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   <SelectItem value="6">Saturday</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            )}
 
-            {densityData && (
+            {/* Stats (show appropriate data based on mode) */}
+            {(timelapseMode ? timelapse.currentData : densityData) && (
               <div className="pt-2 border-t border-border/50 space-y-1">
                 <p className="text-xs text-muted-foreground">
-                  {densityData.stats.total_points.toLocaleString()} visits
+                  {(timelapseMode ? timelapse.currentData?.stats.total_points : densityData?.stats.total_points)?.toLocaleString()} visits
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Max density: {densityData.stats.max_density}
+                  Max density: {timelapseMode ? timelapse.currentData?.stats.max_density : densityData?.stats.max_density}
                 </p>
               </div>
             )}
@@ -1529,7 +1694,17 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </>
         ) : showDensityLayer ? (
           <>
-            <p className="text-[10px] sm:text-xs font-semibold text-foreground mb-1.5 sm:mb-2">User Density Heatmap</p>
+            <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
+              <p className="text-[10px] sm:text-xs font-semibold text-foreground">
+                {timelapseMode ? 'Time-lapse' : 'User Density Heatmap'}
+              </p>
+              {timelapseMode && timelapse.isPlaying && (
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                  <span className="text-[10px] text-primary font-medium">{timelapse.formatHour(timelapse.currentHour)}</span>
+                </div>
+              )}
+            </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
               <div className="w-24 sm:w-32 h-4 sm:h-5 rounded-md shadow-inner" style={{
                 background: 'linear-gradient(to right, rgba(65, 105, 225, 0.8), rgb(0, 255, 127), rgb(255, 255, 0), rgb(255, 165, 0), rgb(255, 0, 0), rgb(139, 0, 0))',
