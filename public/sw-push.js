@@ -1,34 +1,32 @@
-// Service Worker for Web Push Notifications
+// Service Worker for Web Push Notifications (FCM-based)
 
 self.addEventListener('push', function(event) {
-  if (!event.data) {
-    console.log('Push event but no data');
-    return;
+  console.log('[SW] Push event received:', event);
+
+  let data = {};
+  
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = {
+        title: 'JET Notification',
+        body: event.data.text()
+      };
+    }
   }
 
-  let data;
-  try {
-    data = event.data.json();
-  } catch (e) {
-    data = {
-      title: 'JET Deal Alert',
-      body: event.data.text(),
-      icon: '/pwa-192x192.png',
-      badge: '/pwa-192x192.png'
-    };
-  }
-
+  const title = data.title || 'JET Deal Alert';
   const options = {
-    body: data.body || data.message || 'New deal available!',
+    body: data.body || 'Check out this deal!',
     icon: data.icon || '/pwa-192x192.png',
     badge: data.badge || '/pwa-192x192.png',
-    vibrate: [100, 50, 100],
+    tag: data.tag || 'jet-notification',
     data: {
-      dateOfArrival: Date.now(),
-      dealId: data.dealId,
-      venueId: data.venueId,
-      venueName: data.venueName,
-      url: data.url || '/'
+      url: data.url || data.click_action || '/',
+      dealId: data.dealId || null,
+      venueId: data.venueId || null,
+      venueName: data.venueName || null
     },
     actions: [
       {
@@ -40,68 +38,89 @@ self.addEventListener('push', function(event) {
         title: 'Dismiss'
       }
     ],
-    tag: data.tag || 'jet-notification',
+    vibrate: [100, 50, 100],
+    requireInteraction: true,
     renotify: true
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'JET', options)
+    self.registration.showNotification(title, options)
   );
 });
 
 self.addEventListener('notificationclick', function(event) {
+  console.log('[SW] Notification click received:', event);
+
   event.notification.close();
 
-  const data = event.notification.data || {};
-  let url = '/';
+  if (event.action === 'dismiss') {
+    return;
+  }
 
-  if (event.action === 'view' || !event.action) {
-    // Build URL with deep link parameters
-    if (data.dealId) {
-      url = `/?deal=${data.dealId}`;
-    } else if (data.venueName) {
-      url = `/?venue=${encodeURIComponent(data.venueName)}`;
-    } else if (data.url) {
-      url = data.url;
+  const notificationData = event.notification.data || {};
+  let urlToOpen = notificationData.url || '/';
+
+  // Build deep link URL if we have deal data
+  if (notificationData.dealId) {
+    urlToOpen = `/?deal=${notificationData.dealId}`;
+    if (notificationData.venueName) {
+      urlToOpen += `&venue=${encodeURIComponent(notificationData.venueName)}`;
     }
   }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(function(clientList) {
-        // If a window is already open, focus it
-        for (let client of clientList) {
+        // Check if there's already a window open
+        for (let i = 0; i < clientList.length; i++) {
+          const client = clientList[i];
           if (client.url.includes(self.location.origin) && 'focus' in client) {
-            client.navigate(url);
+            client.navigate(urlToOpen);
             return client.focus();
           }
         }
-        // Otherwise open a new window
+        // Open a new window if none found
         if (clients.openWindow) {
-          return clients.openWindow(url);
+          return clients.openWindow(urlToOpen);
         }
       })
   );
 });
 
 self.addEventListener('notificationclose', function(event) {
-  // Track notification dismissals if needed
-  console.log('Notification closed', event.notification.tag);
+  console.log('[SW] Notification closed:', event);
 });
 
-// Handle subscription change (e.g., when browser updates the push subscription)
+// Handle subscription changes
 self.addEventListener('pushsubscriptionchange', function(event) {
+  console.log('[SW] Push subscription change event:', event);
+  
   event.waitUntil(
-    self.registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: self.vapidPublicKey
-    }).then(function(subscription) {
-      // Re-register with server
-      return fetch('/api/push-subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription)
-      });
-    })
+    self.registration.pushManager.subscribe({ userVisibleOnly: true })
+      .then(function(subscription) {
+        console.log('[SW] New subscription:', subscription);
+        
+        // Send the new subscription to the server
+        return fetch('/api/push-subscribe', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            endpoint: subscription.endpoint,
+            keys: subscription.toJSON().keys
+          })
+        });
+      })
   );
+});
+
+// Log service worker activation
+self.addEventListener('activate', function(event) {
+  console.log('[SW] Service worker activated');
+});
+
+self.addEventListener('install', function(event) {
+  console.log('[SW] Service worker installed');
+  self.skipWaiting();
 });

@@ -2,23 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
-
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
-
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
 export const useWebPushNotifications = () => {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -75,11 +58,6 @@ export const useWebPushNotifications = () => {
       return false;
     }
 
-    if (!VAPID_PUBLIC_KEY) {
-      console.warn('VAPID public key not configured');
-      // Still allow permission request for future use
-    }
-
     setIsLoading(true);
 
     try {
@@ -96,20 +74,9 @@ export const useWebPushNotifications = () => {
       // Register service worker
       const registration = await registerServiceWorker();
 
-      // Check if we have VAPID key before subscribing
-      if (!VAPID_PUBLIC_KEY) {
-        toast.success("Notifications enabled", {
-          description: "You'll receive alerts when deals are available"
-        });
-        setIsLoading(false);
-        return true;
-      }
-
-      // Subscribe to push notifications
-      const applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      // Subscribe to push notifications (without VAPID - using FCM)
       const pushSubscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: applicationServerKey as BufferSource
       });
 
       setSubscription(pushSubscription);
@@ -126,6 +93,16 @@ export const useWebPushNotifications = () => {
       return true;
     } catch (error) {
       console.error('Error subscribing to push:', error);
+      
+      // Fallback: just enable notifications without full push subscription
+      if (Notification.permission === 'granted') {
+        toast.success("Notifications enabled", {
+          description: "You'll receive alerts when deals are available"
+        });
+        setIsLoading(false);
+        return true;
+      }
+      
       toast.error("Failed to enable notifications");
       setIsLoading(false);
       return false;
@@ -157,6 +134,8 @@ export const useWebPushNotifications = () => {
 
     if (error) {
       console.error('Error saving subscription:', error);
+    } else {
+      console.log('Push subscription saved successfully');
     }
   };
 
