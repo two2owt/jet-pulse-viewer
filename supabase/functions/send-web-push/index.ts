@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import webpush from "https://esm.sh/web-push@3.6.7";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,90 +23,60 @@ interface WebPushPayload {
   neighborhood_id?: string;
 }
 
-interface FCMMessage {
-  to: string;
-  notification: {
-    title: string;
-    body: string;
-    icon?: string;
-    badge?: string;
-    tag?: string;
-    click_action?: string;
-  };
-  data?: Record<string, string>;
-  webpush?: {
-    fcm_options?: {
-      link?: string;
-    };
-  };
+interface PushSubscription {
+  endpoint: string;
+  p256dh_key: string;
+  auth_key: string;
 }
 
-async function sendFCMNotification(fcmServerKey: string, subscription: any, payload: WebPushPayload): Promise<boolean> {
-  // For web push via FCM, we use the endpoint as the registration token
-  // The endpoint format: https://fcm.googleapis.com/fcm/send/{registration_token}
-  const endpoint = subscription.endpoint;
-  
-  // Extract registration token from FCM endpoint if applicable
-  let registrationToken = endpoint;
-  if (endpoint.includes('fcm.googleapis.com')) {
-    registrationToken = endpoint.split('/').pop();
-  }
-
-  const fcmMessage: FCMMessage = {
-    to: registrationToken,
-    notification: {
-      title: payload.title,
-      body: payload.body,
-      icon: payload.icon || "/pwa-192x192.png",
-      badge: payload.badge || "/pwa-192x192.png",
-      tag: payload.tag || `jet-${Date.now()}`,
-      click_action: payload.data?.url || "https://www.jet-around.com",
+async function sendVapidPushNotification(
+  subscription: PushSubscription, 
+  payload: WebPushPayload,
+  vapidPublicKey: string,
+  vapidPrivateKey: string
+): Promise<boolean> {
+  const pushSubscription = {
+    endpoint: subscription.endpoint,
+    keys: {
+      p256dh: subscription.p256dh_key,
+      auth: subscription.auth_key,
     },
+  };
+
+  const notificationPayload = JSON.stringify({
+    title: payload.title,
+    body: payload.body,
+    icon: payload.icon || "/pwa-192x192.png",
+    badge: payload.badge || "/pwa-192x192.png",
+    tag: payload.tag || `jet-${Date.now()}`,
     data: {
       dealId: payload.data?.dealId || "",
       venueId: payload.data?.venueId || "",
       venueName: payload.data?.venueName || "",
-      url: payload.data?.url || "",
+      url: payload.data?.url || "https://www.jet-around.com",
     },
-    webpush: {
-      fcm_options: {
-        link: payload.data?.url || "https://www.jet-around.com",
-      },
-    },
-  };
+  });
 
   try {
-    const response = await fetch("https://fcm.googleapis.com/fcm/send", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `key=${fcmServerKey}`,
-      },
-      body: JSON.stringify(fcmMessage),
-    });
+    webpush.setVapidDetails(
+      "mailto:support@jet-around.com",
+      vapidPublicKey,
+      vapidPrivateKey
+    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`FCM send failed: ${response.status} - ${errorText}`);
+    await webpush.sendNotification(pushSubscription, notificationPayload);
+    console.log("VAPID push notification sent successfully");
+    return true;
+  } catch (error: any) {
+    console.error("VAPID push error:", error.message || error);
+    
+    // Check for expired/invalid subscriptions
+    if (error.statusCode === 404 || error.statusCode === 410) {
+      console.log("Subscription is no longer valid");
       return false;
     }
-
-    const result = await response.json();
-    console.log("FCM response:", JSON.stringify(result));
     
-    // Check for specific FCM errors
-    if (result.failure > 0 && result.results) {
-      const error = result.results[0]?.error;
-      if (error === "NotRegistered" || error === "InvalidRegistration") {
-        console.log(`Token no longer valid for subscription, marking inactive`);
-        return false;
-      }
-    }
-
-    return result.success > 0;
-  } catch (error) {
-    console.error("FCM send error:", error);
-    return false;
+    throw error;
   }
 }
 
@@ -117,12 +88,13 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const fcmServerKey = Deno.env.get("FCM_SERVER_KEY");
+    const vapidPublicKey = Deno.env.get("VITE_VAPID_PUBLIC_KEY");
+    const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
 
-    if (!fcmServerKey) {
-      console.error("FCM_SERVER_KEY not configured");
+    if (!vapidPublicKey || !vapidPrivateKey) {
+      console.error("VAPID keys not configured");
       return new Response(
-        JSON.stringify({ error: "Push notification service not configured" }),
+        JSON.stringify({ error: "Push notification service not configured - VAPID keys missing" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -207,10 +179,15 @@ serve(async (req) => {
     const errors: string[] = [];
     const invalidSubscriptions: string[] = [];
 
-    // Send to each subscription via FCM
+    // Send to each subscription via VAPID web push
     for (const sub of subscriptions) {
       try {
-        const success = await sendFCMNotification(fcmServerKey, sub, payload);
+        const success = await sendVapidPushNotification(
+          sub, 
+          payload, 
+          vapidPublicKey, 
+          vapidPrivateKey
+        );
 
         if (success) {
           // Log notification to database
@@ -227,7 +204,7 @@ serve(async (req) => {
         } else {
           // Mark subscription as inactive if token is invalid
           invalidSubscriptions.push(sub.id);
-          errors.push(`Failed to send to ${sub.user_id}: Invalid or expired token`);
+          errors.push(`Failed to send to ${sub.user_id}: Invalid or expired subscription`);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
