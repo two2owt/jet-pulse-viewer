@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
-import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const hookSecret = Deno.env.get("NOTIFY_ADMIN_HOOK_SECRET");
@@ -33,22 +32,18 @@ serve(async (req) => {
       });
     }
 
-    const payload = await req.text();
-    const headers = Object.fromEntries(req.headers);
-    
-    // Verify the webhook signature
-    const wh = new Webhook(hookSecret);
-    let deal;
-    try {
-      const verified = wh.verify(payload, headers) as { record: any };
-      deal = verified.record;
-    } catch (verifyError) {
-      console.error("Webhook verification failed:", verifyError);
+    // Verify Authorization header matches the secret
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || authHeader !== `Bearer ${hookSecret}`) {
+      console.error("Authorization failed: invalid or missing token");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         headers: { "Content-Type": "application/json" },
         status: 401,
       });
     }
+
+    const payload = await req.json();
+    const deal = payload.record;
 
     const subject = "New Deal Created";
     const safeSubject = escapeHtml(subject);
