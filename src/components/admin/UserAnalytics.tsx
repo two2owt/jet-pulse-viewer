@@ -5,6 +5,7 @@ import { Users, MapPin, Bell, TrendingUp, Star, Activity, Eye, Search, Share2 } 
 import { Loader2 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { format, subDays } from "date-fns";
+import { LiveEventFeed } from "./LiveEventFeed";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
@@ -217,6 +218,9 @@ export const UserAnalytics = () => {
         <h2 className="text-2xl font-bold text-foreground">Analytics Dashboard</h2>
         <p className="text-muted-foreground">Real-time platform metrics from Supabase • Auto-refreshes every 30 seconds</p>
       </div>
+
+      {/* Live Event Feed */}
+      <LiveEventFeed />
 
       {/* Key Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
