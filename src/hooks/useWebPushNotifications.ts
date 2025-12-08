@@ -2,8 +2,23 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// Firebase Sender ID (Project Number) for FCM web push
-const FIREBASE_SENDER_ID = import.meta.env.VITE_FIREBASE_SENDER_ID || '';
+// VAPID public key for web push authentication
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 export const useWebPushNotifications = () => {
   const [isSupported, setIsSupported] = useState(false);
@@ -61,8 +76,8 @@ export const useWebPushNotifications = () => {
       return false;
     }
 
-    if (!FIREBASE_SENDER_ID) {
-      console.error("Firebase Sender ID not configured");
+    if (!VAPID_PUBLIC_KEY) {
+      console.error("VAPID public key not configured");
       toast.error("Push notification service not configured");
       return false;
     }
@@ -83,11 +98,10 @@ export const useWebPushNotifications = () => {
       // Register service worker
       const registration = await registerServiceWorker();
 
-      // Subscribe to push notifications using Firebase Sender ID
-      // FCM uses the format gcm_sender_id for web push
+      // Subscribe to push notifications using VAPID key
       const pushSubscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: FIREBASE_SENDER_ID
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource
       });
 
       setSubscription(pushSubscription);
