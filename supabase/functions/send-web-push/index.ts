@@ -22,6 +22,93 @@ interface WebPushPayload {
   neighborhood_id?: string;
 }
 
+interface FCMMessage {
+  to: string;
+  notification: {
+    title: string;
+    body: string;
+    icon?: string;
+    badge?: string;
+    tag?: string;
+    click_action?: string;
+  };
+  data?: Record<string, string>;
+  webpush?: {
+    fcm_options?: {
+      link?: string;
+    };
+  };
+}
+
+async function sendFCMNotification(fcmServerKey: string, subscription: any, payload: WebPushPayload): Promise<boolean> {
+  // For web push via FCM, we use the endpoint as the registration token
+  // The endpoint format: https://fcm.googleapis.com/fcm/send/{registration_token}
+  const endpoint = subscription.endpoint;
+  
+  // Extract registration token from FCM endpoint if applicable
+  let registrationToken = endpoint;
+  if (endpoint.includes('fcm.googleapis.com')) {
+    registrationToken = endpoint.split('/').pop();
+  }
+
+  const fcmMessage: FCMMessage = {
+    to: registrationToken,
+    notification: {
+      title: payload.title,
+      body: payload.body,
+      icon: payload.icon || "/pwa-192x192.png",
+      badge: payload.badge || "/pwa-192x192.png",
+      tag: payload.tag || `jet-${Date.now()}`,
+      click_action: payload.data?.url || "https://www.jet-around.com",
+    },
+    data: {
+      dealId: payload.data?.dealId || "",
+      venueId: payload.data?.venueId || "",
+      venueName: payload.data?.venueName || "",
+      url: payload.data?.url || "",
+    },
+    webpush: {
+      fcm_options: {
+        link: payload.data?.url || "https://www.jet-around.com",
+      },
+    },
+  };
+
+  try {
+    const response = await fetch("https://fcm.googleapis.com/fcm/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `key=${fcmServerKey}`,
+      },
+      body: JSON.stringify(fcmMessage),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`FCM send failed: ${response.status} - ${errorText}`);
+      return false;
+    }
+
+    const result = await response.json();
+    console.log("FCM response:", JSON.stringify(result));
+    
+    // Check for specific FCM errors
+    if (result.failure > 0 && result.results) {
+      const error = result.results[0]?.error;
+      if (error === "NotRegistered" || error === "InvalidRegistration") {
+        console.log(`Token no longer valid for subscription, marking inactive`);
+        return false;
+      }
+    }
+
+    return result.success > 0;
+  } catch (error) {
+    console.error("FCM send error:", error);
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -30,8 +117,15 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
-    const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
+    const fcmServerKey = Deno.env.get("FCM_SERVER_KEY");
+
+    if (!fcmServerKey) {
+      console.error("FCM_SERVER_KEY not configured");
+      return new Response(
+        JSON.stringify({ error: "Push notification service not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -70,6 +164,7 @@ serve(async (req) => {
     }
 
     const payload: WebPushPayload = await req.json();
+    console.log("Processing web push request:", JSON.stringify(payload));
 
     // Get subscriptions based on targeting
     let query = supabase
@@ -99,51 +194,55 @@ serve(async (req) => {
     }
 
     if (!subscriptions || subscriptions.length === 0) {
+      console.log("No active subscriptions found");
       return new Response(
         JSON.stringify({ message: "No active subscriptions found", sent: 0 }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Prepare notification payload
-    const notificationPayload = JSON.stringify({
-      title: payload.title,
-      body: payload.body,
-      icon: payload.icon || "/pwa-192x192.png",
-      badge: payload.badge || "/pwa-192x192.png",
-      tag: payload.tag || `jet-${Date.now()}`,
-      ...payload.data
-    });
+    console.log(`Found ${subscriptions.length} active subscriptions`);
 
     let sentCount = 0;
     const errors: string[] = [];
+    const invalidSubscriptions: string[] = [];
 
-    // Send to each subscription
-    // Note: In production, you would use web-push library or a service like Firebase
-    // For now, we'll log the subscriptions and store notification logs
+    // Send to each subscription via FCM
     for (const sub of subscriptions) {
       try {
-        // Log notification to database
-        await supabase.from("notification_logs").insert({
-          user_id: sub.user_id,
-          title: payload.title,
-          message: payload.body,
-          notification_type: "web_push",
-          deal_id: payload.data?.dealId || null,
-          neighborhood_id: payload.neighborhood_id || null,
-        });
+        const success = await sendFCMNotification(fcmServerKey, sub, payload);
 
-        sentCount++;
-
-        // Web Push would be sent here using web-push library
-        // Since Deno doesn't have a direct web-push implementation,
-        // you would need to use a push service or implement the protocol
-        console.log(`Web push queued for user: ${sub.user_id}`);
-
+        if (success) {
+          // Log notification to database
+          await supabase.from("notification_logs").insert({
+            user_id: sub.user_id,
+            title: payload.title,
+            message: payload.body,
+            notification_type: "web_push",
+            deal_id: payload.data?.dealId || null,
+            neighborhood_id: payload.neighborhood_id || null,
+          });
+          sentCount++;
+          console.log(`Web push sent successfully to user: ${sub.user_id}`);
+        } else {
+          // Mark subscription as inactive if token is invalid
+          invalidSubscriptions.push(sub.id);
+          errors.push(`Failed to send to ${sub.user_id}: Invalid or expired token`);
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         errors.push(`Failed to send to ${sub.user_id}: ${errorMessage}`);
+        console.error(`Error sending to ${sub.user_id}:`, errorMessage);
       }
+    }
+
+    // Mark invalid subscriptions as inactive
+    if (invalidSubscriptions.length > 0) {
+      await supabase
+        .from("push_subscriptions")
+        .update({ active: false })
+        .in("id", invalidSubscriptions);
+      console.log(`Marked ${invalidSubscriptions.length} subscriptions as inactive`);
     }
 
     return new Response(
@@ -151,7 +250,7 @@ serve(async (req) => {
         message: `Notifications processed`,
         sent: sentCount,
         total: subscriptions.length,
-        errors: errors.length > 0 ? errors : undefined
+        errors: errors.length > 0 ? errors : undefined,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
