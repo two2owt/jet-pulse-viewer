@@ -36,6 +36,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { NotificationSkeleton } from "@/components/skeletons/NotificationSkeleton";
 import { MapSkeleton } from "@/components/skeletons/MapSkeleton";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 
 const mockVenues: Venue[] = [
   { id: "1", name: "Rooftop 210", lat: 35.220, lng: -80.840, activity: 92, category: "Bar", neighborhood: "South End" },
@@ -67,6 +70,8 @@ const Index = () => {
   const { isScrapingActive } = useAutoScrapeVenueImages(true);
   const { deals, refresh: refreshDeals } = useDeals();
   const { venues: realVenues, loading: venuesLoading, refresh: refreshVenues } = useVenueActivity();
+  const { justInstalled, clearJustInstalled } = usePWAInstall();
+  const [showPushPrompt, setShowPushPrompt] = useState(false);
   const jetCardRef = useRef<HTMLDivElement>(null);
 
   // Use real venues when available, fallback to mock for compatibility
@@ -573,6 +578,18 @@ const Index = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
+
+      {/* Push Notification Prompt - shows after PWA install */}
+      <PushNotificationPrompt 
+        show={justInstalled || showPushPrompt}
+        onDismiss={() => {
+          clearJustInstalled();
+          setShowPushPrompt(false);
+        }}
+      />
     </div>
     </>
   );
