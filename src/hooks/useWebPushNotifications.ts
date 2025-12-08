@@ -2,6 +2,23 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 export const useWebPushNotifications = () => {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -74,10 +91,16 @@ export const useWebPushNotifications = () => {
       // Register service worker
       const registration = await registerServiceWorker();
 
-      // Subscribe to push notifications (without VAPID - using FCM)
-      const pushSubscription = await registration.pushManager.subscribe({
+      // Subscribe to push notifications with VAPID key if available
+      const subscribeOptions: PushSubscriptionOptionsInit = {
         userVisibleOnly: true,
-      });
+      };
+
+      if (VAPID_PUBLIC_KEY) {
+        subscribeOptions.applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource;
+      }
+
+      const pushSubscription = await registration.pushManager.subscribe(subscribeOptions);
 
       setSubscription(pushSubscription);
       setIsSubscribed(true);
