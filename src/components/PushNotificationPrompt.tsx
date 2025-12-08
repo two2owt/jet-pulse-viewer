@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Bell, X, Zap, MapPin, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useWebPushNotifications } from "@/hooks/useWebPushNotifications";
 import { Capacitor } from "@capacitor/core";
 
 interface PushNotificationPromptProps {
@@ -15,8 +16,21 @@ const DISMISS_DURATION = 14 * 24 * 60 * 60 * 1000; // 14 days
 export const PushNotificationPrompt = ({ show, onDismiss }: PushNotificationPromptProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { initializePushNotifications, isRegistered } = usePushNotifications();
   const isNative = Capacitor.isNativePlatform();
+  
+  // Native push notifications
+  const { initializePushNotifications, isRegistered: isNativeRegistered } = usePushNotifications();
+  
+  // Web push notifications
+  const { 
+    isSupported: isWebPushSupported, 
+    isSubscribed: isWebSubscribed, 
+    subscribe: webSubscribe,
+    permission: webPermission
+  } = useWebPushNotifications();
+
+  const isRegistered = isNative ? isNativeRegistered : isWebSubscribed;
+  const isSupported = isNative || isWebPushSupported;
 
   useEffect(() => {
     if (!show || isRegistered) return;
@@ -31,34 +45,45 @@ export const PushNotificationPrompt = ({ show, onDismiss }: PushNotificationProm
       localStorage.removeItem(DISMISS_KEY);
     }
 
+    // Don't show if already denied
+    if (!isNative && webPermission === 'denied') {
+      return;
+    }
+
     // Delay showing for smooth UX
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [show, isRegistered]);
+  }, [show, isRegistered, webPermission, isNative]);
 
   const handleEnable = async () => {
     setIsLoading(true);
     
+    let success = false;
+    
     if (isNative) {
       // Native app - use Capacitor push notifications
       await initializePushNotifications();
+      success = true;
+    } else if (isWebPushSupported) {
+      // Web - use web push notifications
+      success = await webSubscribe();
     } else {
-      // Web - request notification permission
+      // Fallback - just request basic notification permission
       if ("Notification" in window) {
         const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-          // Could register for web push here if needed
-          console.log("Web notifications enabled");
-        }
+        success = permission === "granted";
       }
     }
     
     setIsLoading(false);
-    setIsVisible(false);
-    onDismiss();
+    
+    if (success) {
+      setIsVisible(false);
+      onDismiss();
+    }
   };
 
   const handleDismiss = () => {
