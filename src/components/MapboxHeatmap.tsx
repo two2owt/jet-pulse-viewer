@@ -1328,7 +1328,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       />
 
       {/* City Selector with Current Location option */}
-      <div className="absolute top-4 left-4 sm:top-5 sm:left-5 z-10 max-w-[calc(100vw-120px)] sm:max-w-[280px]">
+      <div 
+        className={`absolute z-10 max-w-[calc(100vw-120px)] sm:max-w-[280px] transition-all duration-500 ease-out ${
+          mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+        }`}
+        style={{
+          top: 'calc(var(--safe-area-inset-top, 0px) + 1rem)',
+          left: 'calc(var(--safe-area-inset-left, 0px) + 1rem)',
+        }}
+      >
         <Select
           value={isUsingCurrentLocation ? "current-location" : selectedCity.id}
           onValueChange={(value) => {
@@ -1407,7 +1415,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Live Indicator - Top Right, offset from map controls */}
-      <div className="absolute top-4 right-16 sm:top-5 sm:right-20 z-10">
+      <div 
+        className={`absolute z-10 transition-all duration-500 ease-out delay-100 ${
+          mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+        }`}
+        style={{
+          top: 'calc(var(--safe-area-inset-top, 0px) + 1rem)',
+          right: 'calc(var(--safe-area-inset-right, 0px) + 4rem)',
+        }}
+      >
         <div className="bg-card/95 backdrop-blur-xl px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-border flex items-center gap-1.5 sm:gap-2 shadow-lg">
           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-destructive rounded-full pulse-glow" />
           <p className="text-xs sm:text-sm font-semibold text-foreground">Live</p>
@@ -1415,7 +1431,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Map Controls - Top left below city selector, collapsible on mobile */}
-      <div className="absolute top-16 sm:top-20 left-3 sm:left-4 z-10 space-y-2">
+      <div 
+        className={`absolute z-10 space-y-2 transition-all duration-500 ease-out delay-150 ${
+          mapLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
+        }`}
+        style={{
+          top: 'calc(var(--safe-area-inset-top, 0px) + 4rem)',
+          left: 'calc(var(--safe-area-inset-left, 0px) + 0.75rem)',
+        }}
+      >
         <Collapsible defaultOpen={!isMobile}>
           <CollapsibleTrigger asChild>
             <Button
@@ -1479,7 +1503,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Density Layer Controls - Bottom right, offset from Mapbox controls */}
-      <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-14 z-10 space-y-2 max-w-[calc(100vw-80px)] sm:max-w-[280px]">
+      <div 
+        className={`absolute z-10 space-y-2 max-w-[calc(100vw-80px)] sm:max-w-[280px] transition-all duration-500 ease-out delay-200 ${
+          mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+        }`}
+        style={{
+          bottom: 'calc(var(--safe-area-inset-bottom, 0px) + 0.75rem)',
+          right: 'calc(var(--safe-area-inset-right, 0px) + 0.75rem)',
+        }}
+      >
         <Button
           onClick={() => {
             const newState = !showDensityLayer;
@@ -1828,7 +1860,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Enhanced Legend - Bottom left, compact on mobile */}
-      <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-card/95 backdrop-blur-xl px-2 py-1.5 sm:px-4 sm:py-3 rounded-xl border border-border z-10 shadow-lg max-w-[140px] sm:max-w-none animate-fade-in">
+      <div 
+        className={`absolute bg-card/95 backdrop-blur-xl px-2 py-1.5 sm:px-4 sm:py-3 rounded-xl border border-border z-10 shadow-lg max-w-[140px] sm:max-w-none transition-all duration-500 ease-out delay-250 ${
+          mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+        }`}
+        style={{
+          bottom: 'calc(var(--safe-area-inset-bottom, 0px) + 0.75rem)',
+          left: 'calc(var(--safe-area-inset-left, 0px) + 0.75rem)',
+        }}
+      >
         {showMovementPaths ? (
           <>
             <p className="text-[10px] sm:text-xs font-semibold text-foreground mb-1.5 sm:mb-2">User Flow Paths</p>
