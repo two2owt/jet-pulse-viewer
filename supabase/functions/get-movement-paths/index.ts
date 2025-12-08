@@ -19,7 +19,7 @@ interface MovementPath {
   users: string[];
 }
 
-// Calculate distance between two points in meters
+// Calculate distance between two points in meters using Haversine formula
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371e3; // Earth's radius in meters
   const φ1 = (lat1 * Math.PI) / 180;
@@ -50,25 +50,45 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
+    // Verify JWT - user must be authenticated
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization header required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify the user is authenticated using anon client
+    const anonClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    
+    const { data: { user }, error: authError } = await anonClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Use service role client to bypass RLS for aggregating ALL users' data
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log('Fetching user location data for movement analysis...');
+    console.log('Fetching user location data for movement analysis (all users)...');
 
     // Parse query parameters for filtering
     const url = new URL(req.url);
     const timeFilter = url.searchParams.get('time_filter') || 'all';
     const minFrequency = parseInt(url.searchParams.get('min_frequency') || '2');
 
-    // Build query with time filter
-    let query = supabaseClient
+    // Build query with time filter using service client
+    let query = serviceClient
       .from('user_locations')
       .select('latitude, longitude, created_at, user_id')
       .order('user_id')
@@ -77,14 +97,16 @@ Deno.serve(async (req) => {
     // Apply time filtering
     const now = new Date();
     if (timeFilter === 'today') {
-      const startOfDay = new Date(now.setHours(0, 0, 0, 0)).toISOString();
-      query = query.gte('created_at', startOfDay);
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      query = query.gte('created_at', startOfDay.toISOString());
     } else if (timeFilter === 'this_week') {
-      const startOfWeek = new Date(now.setDate(now.getDate() - 7)).toISOString();
-      query = query.gte('created_at', startOfWeek);
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      query = query.gte('created_at', startOfWeek.toISOString());
     } else if (timeFilter === 'this_hour') {
-      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
-      query = query.gte('created_at', oneHourAgo);
+      const startOfHour = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
+      query = query.gte('created_at', startOfHour.toISOString());
     }
 
     const { data: locations, error } = await query;
@@ -94,18 +116,22 @@ Deno.serve(async (req) => {
       throw error;
     }
 
-    console.log(`Processing ${locations?.length || 0} location points...`);
+    console.log(`Processing ${locations?.length || 0} location points from all users...`);
 
     // Group locations by user and identify movements
     const userPaths = new Map<string, LocationPoint[]>();
     
     for (const location of locations || []) {
-      // Use user_id or 'anonymous' for null values
       const userId = location.user_id || 'anonymous';
       if (!userPaths.has(userId)) {
         userPaths.set(userId, []);
       }
-      userPaths.get(userId)!.push(location);
+      userPaths.get(userId)!.push({
+        latitude: parseFloat(String(location.latitude)),
+        longitude: parseFloat(String(location.longitude)),
+        created_at: location.created_at,
+        user_id: userId,
+      });
     }
 
     // Analyze movements between locations
@@ -115,9 +141,18 @@ Deno.serve(async (req) => {
     const movements = new Map<string, MovementPath>();
 
     for (const [userId, userLocations] of userPaths) {
+      // Sort by timestamp
+      userLocations.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
       for (let i = 0; i < userLocations.length - 1; i++) {
         const current = userLocations[i];
         const next = userLocations[i + 1];
+
+        // Skip invalid coordinates
+        if (isNaN(current.latitude) || isNaN(current.longitude) || 
+            isNaN(next.latitude) || isNaN(next.longitude)) {
+          continue;
+        }
 
         // Calculate distance between points
         const distance = calculateDistance(
@@ -127,8 +162,8 @@ Deno.serve(async (req) => {
           next.longitude
         );
 
-        // Only consider significant movements (> 50 meters)
-        if (distance > 50) {
+        // Only consider significant movements (50m to 10km - filters noise and unrealistic jumps)
+        if (distance > 50 && distance < 10000) {
           // Snap to grid for grouping
           const fromSnapped = snapToGrid(current.latitude, current.longitude);
           const toSnapped = snapToGrid(next.latitude, next.longitude);
@@ -171,7 +206,7 @@ Deno.serve(async (req) => {
       },
       properties: {
         frequency: movement.frequency,
-        uniqueUsers: movement.users.length,
+        unique_users: movement.users.length,
         weight: Math.min(movement.frequency / 2, 10) // Normalize weight for visualization
       }
     }));

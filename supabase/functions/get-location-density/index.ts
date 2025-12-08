@@ -12,19 +12,44 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
+    // Verify JWT - user must be authenticated
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization header required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify the user is authenticated using anon client
+    const anonClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    
+    const { data: { user }, error: authError } = await anonClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Use service role client to bypass RLS for aggregating ALL users' data
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const url = new URL(req.url);
-    const timeFilter = url.searchParams.get('time_filter') || 'all'; // all, today, this_week, this_hour
-    const hourOfDay = url.searchParams.get('hour_of_day'); // 0-23
-    const dayOfWeek = url.searchParams.get('day_of_week'); // 0-6
+    const timeFilter = url.searchParams.get('time_filter') || 'all';
+    const hourOfDay = url.searchParams.get('hour_of_day');
+    const dayOfWeek = url.searchParams.get('day_of_week');
 
     console.log('Fetching location density with filters:', { timeFilter, hourOfDay, dayOfWeek });
 
-    let query = supabaseClient
+    let query = serviceClient
       .from('user_locations')
       .select('latitude, longitude, created_at');
 
@@ -51,7 +76,7 @@ serve(async (req) => {
 
     if (error) throw error;
 
-    console.log(`Found ${locations?.length || 0} location points`);
+    console.log(`Found ${locations?.length || 0} location points from all users`);
 
     // Filter by hour of day or day of week if specified
     let filteredLocations = locations || [];
@@ -72,32 +97,34 @@ serve(async (req) => {
       });
     }
 
-    // Create density grid (simplified version)
-    // Group locations into grid cells for heatmap
-    const gridSize = 0.005; // ~500m grid cells
+    // Create density grid - aggregate locations into grid cells for heatmap
+    // Using smaller grid for more detailed visualization
+    const gridSize = 0.003; // ~300m grid cells for finer granularity
     const densityMap = new Map<string, number>();
 
     filteredLocations.forEach(loc => {
-      const lat = parseFloat(loc.latitude);
-      const lng = parseFloat(loc.longitude);
+      const lat = parseFloat(String(loc.latitude));
+      const lng = parseFloat(String(loc.longitude));
+      if (isNaN(lat) || isNaN(lng)) return;
+      
       const gridLat = Math.floor(lat / gridSize) * gridSize;
       const gridLng = Math.floor(lng / gridSize) * gridSize;
-      const key = `${gridLat},${gridLng}`;
+      const key = `${gridLat.toFixed(6)},${gridLng.toFixed(6)}`;
       densityMap.set(key, (densityMap.get(key) || 0) + 1);
     });
 
-    // Convert to GeoJSON format for Mapbox
+    // Convert to GeoJSON format for Mapbox heatmap layer
     const features = Array.from(densityMap.entries()).map(([key, count]) => {
       const [lat, lng] = key.split(',').map(Number);
       return {
         type: 'Feature',
         properties: {
           density: count,
-          intensity: Math.min(count / 10, 1), // Normalize to 0-1
+          intensity: Math.min(count / 10, 1), // Normalize to 0-1 for styling
         },
         geometry: {
           type: 'Point',
-          coordinates: [lng, lat],
+          coordinates: [lng, lat], // GeoJSON uses [lng, lat] order
         },
       };
     });
@@ -107,11 +134,14 @@ serve(async (req) => {
       features,
     };
 
-    // Calculate statistics
-    const maxDensity = Math.max(...Array.from(densityMap.values()));
-    const avgDensity = Array.from(densityMap.values()).reduce((a, b) => a + b, 0) / densityMap.size;
+    // Calculate statistics for UI display
+    const densityValues = Array.from(densityMap.values());
+    const maxDensity = densityValues.length > 0 ? Math.max(...densityValues) : 0;
+    const avgDensity = densityValues.length > 0 
+      ? densityValues.reduce((a, b) => a + b, 0) / densityValues.length 
+      : 0;
 
-    console.log(`Processed ${features.length} density points, max: ${maxDensity}, avg: ${avgDensity.toFixed(2)}`);
+    console.log(`Processed ${features.length} density grid cells, max: ${maxDensity}, avg: ${avgDensity.toFixed(2)}`);
 
     return new Response(
       JSON.stringify({
