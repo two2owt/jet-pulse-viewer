@@ -15,6 +15,7 @@ export const usePWAInstall = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [justInstalled, setJustInstalled] = useState(false);
 
   useEffect(() => {
     // Detect iOS
@@ -70,6 +71,7 @@ export const usePWAInstall = () => {
       setIsInstallable(false);
       setShowPrompt(false);
       setDeferredPrompt(null);
+      setJustInstalled(true);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -92,6 +94,7 @@ export const usePWAInstall = () => {
         setIsInstalled(true);
         setIsInstallable(false);
         setShowPrompt(false);
+        setJustInstalled(true);
       }
       
       setDeferredPrompt(null);
@@ -107,13 +110,19 @@ export const usePWAInstall = () => {
     localStorage.setItem(DISMISS_KEY, Date.now().toString());
   }, []);
 
+  const clearJustInstalled = useCallback(() => {
+    setJustInstalled(false);
+  }, []);
+
   return {
     isInstallable,
     isInstalled,
     isIOS,
     isMobile,
     showPrompt,
+    justInstalled,
     installApp,
     dismissPrompt,
+    clearJustInstalled,
   };
 };
