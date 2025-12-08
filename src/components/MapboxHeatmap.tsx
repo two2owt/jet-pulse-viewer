@@ -60,6 +60,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const dealMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
+  const flowAnimationRef = useRef<number | null>(null);
   const isMobile = useIsMobile();
   const initStartTime = useRef<number>(0);
   
@@ -646,24 +647,34 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     console.log('Density heatmap layer added with', activeData.stats.grid_cells, 'points', timelapseMode ? `(hour ${timelapse.currentHour})` : '');
   }, [mapLoaded, densityData, showDensityLayer, timelapseMode, timelapse.currentData, timelapse.currentHour]);
 
-  // Add/update movement paths layer
+  // Add/update movement paths layer with animated flow
   useEffect(() => {
+    // Cancel any existing animation
+    if (flowAnimationRef.current) {
+      cancelAnimationFrame(flowAnimationRef.current);
+      flowAnimationRef.current = null;
+    }
+
     if (!map.current || !mapLoaded || !pathData) return;
 
     const sourceId = 'movement-paths';
     const lineLayerId = 'movement-paths-line';
+    const glowLayerId = 'movement-paths-glow';
     const arrowLayerId = 'movement-paths-arrows';
+    const particleLayerId = 'movement-paths-particles';
 
     try {
       // Remove existing layers and source if they exist
-      if (map.current.getLayer(arrowLayerId)) {
-        map.current.removeLayer(arrowLayerId);
-      }
-      if (map.current.getLayer(lineLayerId)) {
-        map.current.removeLayer(lineLayerId);
-      }
+      [particleLayerId, arrowLayerId, glowLayerId, lineLayerId].forEach(id => {
+        if (map.current?.getLayer(id)) {
+          map.current.removeLayer(id);
+        }
+      });
       if (map.current.getSource(sourceId)) {
         map.current.removeSource(sourceId);
+      }
+      if (map.current.getSource(`${sourceId}-particles`)) {
+        map.current.removeSource(`${sourceId}-particles`);
       }
     } catch (error) {
       console.error('Error removing existing movement path layers:', error);
@@ -676,10 +687,44 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     map.current.addSource(sourceId, {
       type: 'geojson',
       data: pathData.geojson,
-      lineMetrics: true, // Enable line gradient
+      lineMetrics: true,
     });
 
-    // Add animated flow line layer
+    // Add glow effect layer (behind main line)
+    map.current.addLayer({
+      id: glowLayerId,
+      type: 'line',
+      source: sourceId,
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round',
+      },
+      paint: {
+        'line-width': [
+          'interpolate',
+          ['exponential', 1.5],
+          ['get', 'frequency'],
+          1, 8,
+          5, 14,
+          10, 22,
+          20, 30,
+        ],
+        'line-color': [
+          'interpolate',
+          ['linear'],
+          ['get', 'frequency'],
+          1, 'rgba(100, 200, 255, 0.3)',
+          5, 'rgba(0, 255, 255, 0.35)',
+          10, 'rgba(255, 200, 0, 0.4)',
+          15, 'rgba(255, 100, 0, 0.45)',
+          20, 'rgba(255, 0, 100, 0.5)',
+        ],
+        'line-blur': 4,
+        'line-opacity': 0.6,
+      },
+    });
+
+    // Add main animated flow line layer
     map.current.addLayer({
       id: lineLayerId,
       type: 'line',
@@ -689,7 +734,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         'line-cap': 'round',
       },
       paint: {
-        // Line width based on frequency
         'line-width': [
           'interpolate',
           ['exponential', 1.5],
@@ -699,43 +743,73 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           10, 10,
           20, 14,
         ],
-        // Color gradient based on frequency
         'line-color': [
           'interpolate',
           ['linear'],
           ['get', 'frequency'],
-          1, 'rgb(100, 200, 255)',     // light blue for low frequency
-          5, 'rgb(0, 255, 255)',        // cyan
-          10, 'rgb(255, 200, 0)',       // yellow
-          15, 'rgb(255, 100, 0)',       // orange
-          20, 'rgb(255, 0, 100)',       // pink-red
+          1, 'rgb(100, 200, 255)',
+          5, 'rgb(0, 255, 255)',
+          10, 'rgb(255, 200, 0)',
+          15, 'rgb(255, 100, 0)',
+          20, 'rgb(255, 0, 100)',
         ],
-        'line-opacity': 0.8,
-        // Animated gradient dash for flow effect
+        'line-opacity': 0.9,
         'line-dasharray': [0, 4, 3],
-        'line-opacity-transition': {
-          duration: 1000,
-          delay: 0
-        }
       },
     });
 
-    // Add arrow symbols for direction
+    // Add arrow icon if not exists
+    if (!map.current.hasImage('flow-arrow')) {
+      const size = 48;
+      const arrowCanvas = document.createElement('canvas');
+      arrowCanvas.width = size;
+      arrowCanvas.height = size;
+      const ctx = arrowCanvas.getContext('2d')!;
+
+      // Create gradient for arrow
+      const gradient = ctx.createLinearGradient(0, 0, size, 0);
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+      gradient.addColorStop(0.5, 'rgba(255, 255, 255, 1)');
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
+
+      // Draw arrow/chevron shape
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.moveTo(size * 0.2, size * 0.3);
+      ctx.lineTo(size * 0.6, size * 0.5);
+      ctx.lineTo(size * 0.2, size * 0.7);
+      ctx.lineTo(size * 0.35, size * 0.5);
+      ctx.closePath();
+      ctx.fill();
+
+      // Add outer glow
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+      ctx.shadowBlur = 8;
+      ctx.fill();
+
+      map.current.addImage('flow-arrow', {
+        width: size,
+        height: size,
+        data: ctx.getImageData(0, 0, size, size).data as any,
+      });
+    }
+
+    // Add animated arrow symbols for direction
     map.current.addLayer({
       id: arrowLayerId,
       type: 'symbol',
       source: sourceId,
       layout: {
         'symbol-placement': 'line',
-        'symbol-spacing': 50,
-        'icon-image': 'arrow',
+        'symbol-spacing': 40,
+        'icon-image': 'flow-arrow',
         'icon-size': [
           'interpolate',
           ['linear'],
           ['get', 'frequency'],
-          1, 0.5,
-          10, 0.7,
-          20, 1,
+          1, 0.6,
+          10, 0.9,
+          20, 1.2,
         ],
         'icon-rotate': 90,
         'icon-rotation-alignment': 'map',
@@ -743,49 +817,98 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         'icon-ignore-placement': true,
       },
       paint: {
-        'icon-opacity': 0.9,
-        'icon-opacity-transition': {
-          duration: 1000,
-          delay: 200
-        }
+        'icon-opacity': 0.85,
       },
     });
 
-    // Add arrow icon if not exists
-    if (!map.current.hasImage('arrow')) {
-      const size = 64;
-      const arrowCanvas = document.createElement('canvas');
-      arrowCanvas.width = size;
-      arrowCanvas.height = size;
-      const ctx = arrowCanvas.getContext('2d')!;
-
-      // Draw arrow shape
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.beginPath();
-      ctx.moveTo(size / 2, size * 0.2);
-      ctx.lineTo(size * 0.8, size / 2);
-      ctx.lineTo(size * 0.6, size / 2);
-      ctx.lineTo(size * 0.6, size * 0.8);
-      ctx.lineTo(size * 0.4, size * 0.8);
-      ctx.lineTo(size * 0.4, size / 2);
-      ctx.lineTo(size * 0.2, size / 2);
-      ctx.closePath();
-      ctx.fill();
-
-      // Add stroke
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      map.current.addImage('arrow', {
-        width: size,
-        height: size,
-        data: ctx.getImageData(0, 0, size, size).data as any,
+    // Create animated particle points along paths
+    const createParticleData = (offset: number) => {
+      const particles: GeoJSON.Feature<GeoJSON.Point>[] = [];
+      
+      pathData.geojson.features.forEach((feature: any) => {
+        if (feature.geometry.type === 'LineString') {
+          const coords = feature.geometry.coordinates;
+          const frequency = feature.properties?.frequency || 1;
+          
+          // Create multiple particles per path based on frequency
+          const numParticles = Math.min(Math.ceil(frequency / 3), 5);
+          
+          for (let p = 0; p < numParticles; p++) {
+            // Calculate position along the line with offset
+            const t = ((offset / 100) + (p / numParticles)) % 1;
+            
+            if (coords.length >= 2) {
+              const segmentCount = coords.length - 1;
+              const segmentIndex = Math.floor(t * segmentCount);
+              const segmentT = (t * segmentCount) - segmentIndex;
+              
+              const start = coords[Math.min(segmentIndex, coords.length - 2)];
+              const end = coords[Math.min(segmentIndex + 1, coords.length - 1)];
+              
+              const lng = start[0] + (end[0] - start[0]) * segmentT;
+              const lat = start[1] + (end[1] - start[1]) * segmentT;
+              
+              particles.push({
+                type: 'Feature',
+                geometry: {
+                  type: 'Point',
+                  coordinates: [lng, lat],
+                },
+                properties: {
+                  frequency,
+                  particleIndex: p,
+                },
+              });
+            }
+          }
+        }
       });
-    }
+      
+      return {
+        type: 'FeatureCollection' as const,
+        features: particles,
+      };
+    };
 
-    // Animate the dash array for flow effect
-    let dashArraySequence = [
+    // Add particle source
+    map.current.addSource(`${sourceId}-particles`, {
+      type: 'geojson',
+      data: createParticleData(0),
+    });
+
+    // Add particle layer
+    map.current.addLayer({
+      id: particleLayerId,
+      type: 'circle',
+      source: `${sourceId}-particles`,
+      paint: {
+        'circle-radius': [
+          'interpolate',
+          ['linear'],
+          ['get', 'frequency'],
+          1, 4,
+          10, 7,
+          20, 10,
+        ],
+        'circle-color': [
+          'interpolate',
+          ['linear'],
+          ['get', 'frequency'],
+          1, 'rgb(150, 220, 255)',
+          5, 'rgb(100, 255, 255)',
+          10, 'rgb(255, 230, 100)',
+          15, 'rgb(255, 150, 50)',
+          20, 'rgb(255, 80, 150)',
+        ],
+        'circle-opacity': 0.9,
+        'circle-blur': 0.3,
+        'circle-stroke-width': 2,
+        'circle-stroke-color': 'rgba(255, 255, 255, 0.8)',
+      },
+    });
+
+    // Animate the dash array and particles for continuous flow effect
+    const dashArraySequence = [
       [0, 4, 3],
       [0.5, 4, 2.5],
       [1, 4, 2],
@@ -803,25 +926,53 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     ];
 
     let step = 0;
-    const animateFlow = () => {
-      if (!map.current || !showMovementPaths) return;
-      
-      step = (step + 1) % dashArraySequence.length;
-      
-      if (map.current.getLayer(lineLayerId)) {
-        map.current.setPaintProperty(
-          lineLayerId,
-          'line-dasharray',
-          dashArraySequence[step]
-        );
+    let particleOffset = 0;
+    let lastTime = performance.now();
+
+    const animateFlow = (currentTime: number) => {
+      if (!map.current || !showMovementPaths) {
+        flowAnimationRef.current = null;
+        return;
       }
+
+      const deltaTime = currentTime - lastTime;
       
-      requestAnimationFrame(animateFlow);
+      // Update dash animation every ~80ms
+      if (deltaTime > 80) {
+        step = (step + 1) % dashArraySequence.length;
+        
+        if (map.current.getLayer(lineLayerId)) {
+          map.current.setPaintProperty(
+            lineLayerId,
+            'line-dasharray',
+            dashArraySequence[step]
+          );
+        }
+
+        // Update particle positions
+        particleOffset = (particleOffset + 2) % 100;
+        const particleSource = map.current.getSource(`${sourceId}-particles`) as mapboxgl.GeoJSONSource;
+        if (particleSource) {
+          particleSource.setData(createParticleData(particleOffset));
+        }
+
+        lastTime = currentTime;
+      }
+
+      flowAnimationRef.current = requestAnimationFrame(animateFlow);
     };
 
-    animateFlow();
+    flowAnimationRef.current = requestAnimationFrame(animateFlow);
 
-    console.log('Movement paths layer added with', pathData.stats.total_paths, 'paths');
+    console.log('Movement paths layer added with', pathData.stats.total_paths, 'paths and animated particles');
+
+    // Cleanup animation on unmount
+    return () => {
+      if (flowAnimationRef.current) {
+        cancelAnimationFrame(flowAnimationRef.current);
+        flowAnimationRef.current = null;
+      }
+    };
   }, [mapLoaded, pathData, showMovementPaths]);
 
 
