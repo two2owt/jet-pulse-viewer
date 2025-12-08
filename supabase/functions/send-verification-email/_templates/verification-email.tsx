@@ -27,7 +27,7 @@ export const VerificationEmail = ({
   redirect_to,
   token_hash,
 }: VerificationEmailProps) => {
-  const verificationUrl = `${supabase_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`;
+  const verificationUrl = `${supabase_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`;
 
   return (
     <Html>
