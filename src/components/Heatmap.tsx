@@ -6,17 +6,17 @@ import { type Venue } from "@/components/MapboxHeatmap";
 
 
 const getActivityColor = (activity: number) => {
-  if (activity >= 80) return "bg-hot";
-  if (activity >= 60) return "bg-warm";
-  if (activity >= 40) return "bg-cool";
-  return "bg-cold";
+  if (activity >= 80) return "bg-hot"; // red
+  if (activity >= 60) return "bg-warm"; // yellow
+  if (activity >= 40) return "bg-cool"; // blue
+  return "bg-cold"; // gray
 };
 
 const getActivityGlow = (activity: number) => {
-  if (activity >= 80) return "shadow-[0_0_20px_hsl(14_100%_57%/0.6)]";
-  if (activity >= 60) return "shadow-[0_0_15px_hsl(30_100%_60%/0.5)]";
-  if (activity >= 40) return "shadow-[0_0_10px_hsl(190_95%_45%/0.4)]";
-  return "shadow-[0_0_5px_hsl(220_70%_50%/0.3)]";
+  if (activity >= 80) return "shadow-[0_0_20px_hsl(0_85%_55%/0.6)]"; // hot red glow
+  if (activity >= 60) return "shadow-[0_0_15px_hsl(45_100%_55%/0.5)]"; // warm yellow glow
+  if (activity >= 40) return "shadow-[0_0_10px_hsl(210_100%_55%/0.4)]"; // cool blue glow
+  return "shadow-[0_0_5px_hsl(0_0%_45%/0.3)]"; // cold gray glow
 };
 
 export const Heatmap = ({ 
