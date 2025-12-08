@@ -8,11 +8,17 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Safe area insets for notched devices */
+    /* Safe area insets for notched devices - with fallbacks for all browsers */
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
     --safe-area-inset-right: env(safe-area-inset-right, 0px);
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
     --safe-area-inset-left: env(safe-area-inset-left, 0px);
+    
+    /* Adaptive map UI spacing - device-aware with safe area consideration */
+    --map-ui-inset-top: max(1rem, calc(var(--safe-area-inset-top) + 0.75rem));
+    --map-ui-inset-right: max(0.75rem, calc(var(--safe-area-inset-right) + 0.5rem));
+    --map-ui-inset-bottom: max(0.75rem, calc(var(--safe-area-inset-bottom) + 0.5rem));
+    --map-ui-inset-left: max(0.75rem, calc(var(--safe-area-inset-left) + 0.5rem));
     
     /* Fluid spacing system - adapts to viewport */
     --space-xs: clamp(0.25rem, 0.5vw, 0.5rem);
@@ -267,7 +273,37 @@ All colors MUST be HSL.
   .text-fluid-xl { font-size: var(--text-xl); }
   .text-fluid-2xl { font-size: var(--text-2xl); }
   .text-fluid-3xl { font-size: var(--text-3xl); }
+}
 
+/* Responsive adjustments for map UI insets across device sizes */
+@media (min-width: 640px) {
+  :root {
+    --map-ui-inset-top: max(1.25rem, calc(var(--safe-area-inset-top) + 1rem));
+    --map-ui-inset-right: max(1rem, calc(var(--safe-area-inset-right) + 0.75rem));
+    --map-ui-inset-bottom: max(1rem, calc(var(--safe-area-inset-bottom) + 0.75rem));
+    --map-ui-inset-left: max(1rem, calc(var(--safe-area-inset-left) + 0.75rem));
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --map-ui-inset-top: max(1.5rem, calc(var(--safe-area-inset-top) + 1.25rem));
+    --map-ui-inset-right: max(1.25rem, calc(var(--safe-area-inset-right) + 1rem));
+    --map-ui-inset-bottom: max(1.25rem, calc(var(--safe-area-inset-bottom) + 1rem));
+    --map-ui-inset-left: max(1.25rem, calc(var(--safe-area-inset-left) + 1rem));
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --map-ui-inset-top: max(1.5rem, calc(var(--safe-area-inset-top) + 1.25rem));
+    --map-ui-inset-right: max(1.5rem, calc(var(--safe-area-inset-right) + 1.25rem));
+    --map-ui-inset-bottom: max(1.5rem, calc(var(--safe-area-inset-bottom) + 1.25rem));
+    --map-ui-inset-left: max(1.5rem, calc(var(--safe-area-inset-left) + 1.25rem));
+  }
+}
+
+@layer utilities {
   .pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }

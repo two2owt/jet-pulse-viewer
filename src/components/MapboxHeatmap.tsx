@@ -1333,8 +1333,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
         }`}
         style={{
-          top: 'calc(var(--safe-area-inset-top, 0px) + 1rem)',
-          left: 'calc(var(--safe-area-inset-left, 0px) + 1rem)',
+          top: 'var(--map-ui-inset-top)',
+          left: 'var(--map-ui-inset-left)',
         }}
       >
         <Select
@@ -1420,8 +1420,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
         }`}
         style={{
-          top: 'calc(var(--safe-area-inset-top, 0px) + 1rem)',
-          right: 'calc(var(--safe-area-inset-right, 0px) + 4rem)',
+          top: 'var(--map-ui-inset-top)',
+          right: 'calc(var(--map-ui-inset-right) + 3rem)',
         }}
       >
         <div className="bg-card/95 backdrop-blur-xl px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-border flex items-center gap-1.5 sm:gap-2 shadow-lg">
@@ -1436,8 +1436,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           mapLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
         }`}
         style={{
-          top: 'calc(var(--safe-area-inset-top, 0px) + 4rem)',
-          left: 'calc(var(--safe-area-inset-left, 0px) + 0.75rem)',
+          top: 'calc(var(--map-ui-inset-top) + 3rem)',
+          left: 'var(--map-ui-inset-left)',
         }}
       >
         <Collapsible defaultOpen={!isMobile}>
@@ -1508,8 +1508,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         }`}
         style={{
-          bottom: 'calc(var(--safe-area-inset-bottom, 0px) + 0.75rem)',
-          right: 'calc(var(--safe-area-inset-right, 0px) + 0.75rem)',
+          bottom: 'var(--map-ui-inset-bottom)',
+          right: 'var(--map-ui-inset-right)',
         }}
       >
         <Button
@@ -1865,8 +1865,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         }`}
         style={{
-          bottom: 'calc(var(--safe-area-inset-bottom, 0px) + 0.75rem)',
-          left: 'calc(var(--safe-area-inset-left, 0px) + 0.75rem)',
+          bottom: 'var(--map-ui-inset-bottom)',
+          left: 'var(--map-ui-inset-left)',
         }}
       >
         {showMovementPaths ? (
