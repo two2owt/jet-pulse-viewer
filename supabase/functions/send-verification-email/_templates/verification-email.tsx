@@ -37,7 +37,7 @@ export const VerificationEmail = ({
         <Container style={container}>
           <Section style={logoSection}>
             <Img
-              src="https://your-app-url.lovable.app/jet-email-logo.png"
+              src="https://www.jet-around.com/jet-email-logo.png"
               width="80"
               height="80"
               alt="JET Logo"
@@ -69,7 +69,7 @@ export const VerificationEmail = ({
           </Text>
           <Text style={footer}>
             <Link
-              href="https://your-app-url.lovable.app"
+              href="https://www.jet-around.com"
               target="_blank"
               style={footerLink}
             >
