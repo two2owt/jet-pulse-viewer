@@ -58,3 +58,7 @@ verify_jwt = true
 
 [functions.customer-portal]
 verify_jwt = true
+
+# JET Bridge webhook - uses custom secret verification
+[functions.sync-merchant-deals]
+verify_jwt = false
