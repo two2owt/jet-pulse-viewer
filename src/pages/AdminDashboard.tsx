@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DealManagement } from "@/components/admin/DealManagement";
 import { UserAnalytics } from "@/components/admin/UserAnalytics";
 import { NeighborhoodManagement } from "@/components/admin/NeighborhoodManagement";
+import { MonetizationToggle } from "@/components/admin/MonetizationToggle";
 import { Loader2, Shield } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -42,10 +43,11 @@ export default function AdminDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         <Tabs defaultValue="deals" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="deals">Deal Management</TabsTrigger>
-            <TabsTrigger value="analytics">User Analytics</TabsTrigger>
-            <TabsTrigger value="neighborhoods">Neighborhoods</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="deals">Deals</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="neighborhoods">Areas</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="deals">
@@ -58,6 +60,12 @@ export default function AdminDashboard() {
 
           <TabsContent value="neighborhoods">
             <NeighborhoodManagement />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <MonetizationToggle />
+            </div>
           </TabsContent>
         </Tabs>
       </main>

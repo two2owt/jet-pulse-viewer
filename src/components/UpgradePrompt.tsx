@@ -98,21 +98,16 @@ export const UpgradePrompt = ({
   );
 };
 
-// Feature release date - subscription gating activates after this date
-const MONETIZATION_RELEASE_DATE = new Date("2026-01-01");
+// Import the monetization check from admin toggle
+import { isMonetizationEnabled } from "./admin/MonetizationToggle";
 
 // Hook to check feature access
 export const useFeatureAccess = () => {
   const { tier, loading } = useSubscription();
 
-  // Check if monetization features are active (after release date)
-  const isMonetizationActive = () => {
-    return new Date() >= MONETIZATION_RELEASE_DATE;
-  };
-
   const canAccessFeature = (requiredTier: SubscriptionTier): boolean => {
-    // Before release date, all features are accessible
-    if (!isMonetizationActive()) return true;
+    // Check monetization status (includes admin override and release date)
+    if (!isMonetizationEnabled()) return true;
     
     if (loading) return false;
     
@@ -131,7 +126,7 @@ export const useFeatureAccess = () => {
   return {
     tier,
     loading,
-    isMonetizationActive: isMonetizationActive(),
+    isMonetizationActive: isMonetizationEnabled(),
     canAccessFeature,
     canAccessSocialFeatures,
     canAccessVIPFeatures,
