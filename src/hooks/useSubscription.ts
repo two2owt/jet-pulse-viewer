@@ -25,9 +25,9 @@ export const SUBSCRIPTION_TIERS = {
   },
   jet_plus: {
     name: "JET+",
-    price: 9.99,
-    priceId: "price_1SXIrTQXf8KQnoU8vBgcO9Gc",
-    productId: "prod_TUHQC9j6XgrHOV",
+    price: 6.99,
+    priceId: "price_1ScFIAQXf8KQnoU8bIfQjJWt",
+    productId: "prod_TZO4ZimXhwOsHJ",
     features: [
       "Everything in JET",
       "Friend connections",
@@ -38,9 +38,9 @@ export const SUBSCRIPTION_TIERS = {
   },
   jetx: {
     name: "JETx",
-    price: 29.99,
-    priceId: "price_1SXIroQXf8KQnoU8oZviDjqp",
-    productId: "prod_TUHQzyndNlfBAr",
+    price: 12.99,
+    priceId: "price_1ScFIeQXf8KQnoU8XoK4ya9D",
+    productId: "prod_TZO4046HaI8g2t",
     features: [
       "Everything in JET+",
       "VIP exclusive deals",
