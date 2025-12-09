@@ -6,6 +6,39 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret',
 };
 
+// Valid deal_type values in the consumer app database
+const VALID_DEAL_TYPES = ['event', 'special', 'offer'] as const;
+type ValidDealType = typeof VALID_DEAL_TYPES[number];
+
+// Map incoming deal_type values to valid ones
+function mapDealType(incomingType: string): ValidDealType {
+  const normalized = incomingType.toLowerCase().trim();
+  
+  // Direct matches
+  if (VALID_DEAL_TYPES.includes(normalized as ValidDealType)) {
+    return normalized as ValidDealType;
+  }
+  
+  // Map common variations
+  const mappings: Record<string, ValidDealType> = {
+    'deal': 'offer',
+    'deals': 'offer',
+    'discount': 'offer',
+    'promo': 'offer',
+    'promotion': 'offer',
+    'happy_hour': 'special',
+    'happyhour': 'special',
+    'happy hour': 'special',
+    'specials': 'special',
+    'events': 'event',
+    'show': 'event',
+    'concert': 'event',
+    'party': 'event',
+  };
+  
+  return mappings[normalized] || 'offer'; // Default to 'offer' if unknown
+}
+
 interface MerchantDeal {
   id: string;
   merchant_id: string;
@@ -60,6 +93,10 @@ serve(async (req) => {
 
     switch (action) {
       case 'create': {
+        // Map and validate deal_type
+        const mappedDealType = mapDealType(deal.deal_type);
+        console.log(`Mapped deal_type "${deal.deal_type}" to "${mappedDealType}"`);
+        
         // Insert new deal from merchant portal
         const { data, error } = await supabase
           .from('deals')
@@ -70,7 +107,7 @@ serve(async (req) => {
             venue_address: deal.venue_address,
             title: deal.title,
             description: deal.description,
-            deal_type: deal.deal_type,
+            deal_type: mappedDealType,
             starts_at: deal.starts_at,
             expires_at: deal.expires_at,
             active_days: deal.active_days || [0, 1, 2, 3, 4, 5, 6],
@@ -95,6 +132,10 @@ serve(async (req) => {
       }
 
       case 'update': {
+        // Map and validate deal_type
+        const mappedDealType = mapDealType(deal.deal_type);
+        console.log(`Mapped deal_type "${deal.deal_type}" to "${mappedDealType}"`);
+        
         // Update existing deal
         const { data, error } = await supabase
           .from('deals')
@@ -104,7 +145,7 @@ serve(async (req) => {
             venue_address: deal.venue_address,
             title: deal.title,
             description: deal.description,
-            deal_type: deal.deal_type,
+            deal_type: mappedDealType,
             starts_at: deal.starts_at,
             expires_at: deal.expires_at,
             active_days: deal.active_days,
