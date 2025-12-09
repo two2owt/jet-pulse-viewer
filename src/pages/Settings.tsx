@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone, User, Heart, Shield, Trash2 } from "lucide-react";
+import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone, User, Heart, Shield, Trash2, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useTheme } from "next-themes";
@@ -15,6 +15,7 @@ import { Footer } from "@/components/Footer";
 import PreferencesEditor from "@/components/settings/PreferencesEditor";
 import PrivacySettings from "@/components/settings/PrivacySettings";
 import { DeleteAccountDialog } from "@/components/settings/DeleteAccountDialog";
+import { SubscriptionPlans } from "@/components/SubscriptionPlans";
 const preferencesSchema = z.object({
   notifications_enabled: z.boolean(),
   location_tracking_enabled: z.boolean(),
@@ -31,8 +32,26 @@ interface UserPreferences {
 
 const Settings = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
   const { isRegistered: isPushRegistered, isNative, initializePushNotifications, unregister: unregisterPush } = usePushNotifications();
+
+  // Handle subscription success/cancel from Stripe redirect
+  useEffect(() => {
+    const subscriptionStatus = searchParams.get("subscription");
+    if (subscriptionStatus === "success") {
+      toast.success("Subscription successful!", {
+        description: "Thank you for subscribing to JET!",
+      });
+      // Clear the URL params
+      window.history.replaceState({}, "", "/settings");
+    } else if (subscriptionStatus === "canceled") {
+      toast.info("Subscription canceled", {
+        description: "You can subscribe anytime from settings.",
+      });
+      window.history.replaceState({}, "", "/settings");
+    }
+  }, [searchParams]);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -249,6 +268,25 @@ const Settings = () => {
             </div>
           </Button>
         </Card>
+
+        {/* Subscription Section */}
+        {userId && (
+          <Card className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                <h2 className="text-base sm:text-lg font-bold text-foreground">Subscription</h2>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Manage your JET subscription plan
+              </p>
+            </div>
+
+            <Separator />
+
+            <SubscriptionPlans />
+          </Card>
+        )}
 
         {/* Personal Preferences Section */}
         {userId && (
