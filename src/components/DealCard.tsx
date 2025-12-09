@@ -1,5 +1,5 @@
 import { memo, useState, useEffect } from "react";
-import { Clock, MapPin, Share2, Heart } from "lucide-react";
+import { Clock, MapPin, Share2, Heart, Crown } from "lucide-react";
 import { Button } from "./ui/button";
 import { OptimizedImage } from "./ui/optimized-image";
 import { glideHaptic } from "@/lib/haptics";
@@ -8,6 +8,7 @@ import { shareDeal } from "@/utils/shareUtils";
 import { useFavorites } from "@/hooks/useFavorites";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { UpgradePrompt, useFeatureAccess } from "./UpgradePrompt";
 
 interface Deal {
   id: string;
@@ -27,6 +28,8 @@ interface DealCardProps {
 
 export const DealCard = memo(({ deal }: DealCardProps) => {
   const [user, setUser] = useState<any>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const { canAccessSocialFeatures } = useFeatureAccess();
   
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -46,6 +49,12 @@ export const DealCard = memo(({ deal }: DealCardProps) => {
   const isFav = isFavorite(deal.id);
 
   const handleShare = async () => {
+    // Check if user has JET+ subscription for sharing
+    if (!canAccessSocialFeatures()) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+
     await glideHaptic();
     
     const result = await shareDeal(deal, user?.id);
@@ -194,6 +203,13 @@ export const DealCard = memo(({ deal }: DealCardProps) => {
           </Button>
         </div>
       </div>
+
+      <UpgradePrompt
+        requiredTier="jet_plus"
+        featureName="Deal sharing"
+        isOpen={showUpgradePrompt}
+        onClose={() => setShowUpgradePrompt(false)}
+      />
     </div>
   );
 });

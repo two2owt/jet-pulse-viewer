@@ -1,11 +1,12 @@
 import { memo, useState, useEffect } from "react";
-import { Clock, MapPin, Users, Star, TrendingUp, X, Share2 } from "lucide-react";
+import { Clock, MapPin, Users, Star, TrendingUp, X, Share2, Crown } from "lucide-react";
 import { Button } from "./ui/button";
 import { OptimizedImage } from "./ui/optimized-image";
 import { glideHaptic } from "@/lib/haptics";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Venue } from "./MapboxHeatmap";
+import { UpgradePrompt, useFeatureAccess } from "./UpgradePrompt";
 
 interface JetCardProps {
   venue: Venue;
@@ -15,6 +16,8 @@ interface JetCardProps {
 
 export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) => {
   const [user, setUser] = useState<any>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const { canAccessSocialFeatures } = useFeatureAccess();
   
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -44,6 +47,12 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
   };
 
   const handleShare = async () => {
+    // Check if user has JET+ subscription for sharing
+    if (!canAccessSocialFeatures()) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+
     await glideHaptic();
     
     const shareUrl = venue.address
@@ -204,6 +213,13 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
           </Button>
         </div>
       </div>
+
+      <UpgradePrompt
+        requiredTier="jet_plus"
+        featureName="Venue sharing"
+        isOpen={showUpgradePrompt}
+        onClose={() => setShowUpgradePrompt(false)}
+      />
     </div>
   );
 });

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useConnections } from "@/hooks/useConnections";
 import { useNotifications } from "@/hooks/useNotifications";
-import { Users, UserPlus, Loader2, Check, X, UserX } from "lucide-react";
+import { Users, UserPlus, Loader2, Check, X, UserX, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,7 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { EmptyState } from "@/components/EmptyState";
 import { ConnectionProfileDialog } from "@/components/ConnectionProfileDialog";
+import { UpgradePrompt, useFeatureAccess } from "@/components/UpgradePrompt";
 
 interface Profile {
   id: string;
@@ -25,7 +26,9 @@ export default function Social() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("social");
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const { notifications } = useNotifications();
+  const { canAccessSocialFeatures, loading: subscriptionLoading } = useFeatureAccess();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -144,11 +147,46 @@ export default function Social() {
     );
   }
 
-  if (loading || connectionsLoading) {
+  if (loading || connectionsLoading || subscriptionLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  // Show upgrade prompt for users without JET+ subscription
+  if (!canAccessSocialFeatures()) {
+    return (
+      <>
+        <Header 
+          venues={[]}
+          deals={[]}
+          onVenueSelect={() => {}}
+        />
+        <div className="min-h-screen bg-background pb-20">
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <EmptyState
+              icon={Crown}
+              title="Unlock Social Features"
+              description="Connect with friends, share deals, and discover new spots together. Upgrade to JET+ to access all social features."
+              actionLabel="Upgrade to JET+"
+              onAction={() => setShowUpgradePrompt(true)}
+            />
+          </div>
+        </div>
+        <BottomNav 
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          notificationCount={notifications.filter(n => !n.read).length}
+        />
+        <UpgradePrompt
+          requiredTier="jet_plus"
+          featureName="Social features"
+          isOpen={showUpgradePrompt}
+          onClose={() => setShowUpgradePrompt(false)}
+        />
+      </>
     );
   }
 
