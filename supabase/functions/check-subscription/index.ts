@@ -12,8 +12,12 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Tier mapping
+// Tier mapping - includes both old and new product IDs for backwards compatibility
 const TIER_MAP: Record<string, string> = {
+  // New products (Jan 2026 pricing)
+  "prod_TZO4ZimXhwOsHJ": "jet_plus",
+  "prod_TZO4046HaI8g2t": "jetx",
+  // Legacy products (original pricing)
   "prod_TUHQC9j6XgrHOV": "jet_plus",
   "prod_TUHQzyndNlfBAr": "jetx",
 };
