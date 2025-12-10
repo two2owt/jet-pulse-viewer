@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -6,12 +6,14 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   isLoading: true,
+  refreshSession: async () => {},
 });
 
 export const useAuth = () => {
@@ -31,6 +33,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Centralized session refresh function
+  const refreshSession = useCallback(async () => {
+    try {
+      const { data: { session: refreshedSession }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Session refresh error:", error.message);
+        return;
+      }
+      if (refreshedSession) {
+        setSession(refreshedSession);
+        setUser(refreshedSession.user);
+      }
+    } catch (err) {
+      console.error("Session refresh failed:", err);
+    }
+  }, []);
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -49,6 +68,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setSession(null);
           setUser(null);
         }
+
+        // Broadcast session change to other tabs/windows
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "SIGNED_OUT") {
+          try {
+            localStorage.setItem("jet-session-update", Date.now().toString());
+          } catch (e) {
+            // localStorage may not be available
+          }
+        }
       }
     );
 
@@ -59,45 +87,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setIsLoading(false);
     });
 
+    // Listen for session changes from other tabs/windows
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "jet-session-update") {
+        refreshSession();
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+
     // Set up a visibility change listener to refresh session when tab becomes active
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        // Attempt to refresh session when user returns to tab
-        supabase.auth.getSession().then(({ data: { session: refreshedSession }, error }) => {
-          if (error) {
-            console.log("Session refresh check:", error.message);
-            // Don't sign out on refresh errors - let the SDK handle token refresh
-            return;
-          }
-          if (refreshedSession) {
-            setSession(refreshedSession);
-            setUser(refreshedSession.user);
-          }
-        });
+        refreshSession();
       }
     };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Set up periodic session check (every 10 minutes)
+    // Set up periodic session check (every 5 minutes for better responsiveness)
     const intervalId = setInterval(() => {
-      supabase.auth.getSession().then(({ data: { session: currentSession }, error }) => {
-        if (!error && currentSession) {
-          setSession(currentSession);
-          setUser(currentSession.user);
-        }
-      });
-    }, 10 * 60 * 1000); // 10 minutes
+      refreshSession();
+    }, 5 * 60 * 1000); // 5 minutes
 
     return () => {
       subscription.unsubscribe();
+      window.removeEventListener("storage", handleStorageChange);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearInterval(intervalId);
     };
-  }, []);
+  }, [refreshSession]);
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoading }}>
+    <AuthContext.Provider value={{ user, session, isLoading, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );
