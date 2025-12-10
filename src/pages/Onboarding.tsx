@@ -55,16 +55,6 @@ const Onboarding = () => {
         return;
       }
 
-      // Check if email is verified
-      if (!session.user.email_confirmed_at) {
-        toast.error("Email not verified", {
-          description: "Please verify your email before continuing. Check your inbox for the verification link.",
-        });
-        await supabase.auth.signOut();
-        navigate("/auth");
-        return;
-      }
-
       setUserId(session.user.id);
       
       // Check if already completed onboarding

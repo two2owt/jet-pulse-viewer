@@ -177,22 +177,12 @@ const Index = () => {
     maxPullDistance: 150,
   });
 
-  // Check onboarding status
+  // Check onboarding status - only redirect to onboarding if needed, never sign out
   useEffect(() => {
     const checkOnboarding = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        // Check if email is verified
-        if (!session.user.email_confirmed_at) {
-          toast.error("Email not verified", {
-            description: "Please verify your email before accessing the app. Check your inbox.",
-          });
-          await supabase.auth.signOut();
-          navigate("/auth");
-          return;
-        }
-
         const { data: profile } = await supabase
           .from("profiles")
           .select("onboarding_completed")
