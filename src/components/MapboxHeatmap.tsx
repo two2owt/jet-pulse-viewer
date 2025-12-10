@@ -7,6 +7,7 @@ import { useLocationDensity } from "@/hooks/useLocationDensity";
 import { useMovementPaths } from "@/hooks/useMovementPaths";
 import { useHeatmapTimelapse } from "@/hooks/useHeatmapTimelapse";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { triggerHaptic } from "@/lib/haptics";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
@@ -1235,6 +1236,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       el.addEventListener("click", (e) => {
         e.stopPropagation();
         
+        // Haptic feedback for venue selection
+        triggerHaptic('medium');
+        
         // Bounce animation
         pinEl.style.animation = "bounce 0.6s ease-out";
         setTimeout(() => {
@@ -1396,6 +1400,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         <Select
           value={isUsingCurrentLocation ? "current-location" : selectedCity.id}
           onValueChange={(value) => {
+            // Haptic feedback for city selection
+            triggerHaptic('light');
+            
             if (value === "current-location") {
               setIsUsingCurrentLocation(true);
               // Fly to user's current location if known
@@ -1513,7 +1520,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-1.5 sm:p-2 shadow-lg space-y-1.5 sm:space-y-2">
               <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                 <Button
-                  onClick={() => setMapStyle('dark')}
+                  onClick={() => { triggerHaptic('light'); setMapStyle('dark'); }}
                   variant={mapStyle === 'dark' ? "default" : "outline"}
                   size="sm"
                   className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
@@ -1521,7 +1528,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   Dark
                 </Button>
                 <Button
-                  onClick={() => setMapStyle('light')}
+                  onClick={() => { triggerHaptic('light'); setMapStyle('light'); }}
                   variant={mapStyle === 'light' ? "default" : "outline"}
                   size="sm"
                   className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
@@ -1529,7 +1536,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   Light
                 </Button>
                 <Button
-                  onClick={() => setMapStyle('satellite')}
+                  onClick={() => { triggerHaptic('light'); setMapStyle('satellite'); }}
                   variant={mapStyle === 'satellite' ? "default" : "outline"}
                   size="sm"
                   className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
@@ -1537,7 +1544,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   Satellite
                 </Button>
                 <Button
-                  onClick={() => setMapStyle('streets')}
+                  onClick={() => { triggerHaptic('light'); setMapStyle('streets'); }}
                   variant={mapStyle === 'streets' ? "default" : "outline"}
                   size="sm"
                   className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
@@ -1547,7 +1554,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               </div>
               
               <Button
-                onClick={() => setShow3DTerrain(!show3DTerrain)}
+                onClick={() => { triggerHaptic('medium'); setShow3DTerrain(!show3DTerrain); }}
                 variant={show3DTerrain ? "default" : "outline"}
                 size="sm"
                 className="w-full h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs mt-1"
@@ -1561,7 +1568,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       {/* Controls Toggle Button - Always visible */}
       <button
-        onClick={() => setControlsCollapsed(!controlsCollapsed)}
+        onClick={() => { triggerHaptic('light'); setControlsCollapsed(!controlsCollapsed); }}
         className={`absolute z-20 bg-card/95 backdrop-blur-xl rounded-full p-2 border border-border shadow-lg transition-all duration-300 hover:bg-card ${
           mapLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
         }`}
@@ -1592,6 +1599,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       >
         <Button
           onClick={() => {
+            triggerHaptic('medium');
             const newState = !showDensityLayer;
             setShowDensityLayer(newState);
             // Reset to "All Time" when enabling the layer
@@ -1637,6 +1645,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               </div>
               <Button
                 onClick={() => {
+                  triggerHaptic('light');
                   const newMode = !timelapseMode;
                   setTimelapseMode(newMode);
                   if (newMode && timelapse.hourlyData.length === 0) {
@@ -1826,7 +1835,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         
         {/* Movement Paths Toggle - Compact */}
         <Button
-          onClick={() => setShowMovementPaths(!showMovementPaths)}
+          onClick={() => { triggerHaptic('medium'); setShowMovementPaths(!showMovementPaths); }}
           variant={showMovementPaths ? "default" : "secondary"}
           size="sm"
           className="bg-card/95 backdrop-blur-xl border border-border text-[10px] sm:text-xs shadow-lg w-full animate-fade-in h-7 sm:h-8"
