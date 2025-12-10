@@ -103,27 +103,63 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   // Time-lapse hook
   const timelapse = useHeatmapTimelapse(dayFilter);
 
-  // Handle map resize on viewport changes
+  // Handle map resize on viewport changes - optimized for all mobile devices
   useEffect(() => {
+    let resizeTimeout: ReturnType<typeof setTimeout>;
+    
     const handleResize = () => {
-      if (map.current) {
-        map.current.resize();
+      // Debounce resize to prevent excessive calls during orientation changes
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        if (map.current) {
+          map.current.resize();
+        }
+      }, 100);
+    };
+
+    // Handle iOS Safari address bar show/hide
+    const handleVisualViewportResize = () => {
+      if (map.current && window.visualViewport) {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          map.current?.resize();
+        }, 50);
       }
     };
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
     
-    // Also handle visibility changes (e.g., when switching tabs)
-    document.addEventListener('visibilitychange', () => {
+    // Visual viewport API for iOS Safari dynamic viewport
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleVisualViewportResize);
+    }
+    
+    // Handle visibility changes (e.g., when switching tabs)
+    const handleVisibilityChange = () => {
       if (!document.hidden && map.current) {
         setTimeout(() => map.current?.resize(), 100);
       }
-    });
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Handle page focus for PWA and native apps
+    const handleFocus = () => {
+      if (map.current) {
+        setTimeout(() => map.current?.resize(), 150);
+      }
+    };
+    window.addEventListener('focus', handleFocus);
 
     return () => {
+      clearTimeout(resizeTimeout);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleVisualViewportResize);
+      }
     };
   }, []);
 
@@ -1309,18 +1345,24 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   // Deal markers removed - no longer displaying colored circles on map
 
   return (
-    <div className="relative w-full h-full min-h-[500px]">
+    <div 
+      className="relative w-full h-full"
+      style={{
+        // Use dvh for dynamic viewport height on mobile (handles iOS Safari address bar)
+        minHeight: isMobile ? '100dvh' : '500px',
+      }}
+    >
       {/* Map Loading Overlay */}
       {mapInitializing && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/95 backdrop-blur-sm z-50 animate-fade-in">
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-3 sm:gap-4 px-4">
             <div className="relative">
-              <div className="w-16 h-16 border-4 border-primary/30 rounded-full" />
-              <div className="absolute inset-0 w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-primary/30 rounded-full" />
+              <div className="absolute inset-0 w-12 h-12 sm:w-16 sm:h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
             <div className="text-center">
-              <p className="text-base font-semibold text-foreground mb-1">Loading Map</p>
-              <p className="text-sm text-muted-foreground">Initializing {selectedCity.name}...</p>
+              <p className="text-sm sm:text-base font-semibold text-foreground mb-1">Loading Map</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Initializing {selectedCity.name}...</p>
             </div>
           </div>
         </div>
@@ -1332,8 +1374,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         style={{ 
           width: '100%', 
           height: '100%',
-          minHeight: isMobile ? '100%' : '500px',
-          touchAction: isMobile ? 'pan-y pinch-zoom' : 'none',
+          // Ensure proper touch handling for different mobile devices
+          touchAction: isMobile ? 'manipulation' : 'none',
+          WebkitOverflowScrolling: 'touch',
           opacity: mapInitializing ? 0 : 1,
           transition: 'opacity 0.3s ease-in-out',
         }} 
