@@ -108,11 +108,11 @@ const calculateActivityScore = (data: VenueActivityData, nearbyUserCount: number
 };
 
 /**
- * Fetch popular venues from Google Places (for initial seed data)
+ * Fetch the top 10 most popular venues in Charlotte from Google Places
  */
 const fetchPopularVenuesFromGooglePlaces = async (): Promise<Venue[]> => {
   try {
-    console.log('Fetching popular venues from Google Places...');
+    console.log('Fetching top 10 Charlotte venues from Google Places...');
     
     // Charlotte coordinates (primary test city)
     const charlotteLocation = { lat: 35.2271, lng: -80.8431 };
@@ -120,8 +120,8 @@ const fetchPopularVenuesFromGooglePlaces = async (): Promise<Venue[]> => {
     const { data, error } = await supabase.functions.invoke('search-google-places-venues', {
       body: { 
         location: charlotteLocation,
-        radius: 8000, // 8km radius to cover Charlotte metro
-        categories: ['night_club', 'bar', 'restaurant', 'cafe', 'meal_takeaway']
+        radius: 10000, // 10km radius to cover Charlotte metro
+        categories: ['night_club', 'bar', 'restaurant', 'cafe']
       }
     });
 
@@ -130,8 +130,11 @@ const fetchPopularVenuesFromGooglePlaces = async (): Promise<Venue[]> => {
       return [];
     }
 
-    console.log(`Fetched ${data.venues?.length || 0} venues from Google Places`);
-    return data.venues || [];
+    // Ensure we only return top 10 venues with full address data
+    const venues = (data.venues || []).slice(0, 10);
+    console.log(`Fetched ${venues.length} top Charlotte venues with addresses`);
+    
+    return venues;
   } catch (error) {
     console.error('Error in fetchPopularVenuesFromGooglePlaces:', error);
     return [];
