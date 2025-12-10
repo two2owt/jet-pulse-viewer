@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { MapPin, TrendingUp, Layers, X, AlertCircle, Route, Play, Pause, SkipBack, SkipForward, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { MapPin, TrendingUp, Layers, X, AlertCircle, Route, Play, Pause, SkipBack, SkipForward, Clock, ChevronDown, ChevronUp, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocationDensity } from "@/hooks/useLocationDensity";
 import { useMovementPaths } from "@/hooks/useMovementPaths";
@@ -80,6 +80,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [showMovementPaths, setShowMovementPaths] = useState(false);
   const [pathTimeFilter, setPathTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   const [minPathFrequency, setMinPathFrequency] = useState(2);
+  
+  // Controls visibility state
+  const [controlsCollapsed, setControlsCollapsed] = useState(false);
   
   // User location state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -1505,10 +1508,29 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Collapsible>
       </div>
 
+      {/* Controls Toggle Button - Always visible */}
+      <button
+        onClick={() => setControlsCollapsed(!controlsCollapsed)}
+        className={`absolute z-20 bg-card/95 backdrop-blur-xl rounded-full p-2 border border-border shadow-lg transition-all duration-300 hover:bg-card ${
+          mapLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+        }`}
+        style={{
+          bottom: 'var(--map-ui-inset-bottom)',
+          right: controlsCollapsed ? 'var(--map-ui-inset-right)' : 'calc(var(--map-ui-inset-right) + var(--map-control-max-width) + 0.5rem)',
+        }}
+        aria-label={controlsCollapsed ? "Show map controls" : "Hide map controls"}
+      >
+        {controlsCollapsed ? (
+          <PanelRightOpen className="w-4 h-4 text-foreground" />
+        ) : (
+          <PanelRightClose className="w-4 h-4 text-foreground" />
+        )}
+      </button>
+
       {/* Density Layer Controls - Bottom right, responsive for all devices */}
       <div 
-        className={`absolute z-10 space-y-2 transition-all duration-500 ease-out delay-200 ${
-          mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+        className={`absolute z-10 space-y-2 transition-all duration-300 ease-out ${
+          mapLoaded && !controlsCollapsed ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full pointer-events-none'
         }`}
         style={{
           bottom: 'var(--map-ui-inset-bottom)',
@@ -1826,8 +1848,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       {/* Enhanced Legend - Bottom left, responsive for all devices */}
       <div 
-        className={`absolute bg-card/95 backdrop-blur-xl px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-3 rounded-xl border border-border z-10 shadow-lg transition-all duration-500 ease-out delay-250 ${
-          mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+        className={`absolute bg-card/95 backdrop-blur-xl px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-3 rounded-xl border border-border z-10 shadow-lg transition-all duration-300 ease-out ${
+          mapLoaded && !controlsCollapsed ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full pointer-events-none'
         }`}
         style={{
           bottom: 'var(--map-ui-inset-bottom)',
