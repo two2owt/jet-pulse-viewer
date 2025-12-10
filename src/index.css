@@ -15,14 +15,18 @@ All colors MUST be HSL.
     --safe-area-inset-left: env(safe-area-inset-left, 0px);
     
     /* Adaptive map UI spacing - device-aware with safe area consideration */
-    /* Mobile (default) */
-    --map-ui-inset-top: max(0.75rem, calc(var(--safe-area-inset-top) + 0.5rem));
-    --map-ui-inset-right: max(0.5rem, calc(var(--safe-area-inset-right) + 0.5rem));
-    --map-ui-inset-bottom: max(0.5rem, calc(var(--safe-area-inset-bottom) + 0.5rem));
-    --map-ui-inset-left: max(0.5rem, calc(var(--safe-area-inset-left) + 0.5rem));
+    /* Mobile (default) - compact for better map visibility */
+    --map-ui-inset-top: max(0.5rem, calc(var(--safe-area-inset-top) + 0.25rem));
+    --map-ui-inset-right: max(0.375rem, calc(var(--safe-area-inset-right) + 0.25rem));
+    --map-ui-inset-bottom: max(0.375rem, calc(var(--safe-area-inset-bottom) + 0.25rem));
+    --map-ui-inset-left: max(0.375rem, calc(var(--safe-area-inset-left) + 0.25rem));
     
-    /* Map control panel max width for responsive layouts */
-    --map-control-max-width: min(280px, calc(100vw - 5rem));
+    /* Map control panel max width for responsive layouts - smaller on mobile */
+    --map-control-max-width: min(220px, calc(100vw - 4rem));
+    
+    /* Touch-friendly sizing for mobile controls */
+    --touch-target-min: 44px;
+    --control-compact-padding: 0.375rem;
     
     /* Fluid spacing system - adapts to viewport */
     --space-xs: clamp(0.25rem, 0.5vw, 0.5rem);
@@ -519,5 +523,66 @@ All colors MUST be HSL.
     .mapboxgl-ctrl-group {
       transform: scale(0.65);
     }
+  }
+
+  /* Touch-friendly timelapse swipe control */
+  .timelapse-swipe-control {
+    touch-action: pan-x;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .timelapse-touch-button {
+    @apply flex items-center justify-center w-8 h-8 rounded-full text-muted-foreground transition-colors;
+    @apply hover:bg-muted/50 hover:text-foreground active:bg-primary/20 active:text-primary;
+    @apply disabled:opacity-50 disabled:pointer-events-none;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  /* Compact control panel styles for mobile */
+  .map-control-compact {
+    @apply bg-card/90 backdrop-blur-lg rounded-lg border border-border/50 shadow-md;
+    padding: var(--control-compact-padding, 0.375rem);
+  }
+
+  .map-control-compact .control-header {
+    @apply flex items-center justify-between text-[10px] font-medium text-muted-foreground mb-1;
+  }
+
+  /* Path flow compact slider */
+  .path-flow-slider {
+    @apply w-full appearance-none bg-transparent cursor-pointer;
+    height: 20px;
+  }
+
+  .path-flow-slider::-webkit-slider-runnable-track {
+    @apply w-full h-1 rounded-full bg-border;
+  }
+
+  .path-flow-slider::-webkit-slider-thumb {
+    @apply appearance-none w-4 h-4 rounded-full bg-primary border-2 border-background shadow-sm;
+    margin-top: -6px;
+  }
+
+  .path-flow-slider::-moz-range-track {
+    @apply w-full h-1 rounded-full bg-border;
+  }
+
+  .path-flow-slider::-moz-range-thumb {
+    @apply w-4 h-4 rounded-full bg-primary border-2 border-background shadow-sm;
+  }
+
+  /* Compact control inline row */
+  .control-inline-row {
+    @apply flex items-center gap-1.5 text-[10px];
+  }
+
+  .control-inline-label {
+    @apply text-muted-foreground whitespace-nowrap min-w-[40px];
+  }
+
+  .control-inline-value {
+    @apply font-medium text-foreground;
   }
 }
