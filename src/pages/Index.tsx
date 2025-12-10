@@ -68,8 +68,8 @@ const Index = () => {
   const { getVenueImage } = useVenueImages();
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
   const { isScrapingActive } = useAutoScrapeVenueImages(true);
-  const { deals, refresh: refreshDeals } = useDeals();
-  const { venues: realVenues, loading: venuesLoading, refresh: refreshVenues } = useVenueActivity();
+  const { deals, refresh: refreshDeals, loading: dealsLoading, lastUpdated: dealsLastUpdated } = useDeals();
+  const { venues: realVenues, loading: venuesLoading, refresh: refreshVenues, lastUpdated: venuesLastUpdated } = useVenueActivity();
   const { justInstalled, clearJustInstalled } = usePWAInstall();
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const jetCardRef = useRef<HTMLDivElement>(null);
@@ -331,6 +331,12 @@ const Index = () => {
           venues={venues}
           deals={deals}
           onVenueSelect={handleVenueSelect}
+          isLoading={dealsLoading || venuesLoading}
+          lastUpdated={dealsLastUpdated || venuesLastUpdated}
+          onRefresh={() => {
+            refreshDeals();
+            refreshVenues();
+          }}
         />
 
       {/* Main Content */}

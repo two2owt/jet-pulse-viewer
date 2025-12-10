@@ -145,6 +145,7 @@ export const useVenueActivity = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const loadVenueActivity = async () => {
     try {
@@ -268,6 +269,7 @@ export const useVenueActivity = () => {
       
       console.log(`Loaded ${sortedVenues.length} venues with activity scores`);
       setVenues(sortedVenues);
+      setLastUpdated(new Date());
     } catch (err) {
       console.error('Error loading venue activity:', err);
       setError(err instanceof Error ? err.message : 'Failed to load venue data');
@@ -346,5 +348,5 @@ export const useVenueActivity = () => {
     };
   }, []);
 
-  return { venues, loading, error, refresh: loadVenueActivity };
+  return { venues, loading, error, refresh: loadVenueActivity, lastUpdated };
 };
