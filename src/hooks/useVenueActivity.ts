@@ -306,10 +306,43 @@ export const useVenueActivity = () => {
           loadVenueActivity();
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_favorites'
+        },
+        () => {
+          console.log('Favorites change detected, refreshing venue activity');
+          loadVenueActivity();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'deal_shares'
+        },
+        () => {
+          console.log('Deal share detected, refreshing venue activity');
+          loadVenueActivity();
+        }
+      )
       .subscribe();
+
+    // Listen for visibility changes to refresh on tab focus
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        loadVenueActivity();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       supabase.removeChannel(channel);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 

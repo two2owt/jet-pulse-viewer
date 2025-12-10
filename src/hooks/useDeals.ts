@@ -245,11 +245,21 @@ export const useDeals = (enablePreferenceFilter: boolean = false) => {
       )
       .subscribe();
 
+    // Listen for visibility changes to refresh on tab focus
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        loadDeals();
+        loadUserPreferences();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       cleanup();
       supabase.removeChannel(channel);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [preferencesLoaded, loadDeals]);
+  }, [preferencesLoaded, loadDeals, loadUserPreferences]);
 
   return { 
     deals: enablePreferenceFilter ? filteredDeals : deals,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -14,16 +14,13 @@ export const useFavorites = (userId: string | undefined) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (userId) {
-      fetchFavorites();
-    } else {
+  const fetchFavorites = useCallback(async () => {
+    if (!userId) {
       setFavorites([]);
       setLoading(false);
+      return;
     }
-  }, [userId]);
 
-  const fetchFavorites = async () => {
     try {
       const { data, error } = await supabase
         .from("user_favorites")
@@ -43,7 +40,44 @@ export const useFavorites = (userId: string | undefined) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, toast]);
+
+  useEffect(() => {
+    fetchFavorites();
+
+    // Set up real-time subscription for favorites changes
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`favorites-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_favorites',
+          filter: `user_id=eq.${userId}`
+        },
+        () => {
+          // Refetch on any change to ensure consistency across devices
+          fetchFavorites();
+        }
+      )
+      .subscribe();
+
+    // Listen for visibility changes to refresh on tab focus
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchFavorites();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      supabase.removeChannel(channel);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [userId, fetchFavorites]);
 
   const isFavorite = (dealId: string) => {
     return favorites.some((fav) => fav.deal_id === dealId);
