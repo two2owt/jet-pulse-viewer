@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect, useState } from "react";
 import { Play, Pause, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
+import { triggerHaptic } from "@/lib/haptics";
 
 interface TimelapseSwipeControlProps {
   currentHour: number;
@@ -27,13 +28,16 @@ export const TimelapseSwipeControl = ({
   const touchStartX = useRef<number>(0);
   const touchStartHour = useRef<number>(0);
   const [isDragging, setIsDragging] = useState(false);
+  const lastHapticHour = useRef<number>(currentHour);
 
   // Handle touch/swipe gestures
   const handleTouchStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     touchStartX.current = clientX;
     touchStartHour.current = currentHour;
+    lastHapticHour.current = currentHour;
     setIsDragging(true);
+    triggerHaptic('light');
   }, [currentHour]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent | React.MouseEvent) => {
@@ -49,6 +53,11 @@ export const TimelapseSwipeControl = ({
     let newHour = (touchStartHour.current - hourDelta + 24) % 24;
     
     if (newHour !== currentHour) {
+      // Trigger haptic when hour changes during swipe
+      if (newHour !== lastHapticHour.current) {
+        triggerHaptic('light');
+        lastHapticHour.current = newHour;
+      }
       onHourChange(newHour);
     }
   }, [isDragging, currentHour, onHourChange]);
@@ -67,6 +76,10 @@ export const TimelapseSwipeControl = ({
       const containerWidth = containerRef.current?.offsetWidth || 200;
       const hourDelta = Math.round((deltaX / containerWidth) * 6);
       let newHour = (touchStartHour.current - hourDelta + 24) % 24;
+      if (newHour !== lastHapticHour.current) {
+        triggerHaptic('light');
+        lastHapticHour.current = newHour;
+      }
       onHourChange(newHour);
     };
 
@@ -83,8 +96,15 @@ export const TimelapseSwipeControl = ({
     };
   }, [isDragging, onHourChange]);
 
-  const stepBackward = () => onHourChange((currentHour - 1 + 24) % 24);
-  const stepForward = () => onHourChange((currentHour + 1) % 24);
+  const stepBackward = () => {
+    triggerHaptic('light');
+    onHourChange((currentHour - 1 + 24) % 24);
+  };
+  
+  const stepForward = () => {
+    triggerHaptic('light');
+    onHourChange((currentHour + 1) % 24);
+  };
 
   return (
     <div className="timelapse-swipe-control">
@@ -135,7 +155,7 @@ export const TimelapseSwipeControl = ({
 
         {/* Play/Pause */}
         <Button
-          onClick={(e) => { e.stopPropagation(); onTogglePlay(); }}
+          onClick={(e) => { e.stopPropagation(); triggerHaptic('medium'); onTogglePlay(); }}
           variant={isPlaying ? "default" : "outline"}
           size="sm"
           className="h-7 w-7 p-0 rounded-full flex-shrink-0"
@@ -154,7 +174,7 @@ export const TimelapseSwipeControl = ({
         {[0, 6, 12, 18].map((hour) => (
           <button
             key={hour}
-            onClick={() => onHourChange(hour)}
+            onClick={() => { triggerHaptic('light'); onHourChange(hour); }}
             className={`w-1.5 h-1.5 rounded-full transition-all ${
               Math.floor(currentHour / 6) === hour / 6
                 ? 'bg-primary scale-125'
