@@ -58,6 +58,7 @@ export const useDeals = (enablePreferenceFilter: boolean = false) => {
   const [error, setError] = useState<Error | null>(null);
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const loadUserPreferences = useCallback(async () => {
     try {
@@ -191,6 +192,7 @@ export const useDeals = (enablePreferenceFilter: boolean = false) => {
       // Apply preference filtering
       const filtered = filterDealsByPreferences(allDeals, userPreferences);
       setFilteredDeals(filtered);
+      setLastUpdated(new Date());
       
       setError(null);
     } catch (err) {
@@ -269,6 +271,7 @@ export const useDeals = (enablePreferenceFilter: boolean = false) => {
     refresh: loadDeals,
     refreshPreferences: loadUserPreferences,
     userPreferences,
-    hasPreferences: userPreferences?.categories && userPreferences.categories.length > 0
+    hasPreferences: userPreferences?.categories && userPreferences.categories.length > 0,
+    lastUpdated
   };
 };

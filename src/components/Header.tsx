@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { SearchResults } from "./SearchResults";
 import { ThemeToggle } from "./ThemeToggle";
+import { SyncStatusIndicator } from "./SyncStatusIndicator";
 import type { Venue } from "./MapboxHeatmap";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
@@ -20,9 +21,12 @@ interface HeaderProps {
   venues: Venue[];
   deals: Deal[];
   onVenueSelect: (venue: Venue) => void;
+  isLoading?: boolean;
+  lastUpdated?: Date | null;
+  onRefresh?: () => void;
 }
 
-export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
+export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, onRefresh }: HeaderProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
@@ -120,6 +124,12 @@ export const Header = ({ venues, deals, onVenueSelect }: HeaderProps) => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <SyncStatusIndicator
+              isLoading={isLoading}
+              lastUpdated={lastUpdated}
+              onRefresh={onRefresh}
+              showTimestamp={true}
+            />
             <ThemeToggle />
             <Avatar 
               className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all"
