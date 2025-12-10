@@ -9,7 +9,8 @@ const corsHeaders = {
 // Rate limiting: 15 requests per minute per IP
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 15;
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const SUSPICIOUS_THRESHOLD = 12; // Log as suspicious when 80% of limit reached
+const rateLimitMap = new Map<string, { count: number; resetTime: number; violations: number }>();
 
 function getRateLimitKey(req: Request): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
@@ -17,21 +18,53 @@ function getRateLimitKey(req: Request): string {
          'unknown';
 }
 
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetIn: number } {
+function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetIn: number; count: number; violations: number } {
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
   
   if (!entry || now >= entry.resetTime) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
+    const violations = entry?.violations || 0;
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS, violations });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS, count: 1, violations };
   }
   
   if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return { allowed: false, remaining: 0, resetIn: entry.resetTime - now };
+    entry.violations++;
+    return { allowed: false, remaining: 0, resetIn: entry.resetTime - now, count: entry.count, violations: entry.violations };
   }
   
   entry.count++;
-  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count, resetIn: entry.resetTime - now };
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count, resetIn: entry.resetTime - now, count: entry.count, violations: entry.violations };
+}
+
+// Security audit logging
+async function logSecurityEvent(
+  eventType: string,
+  clientIp: string,
+  userAgent: string | null,
+  requestCount: number,
+  details: Record<string, unknown>
+) {
+  try {
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    
+    await serviceClient.from('security_audit_logs').insert({
+      event_type: eventType,
+      endpoint: 'get-location-density',
+      client_ip: clientIp,
+      user_agent: userAgent,
+      request_count: requestCount,
+      time_window_seconds: Math.round(RATE_LIMIT_WINDOW_MS / 1000),
+      details
+    });
+    
+    console.log(`[SECURITY AUDIT] ${eventType} logged for IP: ${clientIp}`);
+  } catch (error) {
+    console.error('[SECURITY AUDIT] Failed to log event:', error);
+  }
 }
 
 // Cleanup old entries periodically
@@ -51,6 +84,7 @@ serve(async (req) => {
 
   // Check rate limit
   const clientIp = getRateLimitKey(req);
+  const userAgent = req.headers.get('user-agent');
   const rateLimit = checkRateLimit(clientIp);
   
   const rateLimitHeaders = {
@@ -60,8 +94,16 @@ serve(async (req) => {
     'X-RateLimit-Reset': Math.ceil(rateLimit.resetIn / 1000).toString(),
   };
 
+  // Log rate limit exceeded
   if (!rateLimit.allowed) {
     console.warn(`Rate limit exceeded for IP: ${clientIp}`);
+    
+    // Log security event
+    await logSecurityEvent('rate_limit_exceeded', clientIp, userAgent, rateLimit.count, {
+      violations_count: rateLimit.violations,
+      reset_in_seconds: Math.ceil(rateLimit.resetIn / 1000)
+    });
+    
     return new Response(
       JSON.stringify({ error: 'Too many requests. Please try again later.' }),
       {
@@ -69,6 +111,23 @@ serve(async (req) => {
         headers: { ...rateLimitHeaders, 'Content-Type': 'application/json', 'Retry-After': Math.ceil(rateLimit.resetIn / 1000).toString() },
       }
     );
+  }
+  
+  // Log suspicious pattern (approaching rate limit)
+  if (rateLimit.count >= SUSPICIOUS_THRESHOLD && rateLimit.count === SUSPICIOUS_THRESHOLD) {
+    await logSecurityEvent('suspicious_pattern', clientIp, userAgent, rateLimit.count, {
+      pattern: 'high_request_frequency',
+      threshold_percentage: Math.round((rateLimit.count / RATE_LIMIT_MAX_REQUESTS) * 100),
+      remaining_requests: rateLimit.remaining
+    });
+  }
+  
+  // Log repeated violators
+  if (rateLimit.violations >= 3 && rateLimit.count === 1) {
+    await logSecurityEvent('repeated_violator', clientIp, userAgent, rateLimit.count, {
+      total_violations: rateLimit.violations,
+      pattern: 'persistent_abuse'
+    });
   }
 
   try {
