@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DensityData {
@@ -21,8 +21,14 @@ export const useLocationDensity = (filters: DensityFilters = {}) => {
   const [densityData, setDensityData] = useState<DensityData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const lastDataHashRef = useRef<string>('');
+  const isLoadingRef = useRef(false);
 
-  const loadDensityData = async () => {
+  const loadDensityData = useCallback(async () => {
+    // Prevent concurrent requests
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
+    
     try {
       setLoading(true);
       
@@ -38,20 +44,27 @@ export const useLocationDensity = (filters: DensityFilters = {}) => {
 
       if (functionError) throw functionError;
       
-      setDensityData(data);
+      // Only update state if data actually changed
+      const dataHash = JSON.stringify(data?.stats);
+      if (dataHash !== lastDataHashRef.current) {
+        lastDataHashRef.current = dataHash;
+        setDensityData(data);
+      }
       setError(null);
     } catch (err) {
       console.error('Error loading density data:', err);
       setError('Failed to load density data');
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
-  };
+  }, [filters.timeFilter, filters.hourOfDay, filters.dayOfWeek]);
 
   useEffect(() => {
     loadDensityData();
 
-    // Set up realtime subscription to user_locations
+    // Set up realtime subscription with debounce
+    let debounceTimer: NodeJS.Timeout;
     const channel = supabase
       .channel('location-density-updates')
       .on(
@@ -62,16 +75,21 @@ export const useLocationDensity = (filters: DensityFilters = {}) => {
           table: 'user_locations',
         },
         () => {
-          console.log('New location added, refreshing density data');
-          loadDensityData();
+          // Debounce to prevent rapid re-fetching
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            console.log('New location added, refreshing density data');
+            loadDensityData();
+          }, 2000);
         }
       )
       .subscribe();
 
     return () => {
+      clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
-  }, [filters.timeFilter, filters.hourOfDay, filters.dayOfWeek]);
+  }, [loadDensityData]);
 
   return { densityData, loading, error, refresh: loadDensityData };
 };
