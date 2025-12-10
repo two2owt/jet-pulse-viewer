@@ -22,11 +22,22 @@ All colors MUST be HSL.
     --map-ui-inset-left: max(0.375rem, calc(var(--safe-area-inset-left) + 0.25rem));
     
     /* Map control panel max width for responsive layouts - smaller on mobile */
-    --map-control-max-width: min(220px, calc(100vw - 4rem));
+    --map-control-max-width: min(200px, calc(100vw - 3rem));
     
-    /* Touch-friendly sizing for mobile controls */
+    /* Touch-friendly sizing for mobile controls - based on device specs */
     --touch-target-min: 44px;
+    --touch-target-comfortable: 48px;
     --control-compact-padding: 0.375rem;
+    
+    /* Venue marker sizing - adapts to device pixel ratio */
+    --venue-marker-base: clamp(28px, 8vw, 40px);
+    --venue-marker-active: clamp(32px, 9vw, 48px);
+    --venue-marker-icon: clamp(14px, 4vw, 20px);
+    
+    /* Map button sizing for touch targets */
+    --map-btn-sm: clamp(28px, 7vw, 32px);
+    --map-btn-md: clamp(32px, 8vw, 40px);
+    --map-btn-lg: clamp(40px, 10vw, 48px);
     
     /* Fluid spacing system - adapts to viewport */
     --space-xs: clamp(0.25rem, 0.5vw, 0.5rem);
@@ -193,6 +204,22 @@ All colors MUST be HSL.
   }
 }
 
+/* Ultra-small mobile devices (iPhone SE, small Android phones) */
+@media (max-width: 375px) {
+  :root {
+    --map-ui-inset-top: max(0.375rem, calc(var(--safe-area-inset-top) + 0.125rem));
+    --map-ui-inset-right: max(0.25rem, calc(var(--safe-area-inset-right) + 0.125rem));
+    --map-ui-inset-bottom: max(0.25rem, calc(var(--safe-area-inset-bottom) + 0.125rem));
+    --map-ui-inset-left: max(0.25rem, calc(var(--safe-area-inset-left) + 0.125rem));
+    --map-control-max-width: min(180px, calc(100vw - 2.5rem));
+    --venue-marker-base: 26px;
+    --venue-marker-active: 30px;
+    --venue-marker-icon: 12px;
+    --map-btn-sm: 26px;
+    --map-btn-md: 30px;
+  }
+}
+
 /* Responsive map UI spacing - tablet */
 @media (min-width: 640px) {
   :root {
@@ -200,7 +227,12 @@ All colors MUST be HSL.
     --map-ui-inset-right: max(0.75rem, calc(var(--safe-area-inset-right) + 0.5rem));
     --map-ui-inset-bottom: max(0.75rem, calc(var(--safe-area-inset-bottom) + 0.5rem));
     --map-ui-inset-left: max(0.75rem, calc(var(--safe-area-inset-left) + 0.5rem));
-    --map-control-max-width: 280px;
+    --map-control-max-width: 260px;
+    --venue-marker-base: 36px;
+    --venue-marker-active: 44px;
+    --venue-marker-icon: 18px;
+    --map-btn-sm: 32px;
+    --map-btn-md: 38px;
   }
 }
 
@@ -211,7 +243,10 @@ All colors MUST be HSL.
     --map-ui-inset-right: max(1rem, calc(var(--safe-area-inset-right) + 0.75rem));
     --map-ui-inset-bottom: max(1rem, calc(var(--safe-area-inset-bottom) + 0.75rem));
     --map-ui-inset-left: max(1rem, calc(var(--safe-area-inset-left) + 0.75rem));
-    --map-control-max-width: 320px;
+    --map-control-max-width: 300px;
+    --venue-marker-base: 40px;
+    --venue-marker-active: 48px;
+    --venue-marker-icon: 20px;
   }
 }
 
@@ -223,6 +258,15 @@ All colors MUST be HSL.
     --map-ui-inset-bottom: max(1.25rem, calc(var(--safe-area-inset-bottom) + 1rem));
     --map-ui-inset-left: max(1.25rem, calc(var(--safe-area-inset-left) + 1rem));
     --map-control-max-width: 340px;
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1280px) {
+  :root {
+    --map-control-max-width: 380px;
+    --venue-marker-base: 44px;
+    --venue-marker-active: 52px;
   }
 }
 
@@ -492,36 +536,72 @@ All colors MUST be HSL.
   
   /* Deal marker animations - removed */
 
+  /* Mobile map controls - responsive based on device */
+  .mapboxgl-ctrl-group {
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    overflow: hidden;
+  }
   
-  /* Mobile map controls - smaller for phone view */
-  @media (max-width: 768px) {
+  .mapboxgl-ctrl-group button {
+    width: var(--map-btn-md) !important;
+    height: var(--map-btn-md) !important;
+  }
+  
+  .mapboxgl-ctrl-geolocate {
+    width: var(--map-btn-md) !important;
+    height: var(--map-btn-md) !important;
+  }
+  
+  /* Ultra-small screens (iPhone SE, small Android) */
+  @media (max-width: 360px) {
     .mapboxgl-ctrl-group {
-      transform: scale(0.75);
+      transform: scale(0.85);
       transform-origin: top right;
     }
     
-    .mapboxgl-ctrl-compass {
-      width: 24px !important;
-      height: 24px !important;
-    }
-    
-    .mapboxgl-ctrl-zoom-in,
-    .mapboxgl-ctrl-zoom-out {
-      width: 24px !important;
-      height: 24px !important;
-      line-height: 24px !important;
-    }
-    
-    .mapboxgl-ctrl-geolocate {
-      width: 24px !important;
-      height: 24px !important;
+    .mapboxgl-ctrl-group button {
+      width: 28px !important;
+      height: 28px !important;
     }
   }
   
-  /* Device-specific adjustments for ultra-small screens */
-  @media (max-width: 360px) {
+  /* Small mobile (most phones) */
+  @media (min-width: 361px) and (max-width: 480px) {
+    .mapboxgl-ctrl-group button {
+      width: 32px !important;
+      height: 32px !important;
+    }
+  }
+  
+  /* Large phones and phablets */
+  @media (min-width: 481px) and (max-width: 640px) {
+    .mapboxgl-ctrl-group button {
+      width: 36px !important;
+      height: 36px !important;
+    }
+  }
+  
+  /* Tablets */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .mapboxgl-ctrl-group button {
+      width: 40px !important;
+      height: 40px !important;
+    }
+  }
+  
+  /* Desktop */
+  @media (min-width: 1025px) {
+    .mapboxgl-ctrl-group button {
+      width: 44px !important;
+      height: 44px !important;
+    }
+  }
+  
+  /* High DPI displays - ensure crisp rendering */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
     .mapboxgl-ctrl-group {
-      transform: scale(0.65);
+      border-width: 0.5px !important;
     }
   }
 
