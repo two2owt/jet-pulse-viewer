@@ -13,20 +13,22 @@
     <link rel="icon" type="image/x-icon" href="https://storage.googleapis.com/gpt-engineer-file-uploads/VEstUAuq09PlUHZ9f7uy5tQrH263/uploads/1765238770676-JET (Website) (2).png">
     <link rel="manifest" href="/manifest.webmanifest" />
     
-    <!-- Resource hints for performance -->
+    <!-- Resource hints for performance - prioritized -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://zbrscuoqmkdbmdimdnqu.supabase.co">
+    <link rel="preconnect" href="https://zbrscuoqmkdbmdimdnqu.supabase.co">
     <link rel="preconnect" href="https://api.mapbox.com">
-    <link rel="dns-prefetch" href="https://api.mapbox.com">
     
-    <!-- Preload critical assets -->
-    <link rel="preload" href="/src/assets/jet-logo.webp" as="image" type="image/webp">
+    <!-- Preload critical LCP image with high priority -->
+    <link rel="preload" href="/src/assets/jet-logo.webp" as="image" type="image/webp" fetchpriority="high">
     
-    <!-- Mapbox GL CSS - ensure it loads on mobile -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" rel="stylesheet" />
+    <!-- Defer non-critical Mapbox CSS - load async -->
+    <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" rel="stylesheet"></noscript>
     
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Fonts with display=swap for better LCP -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
     
     <!-- Mixpanel Analytics -->
     <script type="text/javascript">

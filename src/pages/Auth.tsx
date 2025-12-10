@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { Footer } from "@/components/Footer";
-import jetLogo from "@/assets/jet-auth-logo.png";
+// Use optimized WebP format for auth logo
+import jetLogo from "@/assets/jet-logo.webp";
 import authBackground from "@/assets/auth-background.webp";
 
 // Enhanced validation schemas
@@ -392,7 +393,15 @@ const Auth = () => {
           {/* Header */}
           <div className="text-center space-y-3">
             <div className="w-24 h-24 flex items-center justify-center mx-auto">
-              <img src={jetLogo} alt="JET Logo" className="w-full h-full object-contain drop-shadow-lg" />
+              <img 
+                src={jetLogo} 
+                alt="JET Logo" 
+                className="w-full h-full object-contain drop-shadow-lg"
+                width="96"
+                height="96"
+                fetchPriority="high"
+                decoding="async"
+              />
             </div>
             <h1 className="text-3xl font-bold text-foreground drop-shadow-sm">Welcome to JET</h1>
             <p className="text-muted-foreground">
