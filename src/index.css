@@ -611,4 +611,137 @@ All colors MUST be HSL.
       opacity: 0.7;
     }
   }
+
+  /* Cloud/fog flying through animation for sync indicator */
+  @keyframes cloud-drift-left {
+    0% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.8;
+    }
+    90% {
+      opacity: 0.8;
+    }
+    100% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes cloud-drift-right {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.6;
+    }
+    90% {
+      opacity: 0.6;
+    }
+    100% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes cloud-float {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: translateY(-2px) scale(1.05);
+      opacity: 0.9;
+    }
+  }
+
+  @keyframes sync-glow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 8px hsl(var(--primary) / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 16px hsl(var(--primary) / 0.6);
+    }
+  }
+
+  .sync-cloud-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 9999px;
+  }
+
+  .sync-cloud-container.syncing {
+    animation: sync-glow-pulse 1.5s ease-in-out infinite;
+  }
+
+  .sync-cloud {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .sync-cloud::before,
+  .sync-cloud::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(4px);
+  }
+
+  .sync-cloud::before {
+    width: 120%;
+    height: 60%;
+    top: 20%;
+    background: radial-gradient(ellipse, hsl(var(--foreground) / 0.15) 0%, transparent 70%);
+    animation: cloud-drift-left 2s ease-in-out infinite;
+  }
+
+  .sync-cloud::after {
+    width: 80%;
+    height: 50%;
+    top: 30%;
+    background: radial-gradient(ellipse, hsl(var(--foreground) / 0.1) 0%, transparent 60%);
+    animation: cloud-drift-right 2.5s ease-in-out infinite 0.3s;
+  }
+
+  .sync-cloud-wisps {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .sync-cloud-wisps::before {
+    content: '';
+    position: absolute;
+    width: 60%;
+    height: 40%;
+    top: 30%;
+    left: 20%;
+    background: radial-gradient(ellipse, hsl(var(--muted-foreground) / 0.2) 0%, transparent 50%);
+    animation: cloud-float 3s ease-in-out infinite;
+    filter: blur(3px);
+  }
+
+  .sync-success-flash {
+    animation: success-flash 0.5s ease-out forwards;
+  }
+
+  @keyframes success-flash {
+    0% {
+      background: hsl(var(--primary) / 0.3);
+      transform: scale(1);
+    }
+    50% {
+      background: hsl(142 76% 45% / 0.4);
+      transform: scale(1.1);
+    }
+    100% {
+      background: transparent;
+      transform: scale(1);
+    }
+  }
 }

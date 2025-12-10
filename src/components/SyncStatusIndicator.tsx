@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { RefreshCw, Check, Wifi, WifiOff } from "lucide-react";
+import { RefreshCw, Check, Wifi, WifiOff, Cloud } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
@@ -20,8 +20,10 @@ export const SyncStatusIndicator = ({
 }: SyncStatusIndicatorProps) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [timeSinceUpdate, setTimeSinceUpdate] = useState<string>("");
+  const [showSuccessFlash, setShowSuccessFlash] = useState(false);
   const wasOfflineRef = useRef(false);
   const previousLoadingRef = useRef(isLoading);
+  const wasReconnectSyncRef = useRef(false);
 
   useEffect(() => {
     const handleOnline = () => {
@@ -31,7 +33,7 @@ export const SyncStatusIndicator = ({
           title: "Back online",
           description: "Syncing your data...",
         });
-        // Trigger refresh when coming back online
+        wasReconnectSyncRef.current = true;
         onRefresh?.();
       }
       wasOfflineRef.current = false;
@@ -56,11 +58,18 @@ export const SyncStatusIndicator = ({
     };
   }, [onRefresh]);
 
-  // Show toast when sync completes after being offline
+  // Show success flash and toast when sync completes after reconnecting
   useEffect(() => {
-    if (previousLoadingRef.current && !isLoading && isOnline && wasOfflineRef.current === false) {
-      // Only show if we just finished syncing after coming back online
-      const wasJustOffline = !previousLoadingRef.current;
+    if (previousLoadingRef.current && !isLoading && isOnline && wasReconnectSyncRef.current) {
+      setShowSuccessFlash(true);
+      toast({
+        title: "Data synced",
+        description: "Your data is now up to date",
+      });
+      wasReconnectSyncRef.current = false;
+      
+      const timer = setTimeout(() => setShowSuccessFlash(false), 500);
+      return () => clearTimeout(timer);
     }
     previousLoadingRef.current = isLoading;
   }, [isLoading, isOnline]);
@@ -92,7 +101,7 @@ export const SyncStatusIndicator = ({
     };
 
     updateTimeString();
-    const interval = setInterval(updateTimeString, 10000); // Update every 10 seconds
+    const interval = setInterval(updateTimeString, 10000);
 
     return () => clearInterval(interval);
   }, [lastUpdated]);
@@ -104,7 +113,7 @@ export const SyncStatusIndicator = ({
         className
       )}
     >
-      {/* Online/Offline Status */}
+      {/* Offline Status */}
       {!isOnline && (
         <div className="flex items-center gap-1 text-destructive">
           <WifiOff className="h-3 w-3" />
@@ -112,17 +121,35 @@ export const SyncStatusIndicator = ({
         </div>
       )}
 
-      {/* Syncing Indicator */}
+      {/* Syncing Indicator with Cloud Animation */}
       {isLoading && isOnline && (
-        <div className="flex items-center gap-1 text-primary">
-          <RefreshCw className="h-3 w-3 animate-spin" />
-          <span>Syncing...</span>
+        <div 
+          className={cn(
+            "sync-cloud-container syncing",
+            "flex items-center gap-1.5 px-2 py-1 bg-card/50 backdrop-blur-sm rounded-full border border-border/30"
+          )}
+        >
+          {/* Cloud fog layers */}
+          <div className="sync-cloud" />
+          <div className="sync-cloud-wisps" />
+          
+          {/* Content */}
+          <div className="relative flex items-center gap-1 text-primary z-10">
+            <Cloud className="h-3 w-3 animate-pulse" />
+            <RefreshCw className="h-2.5 w-2.5 animate-spin" />
+            <span className="font-medium">Flying through clouds...</span>
+          </div>
         </div>
       )}
 
       {/* Synced Status with Timestamp */}
       {!isLoading && isOnline && (
-        <div className="flex items-center gap-1">
+        <div 
+          className={cn(
+            "flex items-center gap-1 px-2 py-1 rounded-full transition-all duration-300",
+            showSuccessFlash && "sync-success-flash"
+          )}
+        >
           <Check className="h-3 w-3 text-emerald-500" />
           {showTimestamp && timeSinceUpdate && (
             <span className="opacity-70">{timeSinceUpdate}</span>
