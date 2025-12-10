@@ -693,6 +693,42 @@ All colors MUST be HSL.
     filter: drop-shadow(0 1px 2px hsl(var(--primary) / 0.5));
   }
 
+  @keyframes contrail-fade {
+    0% {
+      opacity: 0.7;
+      transform: scaleX(0.3) translateX(0);
+    }
+    50% {
+      opacity: 0.4;
+    }
+    100% {
+      opacity: 0;
+      transform: scaleX(1.5) translateX(-8px);
+    }
+  }
+
+  .sync-contrail {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    height: 1px;
+    width: 12px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.6));
+    transform-origin: right center;
+    animation: contrail-fade 1s ease-out infinite;
+    border-radius: 1px;
+  }
+
+  .sync-contrail-1 {
+    top: 35%;
+    animation-delay: 0s;
+  }
+
+  .sync-contrail-2 {
+    top: 65%;
+    animation-delay: 0.1s;
+  }
+
   @keyframes cloud-float {
     0%, 100% {
       transform: translateY(0) scale(1);

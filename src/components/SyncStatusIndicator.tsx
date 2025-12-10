@@ -133,11 +133,16 @@ export const SyncStatusIndicator = ({
           <div className="sync-cloud" />
           <div className="sync-cloud-wisps" />
           
-          {/* Content with airplane */}
+          {/* Content with airplane and contrails */}
           <div className="relative flex items-center gap-1.5 text-primary z-10">
             <div className="relative">
               <Cloud className="h-3.5 w-3.5 opacity-60" />
-              <Plane className="sync-airplane absolute -top-0.5 -right-0.5 h-2.5 w-2.5 text-primary-foreground fill-primary" />
+              <div className="absolute -top-0.5 -right-0.5">
+                <Plane className="sync-airplane h-2.5 w-2.5 text-primary-foreground fill-primary relative z-10" />
+                {/* Contrails */}
+                <span className="sync-contrail sync-contrail-1" />
+                <span className="sync-contrail sync-contrail-2" />
+              </div>
             </div>
             <span className="font-medium">Flying through clouds...</span>
           </div>
