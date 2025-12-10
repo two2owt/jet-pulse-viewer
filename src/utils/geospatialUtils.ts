@@ -74,11 +74,12 @@ export function getDynamicRadius(neighborhoodName?: string): number {
 }
 
 /**
- * Format distance for display
+ * Format distance for display (in miles)
  */
 export function formatDistance(distanceKm: number): string {
-  if (distanceKm < 1) {
-    return `${Math.round(distanceKm * 1000)}m away`;
+  const distanceMiles = distanceKm * 0.621371;
+  if (distanceMiles < 0.1) {
+    return `${Math.round(distanceMiles * 5280)}ft away`;
   }
-  return `${distanceKm.toFixed(1)}km away`;
+  return `${distanceMiles.toFixed(1)}mi away`;
 }
