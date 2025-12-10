@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { RefreshCw, Check, Wifi, WifiOff, Cloud } from "lucide-react";
+import { RefreshCw, Check, WifiOff, Cloud, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
@@ -133,10 +133,12 @@ export const SyncStatusIndicator = ({
           <div className="sync-cloud" />
           <div className="sync-cloud-wisps" />
           
-          {/* Content */}
-          <div className="relative flex items-center gap-1 text-primary z-10">
-            <Cloud className="h-3 w-3 animate-pulse" />
-            <RefreshCw className="h-2.5 w-2.5 animate-spin" />
+          {/* Content with airplane */}
+          <div className="relative flex items-center gap-1.5 text-primary z-10">
+            <div className="relative">
+              <Cloud className="h-3.5 w-3.5 opacity-60" />
+              <Plane className="sync-airplane absolute -top-0.5 -right-0.5 h-2.5 w-2.5 text-primary-foreground fill-primary" />
+            </div>
             <span className="font-medium">Flying through clouds...</span>
           </div>
         </div>
