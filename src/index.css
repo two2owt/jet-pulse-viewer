@@ -15,10 +15,14 @@ All colors MUST be HSL.
     --safe-area-inset-left: env(safe-area-inset-left, 0px);
     
     /* Adaptive map UI spacing - device-aware with safe area consideration */
-    --map-ui-inset-top: max(1rem, calc(var(--safe-area-inset-top) + 0.75rem));
-    --map-ui-inset-right: max(0.75rem, calc(var(--safe-area-inset-right) + 0.5rem));
-    --map-ui-inset-bottom: max(0.75rem, calc(var(--safe-area-inset-bottom) + 0.5rem));
-    --map-ui-inset-left: max(0.75rem, calc(var(--safe-area-inset-left) + 0.5rem));
+    /* Mobile (default) */
+    --map-ui-inset-top: max(0.75rem, calc(var(--safe-area-inset-top) + 0.5rem));
+    --map-ui-inset-right: max(0.5rem, calc(var(--safe-area-inset-right) + 0.5rem));
+    --map-ui-inset-bottom: max(0.5rem, calc(var(--safe-area-inset-bottom) + 0.5rem));
+    --map-ui-inset-left: max(0.5rem, calc(var(--safe-area-inset-left) + 0.5rem));
+    
+    /* Map control panel max width for responsive layouts */
+    --map-control-max-width: min(280px, calc(100vw - 5rem));
     
     /* Fluid spacing system - adapts to viewport */
     --space-xs: clamp(0.25rem, 0.5vw, 0.5rem);
@@ -182,6 +186,39 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 0 0% 10%;
     --sidebar-border: 0 0% 88%;
     --sidebar-ring: 24 100% 50%;
+  }
+}
+
+/* Responsive map UI spacing - tablet */
+@media (min-width: 640px) {
+  :root {
+    --map-ui-inset-top: max(1rem, calc(var(--safe-area-inset-top) + 0.75rem));
+    --map-ui-inset-right: max(0.75rem, calc(var(--safe-area-inset-right) + 0.5rem));
+    --map-ui-inset-bottom: max(0.75rem, calc(var(--safe-area-inset-bottom) + 0.5rem));
+    --map-ui-inset-left: max(0.75rem, calc(var(--safe-area-inset-left) + 0.5rem));
+    --map-control-max-width: 280px;
+  }
+}
+
+/* Responsive map UI spacing - tablet landscape / small desktop */
+@media (min-width: 768px) {
+  :root {
+    --map-ui-inset-top: max(1.25rem, calc(var(--safe-area-inset-top) + 1rem));
+    --map-ui-inset-right: max(1rem, calc(var(--safe-area-inset-right) + 0.75rem));
+    --map-ui-inset-bottom: max(1rem, calc(var(--safe-area-inset-bottom) + 0.75rem));
+    --map-ui-inset-left: max(1rem, calc(var(--safe-area-inset-left) + 0.75rem));
+    --map-control-max-width: 320px;
+  }
+}
+
+/* Responsive map UI spacing - desktop */
+@media (min-width: 1024px) {
+  :root {
+    --map-ui-inset-top: max(1.5rem, calc(var(--safe-area-inset-top) + 1.25rem));
+    --map-ui-inset-right: max(1.25rem, calc(var(--safe-area-inset-right) + 1rem));
+    --map-ui-inset-bottom: max(1.25rem, calc(var(--safe-area-inset-bottom) + 1rem));
+    --map-ui-inset-left: max(1.25rem, calc(var(--safe-area-inset-left) + 1rem));
+    --map-control-max-width: 340px;
   }
 }
 

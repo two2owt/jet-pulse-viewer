@@ -1327,14 +1327,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         }} 
       />
 
-      {/* City Selector with Current Location option */}
+      {/* City Selector with Current Location option - responsive for all devices */}
       <div 
-        className={`absolute z-10 max-w-[calc(100vw-120px)] sm:max-w-[280px] transition-all duration-500 ease-out ${
+        className={`absolute z-10 transition-all duration-500 ease-out ${
           mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
         }`}
         style={{
           top: 'var(--map-ui-inset-top)',
           left: 'var(--map-ui-inset-left)',
+          maxWidth: 'var(--map-control-max-width)',
         }}
       >
         <Select
@@ -1372,10 +1373,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             }
           }}
         >
-          <SelectTrigger className="w-auto text-xs sm:text-sm">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-              <span className="font-semibold">
+          <SelectTrigger className="w-auto text-[10px] sm:text-xs md:text-sm h-8 sm:h-9 md:h-10">
+            <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
+              <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-primary flex-shrink-0" />
+              <span className="font-semibold truncate">
                 {isUsingCurrentLocation 
                   ? (detectedCity ? `${detectedCity.name}, ${detectedCity.state}` : "Locating...") 
                   : `${selectedCity.name}, ${selectedCity.state}`}
@@ -1430,14 +1431,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </div>
       </div>
 
-      {/* Map Controls - Top left below city selector, collapsible on mobile */}
+      {/* Map Controls - Top left below city selector, collapsible on mobile/tablet */}
       <div 
-        className={`absolute z-10 space-y-2 transition-all duration-500 ease-out delay-150 ${
+        className={`absolute z-10 space-y-1.5 sm:space-y-2 transition-all duration-500 ease-out delay-150 ${
           mapLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
         }`}
         style={{
-          top: 'calc(var(--map-ui-inset-top) + 3rem)',
+          top: 'calc(var(--map-ui-inset-top) + 2.5rem)',
           left: 'var(--map-ui-inset-left)',
+          maxWidth: 'var(--map-control-max-width)',
         }}
       >
         <Collapsible defaultOpen={!isMobile}>
@@ -1445,21 +1447,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             <Button
               variant="secondary"
               size="sm"
-              className="bg-card/95 backdrop-blur-xl border border-border text-xs shadow-lg h-8 sm:h-9 px-2 sm:px-3"
+              className="bg-card/95 backdrop-blur-xl border border-border text-[9px] sm:text-[10px] md:text-xs shadow-lg h-7 sm:h-8 md:h-9 px-1.5 sm:px-2 md:px-3"
             >
-              <Layers className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-0.5 sm:mr-1" />
               <span className="hidden sm:inline">Map Style</span>
               <span className="sm:hidden">Style</span>
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="mt-2">
-            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2 max-w-[160px] sm:max-w-[200px]">
-              <div className="grid grid-cols-2 gap-1.5">
+          <CollapsibleContent className="mt-1.5 sm:mt-2">
+            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-1.5 sm:p-2 shadow-lg space-y-1.5 sm:space-y-2">
+              <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                 <Button
                   onClick={() => setMapStyle('dark')}
                   variant={mapStyle === 'dark' ? "default" : "outline"}
                   size="sm"
-                  className="h-7 text-[10px] sm:text-xs px-2"
+                  className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
                 >
                   Dark
                 </Button>
@@ -1467,7 +1469,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   onClick={() => setMapStyle('light')}
                   variant={mapStyle === 'light' ? "default" : "outline"}
                   size="sm"
-                  className="h-7 text-[10px] sm:text-xs px-2"
+                  className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
                 >
                   Light
                 </Button>
@@ -1475,7 +1477,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   onClick={() => setMapStyle('satellite')}
                   variant={mapStyle === 'satellite' ? "default" : "outline"}
                   size="sm"
-                  className="h-7 text-[10px] sm:text-xs px-2"
+                  className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
                 >
                   Satellite
                 </Button>
@@ -1483,7 +1485,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   onClick={() => setMapStyle('streets')}
                   variant={mapStyle === 'streets' ? "default" : "outline"}
                   size="sm"
-                  className="h-7 text-[10px] sm:text-xs px-2"
+                  className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
                 >
                   Streets
                 </Button>
@@ -1493,7 +1495,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 onClick={() => setShow3DTerrain(!show3DTerrain)}
                 variant={show3DTerrain ? "default" : "outline"}
                 size="sm"
-                className="w-full h-7 text-[10px] sm:text-xs mt-1"
+                className="w-full h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs mt-1"
               >
                 {show3DTerrain ? "Disable" : "Enable"} 3D
               </Button>
@@ -1502,14 +1504,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Collapsible>
       </div>
 
-      {/* Density Layer Controls - Bottom right, offset from Mapbox controls */}
+      {/* Density Layer Controls - Bottom right, responsive for all devices */}
       <div 
-        className={`absolute z-10 space-y-2 max-w-[calc(100vw-80px)] sm:max-w-[280px] transition-all duration-500 ease-out delay-200 ${
+        className={`absolute z-10 space-y-2 transition-all duration-500 ease-out delay-200 ${
           mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         }`}
         style={{
           bottom: 'var(--map-ui-inset-bottom)',
           right: 'var(--map-ui-inset-right)',
+          maxWidth: 'var(--map-control-max-width)',
+          width: '100%',
         }}
       >
         <Button
@@ -1533,7 +1537,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Button>
 
         {showDensityLayer && (
-          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-3 sm:p-4 space-y-2 shadow-lg animate-scale-in">
+          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2.5 sm:p-3 md:p-4 space-y-2 shadow-lg animate-scale-in">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-semibold text-foreground">Heat Filters</p>
               {(densityLoading || timelapse.loading) && (
@@ -1788,7 +1792,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Button>
 
         {showMovementPaths && (
-          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-3 sm:p-4 space-y-2 shadow-lg animate-scale-in">
+          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2.5 sm:p-3 md:p-4 space-y-2 shadow-lg animate-scale-in">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-semibold text-foreground">Path Filters</p>
               {pathsLoading && (
@@ -1859,25 +1863,26 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         )}
       </div>
 
-      {/* Enhanced Legend - Bottom left, compact on mobile */}
+      {/* Enhanced Legend - Bottom left, responsive for all devices */}
       <div 
-        className={`absolute bg-card/95 backdrop-blur-xl px-2 py-1.5 sm:px-4 sm:py-3 rounded-xl border border-border z-10 shadow-lg max-w-[140px] sm:max-w-none transition-all duration-500 ease-out delay-250 ${
+        className={`absolute bg-card/95 backdrop-blur-xl px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-3 rounded-xl border border-border z-10 shadow-lg transition-all duration-500 ease-out delay-250 ${
           mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         }`}
         style={{
           bottom: 'var(--map-ui-inset-bottom)',
           left: 'var(--map-ui-inset-left)',
+          maxWidth: 'var(--map-control-max-width)',
         }}
       >
         {showMovementPaths ? (
           <>
-            <p className="text-[10px] sm:text-xs font-semibold text-foreground mb-1.5 sm:mb-2">User Flow Paths</p>
+            <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-foreground mb-1.5 sm:mb-2">User Flow Paths</p>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
-              <div className="w-24 sm:w-32 h-4 sm:h-5 rounded-md shadow-inner" style={{
+              <div className="w-20 sm:w-24 md:w-32 h-3.5 sm:h-4 md:h-5 rounded-md shadow-inner" style={{
                 background: 'linear-gradient(to right, rgb(100, 200, 255), rgb(0, 255, 255), rgb(255, 200, 0), rgb(255, 100, 0), rgb(255, 0, 100))',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
               }} />
-              <div className="flex justify-between w-full text-[10px] sm:text-xs text-muted-foreground font-medium">
+              <div className="flex justify-between w-full text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium">
                 <span>Less Traffic</span>
                 <span>High Traffic</span>
               </div>
@@ -1885,23 +1890,23 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </>
         ) : showDensityLayer ? (
           <>
-            <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-              <p className="text-[10px] sm:text-xs font-semibold text-foreground">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+              <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-foreground">
                 {timelapseMode ? 'Time-lapse' : 'User Density Heatmap'}
               </p>
               {timelapseMode && timelapse.isPlaying && (
                 <div className="flex items-center gap-1">
                   <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-                  <span className="text-[10px] text-primary font-medium">{timelapse.formatHour(timelapse.currentHour)}</span>
+                  <span className="text-[9px] sm:text-[10px] text-primary font-medium">{timelapse.formatHour(timelapse.currentHour)}</span>
                 </div>
               )}
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
-              <div className="w-24 sm:w-32 h-4 sm:h-5 rounded-md shadow-inner" style={{
+              <div className="w-20 sm:w-24 md:w-32 h-3.5 sm:h-4 md:h-5 rounded-md shadow-inner" style={{
                 background: 'linear-gradient(to right, rgba(65, 105, 225, 0.8), rgb(0, 255, 127), rgb(255, 255, 0), rgb(255, 165, 0), rgb(255, 0, 0), rgb(139, 0, 0))',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
               }} />
-              <div className="flex justify-between w-full text-[10px] sm:text-xs text-muted-foreground font-medium">
+              <div className="flex justify-between w-full text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium">
                 <span>Low</span>
                 <span>Medium</span>
                 <span>High</span>
@@ -1910,19 +1915,19 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </>
         ) : (
           <>
-            <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground mb-1.5 sm:mb-2">Activity Level</p>
-            <div className="flex gap-2 sm:gap-3 flex-wrap">
+            <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-muted-foreground mb-1 sm:mb-1.5 md:mb-2">Activity Level</p>
+            <div className="flex gap-1.5 sm:gap-2 md:gap-3 flex-wrap">
               <div className="flex items-center gap-1 sm:gap-1.5">
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-hot rounded-full" />
-                <span className="text-[10px] sm:text-xs text-foreground">Hot</span>
+                <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-hot rounded-full" />
+                <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Hot</span>
               </div>
               <div className="flex items-center gap-1 sm:gap-1.5">
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-warm rounded-full" />
-                <span className="text-[10px] sm:text-xs text-foreground">Warm</span>
+                <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-warm rounded-full" />
+                <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Warm</span>
               </div>
               <div className="flex items-center gap-1 sm:gap-1.5">
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-cool rounded-full" />
-                <span className="text-[10px] sm:text-xs text-foreground">Cool</span>
+                <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-cool rounded-full" />
+                <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Cool</span>
               </div>
             </div>
           </>
