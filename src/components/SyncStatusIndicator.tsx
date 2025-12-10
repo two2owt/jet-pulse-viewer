@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RefreshCw, Check, Wifi, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 interface SyncStatusIndicatorProps {
   isLoading?: boolean;
@@ -19,10 +20,32 @@ export const SyncStatusIndicator = ({
 }: SyncStatusIndicatorProps) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [timeSinceUpdate, setTimeSinceUpdate] = useState<string>("");
+  const wasOfflineRef = useRef(false);
+  const previousLoadingRef = useRef(isLoading);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (wasOfflineRef.current) {
+        toast({
+          title: "Back online",
+          description: "Syncing your data...",
+        });
+        // Trigger refresh when coming back online
+        onRefresh?.();
+      }
+      wasOfflineRef.current = false;
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      wasOfflineRef.current = true;
+      toast({
+        title: "You're offline",
+        description: "Some features may be unavailable",
+        variant: "destructive",
+      });
+    };
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
@@ -31,7 +54,16 @@ export const SyncStatusIndicator = ({
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
+  }, [onRefresh]);
+
+  // Show toast when sync completes after being offline
+  useEffect(() => {
+    if (previousLoadingRef.current && !isLoading && isOnline && wasOfflineRef.current === false) {
+      // Only show if we just finished syncing after coming back online
+      const wasJustOffline = !previousLoadingRef.current;
+    }
+    previousLoadingRef.current = isLoading;
+  }, [isLoading, isOnline]);
 
   useEffect(() => {
     if (!lastUpdated) {
