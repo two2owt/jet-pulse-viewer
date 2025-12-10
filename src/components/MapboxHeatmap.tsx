@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { MapPin, TrendingUp, Layers, X, AlertCircle, Route, Play, Pause, SkipBack, SkipForward, Clock } from "lucide-react";
+import { MapPin, TrendingUp, Layers, X, AlertCircle, Route, Play, Pause, SkipBack, SkipForward, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocationDensity } from "@/hooks/useLocationDensity";
 import { useMovementPaths } from "@/hooks/useMovementPaths";
@@ -10,6 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { TimelapseSwipeControl } from "./TimelapseSwipeControl";
 import { CITIES, type City, getDistanceKm } from "@/types/cities";
 
 // Venue type definition
@@ -1529,45 +1530,37 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           }}
           variant={showDensityLayer ? "default" : "secondary"}
           size="sm"
-          className="bg-card/95 backdrop-blur-xl border border-border text-xs sm:text-sm shadow-lg w-full animate-fade-in"
+          className="bg-card/95 backdrop-blur-xl border border-border text-[10px] sm:text-xs shadow-lg w-full animate-fade-in h-7 sm:h-8"
         >
-          <Layers className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-          <span className="hidden sm:inline">{showDensityLayer ? "Hide" : "Show"} Heat Layer</span>
-          <span className="sm:hidden">Heat</span>
+          <Layers className="w-3 h-3 mr-1" />
+          <span>{showDensityLayer ? "Hide" : "Show"} Heat</span>
         </Button>
 
         {showDensityLayer && (
-          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2.5 sm:p-3 md:p-4 space-y-2 shadow-lg animate-scale-in">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-foreground">Heat Filters</p>
+          <div className="map-control-compact space-y-1.5 animate-scale-in">
+            <div className="control-header">
+              <span>Heat Filters</span>
               {(densityLoading || timelapse.loading) && (
-                <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="w-2.5 h-2.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               )}
             </div>
 
-            {/* Error UI */}
+            {/* Error UI - Compact */}
             {densityError && (
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-2 space-y-2">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-destructive" />
-                  <p className="text-xs text-destructive font-medium">Failed to load heat data</p>
-                </div>
-                <Button
-                  onClick={refreshDensity}
-                  variant="outline"
-                  size="sm"
-                  className="w-full h-7 text-xs border-destructive/30 hover:bg-destructive/20"
-                >
+              <div className="flex items-center gap-1.5 p-1.5 bg-destructive/10 rounded text-[9px]">
+                <AlertCircle className="w-3 h-3 text-destructive flex-shrink-0" />
+                <span className="text-destructive truncate">Load failed</span>
+                <Button onClick={refreshDensity} variant="ghost" size="sm" className="h-5 text-[9px] px-1.5 ml-auto">
                   Retry
                 </Button>
               </div>
             )}
 
             {/* Time-lapse Toggle */}
-            <div className="flex items-center justify-between p-2 bg-background/50 rounded-lg border border-border/50">
-              <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-medium">Time-lapse Mode</span>
+            <div className="flex items-center justify-between p-1.5 sm:p-2 bg-background/50 rounded-lg border border-border/50">
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3 h-3 text-primary" />
+                <span className="text-[10px] sm:text-xs font-medium">Time-lapse</span>
               </div>
               <Button
                 onClick={() => {
@@ -1579,284 +1572,252 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 }}
                 variant={timelapseMode ? "default" : "outline"}
                 size="sm"
-                className="h-6 text-[10px] px-2"
+                className="h-5 text-[9px] px-1.5"
               >
                 {timelapseMode ? "On" : "Off"}
               </Button>
             </div>
 
-            {/* Time-lapse Controls */}
+            {/* Compact Time-lapse Controls for Mobile */}
             {timelapseMode && (
-              <div className="space-y-3 p-2 bg-primary/5 rounded-lg border border-primary/20">
-                {/* Current time display */}
-                <div className="text-center">
-                  <p className="text-lg font-bold text-primary">{timelapse.formatHour(timelapse.currentHour)}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {timelapse.currentData 
-                      ? `${timelapse.currentData.stats.total_points.toLocaleString()} visits`
-                      : 'Loading...'}
-                  </p>
-                </div>
-
-                {/* Playback controls */}
-                <div className="flex items-center justify-center gap-2">
-                  <Button
-                    onClick={timelapse.stepBackward}
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    disabled={timelapse.loading}
-                  >
-                    <SkipBack className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    onClick={timelapse.togglePlay}
-                    variant="default"
-                    size="sm"
-                    className="h-10 w-10 p-0 rounded-full"
-                    disabled={timelapse.loading || timelapse.hourlyData.length === 0}
-                  >
-                    {timelapse.isPlaying ? (
-                      <Pause className="w-5 h-5" />
-                    ) : (
-                      <Play className="w-5 h-5 ml-0.5" />
-                    )}
-                  </Button>
-                  <Button
-                    onClick={timelapse.stepForward}
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    disabled={timelapse.loading}
-                  >
-                    <SkipForward className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {/* Hour slider */}
-                <div className="space-y-1">
-                  <input
-                    type="range"
-                    min="0"
-                    max="23"
-                    value={timelapse.currentHour}
-                    onChange={(e) => timelapse.setHour(parseInt(e.target.value))}
-                    className="w-full h-2 bg-background rounded-lg appearance-none cursor-pointer accent-primary"
-                    disabled={timelapse.loading}
+              <div className="space-y-1.5 p-1.5 sm:p-2 bg-primary/5 rounded-lg border border-primary/20">
+                {/* Mobile: Use swipe control */}
+                {isMobile ? (
+                  <TimelapseSwipeControl
+                    currentHour={timelapse.currentHour}
+                    isPlaying={timelapse.isPlaying}
+                    loading={timelapse.loading || timelapse.hourlyData.length === 0}
+                    onHourChange={timelapse.setHour}
+                    onTogglePlay={timelapse.togglePlay}
+                    formatHour={timelapse.formatHour}
+                    stats={timelapse.currentData?.stats}
                   />
-                  <div className="flex justify-between text-[10px] text-muted-foreground">
-                    <span>12 AM</span>
-                    <span>12 PM</span>
-                    <span>11 PM</span>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    {/* Desktop: Compact inline controls */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-bold text-primary">{timelapse.formatHour(timelapse.currentHour)}</span>
+                      <div className="flex items-center gap-1">
+                        <Button onClick={timelapse.stepBackward} variant="ghost" size="sm" className="h-6 w-6 p-0" disabled={timelapse.loading}>
+                          <SkipBack className="w-3 h-3" />
+                        </Button>
+                        <Button onClick={timelapse.togglePlay} variant="default" size="sm" className="h-7 w-7 p-0 rounded-full" disabled={timelapse.loading || timelapse.hourlyData.length === 0}>
+                          {timelapse.isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+                        </Button>
+                        <Button onClick={timelapse.stepForward} variant="ghost" size="sm" className="h-6 w-6 p-0" disabled={timelapse.loading}>
+                          <SkipForward className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Hour slider */}
+                    <input
+                      type="range"
+                      min="0"
+                      max="23"
+                      value={timelapse.currentHour}
+                      onChange={(e) => timelapse.setHour(parseInt(e.target.value))}
+                      className="w-full h-1.5 bg-background rounded-lg appearance-none cursor-pointer accent-primary"
+                      disabled={timelapse.loading}
+                    />
+                    <div className="flex justify-between text-[9px] text-muted-foreground">
+                      <span>12AM</span>
+                      <span>12PM</span>
+                      <span>11PM</span>
+                    </div>
 
-                {/* Speed control */}
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">Speed:</span>
-                  <div className="flex gap-1 flex-1">
-                    {[2, 1, 0.5].map((speed) => (
-                      <Button
-                        key={speed}
-                        onClick={() => timelapse.setSpeed(speed)}
-                        variant={timelapse.speed === speed ? "default" : "outline"}
-                        size="sm"
-                        className="h-6 flex-1 text-[10px] px-1"
-                      >
-                        {speed === 2 ? '0.5x' : speed === 1 ? '1x' : '2x'}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                    {/* Speed control */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[9px] text-muted-foreground">Speed:</span>
+                      <div className="flex gap-0.5 flex-1">
+                        {[2, 1, 0.5].map((speed) => (
+                          <Button
+                            key={speed}
+                            onClick={() => timelapse.setSpeed(speed)}
+                            variant={timelapse.speed === speed ? "default" : "outline"}
+                            size="sm"
+                            className="h-5 flex-1 text-[9px] px-1"
+                          >
+                            {speed === 2 ? '0.5x' : speed === 1 ? '1x' : '2x'}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {/* Loading indicator */}
                 {timelapse.loading && (
-                  <div className="flex items-center justify-center gap-2 p-2 bg-background/50 rounded">
-                    <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    <span className="text-xs text-muted-foreground">Loading hourly data...</span>
+                  <div className="flex items-center justify-center gap-1.5 py-1">
+                    <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <span className="text-[9px] text-muted-foreground">Loading...</span>
                   </div>
                 )}
 
                 {timelapse.error && (
-                  <div className="flex items-center gap-2 p-2 bg-destructive/10 rounded">
-                    <AlertCircle className="w-4 h-4 text-destructive" />
-                    <span className="text-xs text-destructive">{timelapse.error}</span>
+                  <div className="flex items-center gap-1.5 p-1.5 bg-destructive/10 rounded text-[9px]">
+                    <AlertCircle className="w-3 h-3 text-destructive" />
+                    <span className="text-destructive truncate">{timelapse.error}</span>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Regular filters (disabled in timelapse mode) */}
+            {/* Regular filters (disabled in timelapse mode) - Compact */}
             {!timelapseMode && (
-              <div className="space-y-2">
-                <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
-                  <SelectTrigger className="h-8 text-xs bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Time</SelectItem>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="this_week">This Week</SelectItem>
-                    <SelectItem value="this_hour">This Hour</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-1.5">
+                <div className="control-inline-row">
+                  <span className="control-inline-label">Time:</span>
+                  <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
+                    <SelectTrigger className="h-6 text-[10px] bg-background flex-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="this_week">Week</SelectItem>
+                      <SelectItem value="this_hour">Hour</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <Select
-                  value={hourFilter?.toString() || "all"}
-                  onValueChange={(v) => setHourFilter(v === "all" ? undefined : parseInt(v))}
-                >
-                  <SelectTrigger className="h-8 text-xs bg-background">
-                    <SelectValue placeholder="Hour of day" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Hours</SelectItem>
-                    {Array.from({ length: 24 }, (_, i) => (
-                      <SelectItem key={i} value={i.toString()}>
-                        {i}:00 - {i + 1}:00
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="control-inline-row">
+                  <span className="control-inline-label">Hour:</span>
+                  <Select value={hourFilter?.toString() || "all"} onValueChange={(v) => setHourFilter(v === "all" ? undefined : parseInt(v))}>
+                    <SelectTrigger className="h-6 text-[10px] bg-background flex-1">
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <SelectItem key={i} value={i.toString()}>{i}:00</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <Select
-                  value={dayFilter?.toString() || "all"}
-                  onValueChange={(v) => setDayFilter(v === "all" ? undefined : parseInt(v))}
-                >
-                  <SelectTrigger className="h-8 text-xs bg-background">
-                    <SelectValue placeholder="Day of week" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Days</SelectItem>
-                    <SelectItem value="0">Sunday</SelectItem>
-                    <SelectItem value="1">Monday</SelectItem>
-                    <SelectItem value="2">Tuesday</SelectItem>
-                    <SelectItem value="3">Wednesday</SelectItem>
-                    <SelectItem value="4">Thursday</SelectItem>
-                    <SelectItem value="5">Friday</SelectItem>
-                    <SelectItem value="6">Saturday</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="control-inline-row">
+                  <span className="control-inline-label">Day:</span>
+                  <Select value={dayFilter?.toString() || "all"} onValueChange={(v) => setDayFilter(v === "all" ? undefined : parseInt(v))}>
+                    <SelectTrigger className="h-6 text-[10px] bg-background flex-1">
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="0">Sun</SelectItem>
+                      <SelectItem value="1">Mon</SelectItem>
+                      <SelectItem value="2">Tue</SelectItem>
+                      <SelectItem value="3">Wed</SelectItem>
+                      <SelectItem value="4">Thu</SelectItem>
+                      <SelectItem value="5">Fri</SelectItem>
+                      <SelectItem value="6">Sat</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             )}
 
             {/* Day filter for timelapse mode */}
             {timelapseMode && (
-              <Select
-                value={dayFilter?.toString() || "all"}
-                onValueChange={(v) => {
+              <div className="control-inline-row">
+                <span className="control-inline-label">Day:</span>
+                <Select value={dayFilter?.toString() || "all"} onValueChange={(v) => {
                   setDayFilter(v === "all" ? undefined : parseInt(v));
-                  // Reload timelapse data with new day filter
                   setTimeout(() => timelapse.loadHourlyData(), 100);
-                }}
-              >
-                <SelectTrigger className="h-8 text-xs bg-background">
-                  <SelectValue placeholder="Filter by day" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Days</SelectItem>
-                  <SelectItem value="0">Sunday</SelectItem>
-                  <SelectItem value="1">Monday</SelectItem>
-                  <SelectItem value="2">Tuesday</SelectItem>
-                  <SelectItem value="3">Wednesday</SelectItem>
-                  <SelectItem value="4">Thursday</SelectItem>
-                  <SelectItem value="5">Friday</SelectItem>
-                  <SelectItem value="6">Saturday</SelectItem>
-                </SelectContent>
-              </Select>
+                }}>
+                  <SelectTrigger className="h-6 text-[10px] bg-background flex-1">
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="0">Sun</SelectItem>
+                    <SelectItem value="1">Mon</SelectItem>
+                    <SelectItem value="2">Tue</SelectItem>
+                    <SelectItem value="3">Wed</SelectItem>
+                    <SelectItem value="4">Thu</SelectItem>
+                    <SelectItem value="5">Fri</SelectItem>
+                    <SelectItem value="6">Sat</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             )}
 
-            {/* Stats (show appropriate data based on mode) */}
+            {/* Stats - single line */}
             {(timelapseMode ? timelapse.currentData : densityData) && (
-              <div className="pt-2 border-t border-border/50 space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  {(timelapseMode ? timelapse.currentData?.stats.total_points : densityData?.stats.total_points)?.toLocaleString()} visits
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Max density: {timelapseMode ? timelapse.currentData?.stats.max_density : densityData?.stats.max_density}
-                </p>
+              <div className="flex items-center gap-2 text-[9px] text-muted-foreground pt-1 border-t border-border/30">
+                <span>{(timelapseMode ? timelapse.currentData?.stats.total_points : densityData?.stats.total_points)?.toLocaleString()} visits</span>
               </div>
             )}
           </div>
         )}
         
-        {/* Movement Paths Toggle */}
+        {/* Movement Paths Toggle - Compact */}
         <Button
           onClick={() => setShowMovementPaths(!showMovementPaths)}
           variant={showMovementPaths ? "default" : "secondary"}
           size="sm"
-          className="bg-card/95 backdrop-blur-xl border border-border text-xs sm:text-sm shadow-lg w-full animate-fade-in"
+          className="bg-card/95 backdrop-blur-xl border border-border text-[10px] sm:text-xs shadow-lg w-full animate-fade-in h-7 sm:h-8"
         >
-          <Route className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-          <span className="hidden sm:inline">{showMovementPaths ? "Hide" : "Show"} Flow Paths</span>
-          <span className="sm:hidden">Paths</span>
+          <Route className="w-3 h-3 mr-1" />
+          <span>{showMovementPaths ? "Hide" : "Show"} Paths</span>
         </Button>
 
         {showMovementPaths && (
-          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2.5 sm:p-3 md:p-4 space-y-2 shadow-lg animate-scale-in">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-foreground">Path Filters</p>
+          <div className="map-control-compact space-y-1.5 animate-scale-in">
+            <div className="control-header">
+              <span>Flow Filters</span>
               {pathsLoading && (
-                <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="w-2.5 h-2.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               )}
             </div>
 
-            {/* Error UI */}
+            {/* Error UI - Compact */}
             {pathsError && (
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-2 space-y-2">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-destructive" />
-                  <p className="text-xs text-destructive font-medium">Failed to load path data</p>
-                </div>
-                <Button
-                  onClick={refreshPaths}
-                  variant="outline"
-                  size="sm"
-                  className="w-full h-7 text-xs border-destructive/30 hover:bg-destructive/20"
-                >
+              <div className="flex items-center gap-1.5 p-1.5 bg-destructive/10 rounded text-[9px]">
+                <AlertCircle className="w-3 h-3 text-destructive flex-shrink-0" />
+                <span className="text-destructive truncate">Load failed</span>
+                <Button onClick={refreshPaths} variant="ghost" size="sm" className="h-5 text-[9px] px-1.5 ml-auto">
                   Retry
                 </Button>
               </div>
             )}
 
-            <div className="space-y-2">
+            {/* Time filter - inline */}
+            <div className="control-inline-row">
+              <span className="control-inline-label">Time:</span>
               <Select value={pathTimeFilter} onValueChange={(v: any) => setPathTimeFilter(v)}>
-                <SelectTrigger className="h-8 text-xs bg-background">
+                <SelectTrigger className="h-6 text-[10px] bg-background flex-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
                   <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="this_week">This Week</SelectItem>
-                  <SelectItem value="this_hour">This Hour</SelectItem>
+                  <SelectItem value="this_week">Week</SelectItem>
+                  <SelectItem value="this_hour">Hour</SelectItem>
                 </SelectContent>
               </Select>
-
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">
-                  Min Frequency: {minPathFrequency}
-                </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={minPathFrequency}
-                  onChange={(e) => setMinPathFrequency(parseInt(e.target.value))}
-                  className="w-full h-2 bg-background rounded-lg appearance-none cursor-pointer accent-primary"
-                />
-              </div>
             </div>
 
+            {/* Frequency slider - compact */}
+            <div className="control-inline-row">
+              <span className="control-inline-label">Freq:</span>
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={minPathFrequency}
+                onChange={(e) => setMinPathFrequency(parseInt(e.target.value))}
+                className="path-flow-slider flex-1"
+              />
+              <span className="control-inline-value w-4 text-center">{minPathFrequency}</span>
+            </div>
+
+            {/* Stats - single line */}
             {pathData && (
-              <div className="pt-2 border-t border-border/50 space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  {pathData.stats.total_paths.toLocaleString()} paths
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {pathData.stats.total_movements.toLocaleString()} movements
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {pathData.stats.unique_users} users
-                </p>
+              <div className="flex items-center gap-2 text-[9px] text-muted-foreground pt-1 border-t border-border/30">
+                <span>{pathData.stats.total_paths} paths</span>
+                <span>•</span>
+                <span>{pathData.stats.unique_users} users</span>
               </div>
             )}
           </div>
