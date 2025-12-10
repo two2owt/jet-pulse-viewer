@@ -16,6 +16,8 @@ import PreferencesEditor from "@/components/settings/PreferencesEditor";
 import PrivacySettings from "@/components/settings/PrivacySettings";
 import { DeleteAccountDialog } from "@/components/settings/DeleteAccountDialog";
 import { SubscriptionPlans } from "@/components/SubscriptionPlans";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { isMonetizationEnabled } from "@/components/admin/MonetizationToggle";
 const preferencesSchema = z.object({
   notifications_enabled: z.boolean(),
   location_tracking_enabled: z.boolean(),
@@ -35,6 +37,9 @@ const Settings = () => {
   const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
   const { isRegistered: isPushRegistered, isNative, initializePushNotifications, unregister: unregisterPush } = usePushNotifications();
+  const { isAdmin } = useIsAdmin();
+  const showSubscriptionSection = isMonetizationEnabled() || isAdmin;
+
 
   // Handle subscription success/cancel from Stripe redirect
   useEffect(() => {
@@ -269,8 +274,8 @@ const Settings = () => {
           </Button>
         </Card>
 
-        {/* Subscription Section */}
-        {userId && (
+        {/* Subscription Section - visible when monetization is enabled OR user is admin */}
+        {userId && showSubscriptionSection && (
           <Card className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-1 sm:mb-2">
