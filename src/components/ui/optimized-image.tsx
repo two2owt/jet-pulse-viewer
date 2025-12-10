@@ -1,4 +1,4 @@
-import { useState, ImgHTMLAttributes } from "react";
+import { useState, ImgHTMLAttributes, memo } from "react";
 import { cn } from "@/lib/utils";
 import { 
   generateSrcSet, 
@@ -7,6 +7,8 @@ import {
   isSupabaseStorageUrl,
   ImageSize 
 } from "@/lib/image-utils";
+import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { Skeleton } from "./skeleton";
 
 interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'loading' | 'sizes'> {
   src: string;
@@ -22,9 +24,11 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
     desktop?: string;
   };
   quality?: number;
+  /** Use intersection observer for deferred loading (more aggressive than native lazy) */
+  deferLoad?: boolean;
 }
 
-export const OptimizedImage = ({ 
+export const OptimizedImage = memo(({ 
   src, 
   alt, 
   className, 
@@ -34,11 +38,18 @@ export const OptimizedImage = ({
   responsiveSizes = ['thumbnail', 'small', 'medium', 'large'],
   sizesConfig,
   quality = 80,
+  deferLoad = false,
   onError,
   ...props 
 }: OptimizedImageProps) => {
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  
+  // Use intersection observer for deferred loading
+  const [ref, isVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '150px',
+    freezeOnceVisible: true,
+  });
 
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setHasError(true);
@@ -59,6 +70,33 @@ export const OptimizedImage = ({
   const srcSet = responsive && isSupabase ? generateSrcSet(src, responsiveSizes, quality) : undefined;
   const sizes = responsive && isSupabase ? generateSizesAttribute(sizesConfig) : undefined;
 
+  // If deferLoad is enabled, wrap in observer
+  if (deferLoad) {
+    return (
+      <div ref={ref} className={cn("relative", className)}>
+        {isVisible ? (
+          <img
+            src={optimizedSrc}
+            srcSet={srcSet}
+            sizes={sizes}
+            alt={alt}
+            loading={eager ? "eager" : "lazy"}
+            decoding="async"
+            className={cn(
+              "transition-opacity duration-300 w-full h-full object-cover",
+              isLoaded ? "opacity-100" : "opacity-0"
+            )}
+            onError={handleError}
+            onLoad={handleLoad}
+            {...props}
+          />
+        ) : (
+          <Skeleton className="absolute inset-0 w-full h-full" />
+        )}
+      </div>
+    );
+  }
+
   return (
     <img
       src={optimizedSrc}
@@ -77,4 +115,6 @@ export const OptimizedImage = ({
       {...props}
     />
   );
-};
+});
+
+OptimizedImage.displayName = 'OptimizedImage';

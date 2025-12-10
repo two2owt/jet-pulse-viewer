@@ -333,11 +333,14 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
 
       <CollapsibleContent className="space-y-2">
         <div className="space-y-2">
-          {visibleDeals.map((deal, index) => (
+          {visibleDeals.map((deal, index) => {
+            // First 3 items load eagerly, rest defer
+            const shouldDeferLoad = index >= 3;
+            
+            return (
             <div
               key={deal.id}
-              className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-xl overflow-hidden border border-primary/20 animate-scale-in hover-scale"
-              style={{ animationDelay: `${index * 50}ms` }}
+              className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-xl overflow-hidden border border-primary/20 hover-scale"
             >
               <div className="flex items-start gap-3 p-3">
                 {deal.image_url ? (
@@ -348,6 +351,7 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
                     responsive={true}
                     responsiveSizes={['thumbnail', 'small']}
                     sizesConfig={{ mobile: '64px', tablet: '64px', desktop: '64px' }}
+                    deferLoad={shouldDeferLoad}
                     fallback={
                       <div className="w-16 h-16 flex items-center justify-center text-3xl flex-shrink-0">
                         {getDealIcon(deal.deal_type)}
@@ -424,7 +428,8 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {hasMore && (
