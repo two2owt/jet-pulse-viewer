@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { OptimizedImage } from "./ui/optimized-image";
+import { LazyComponent } from "./ui/lazy-component";
 import { Search, MapPin, Clock, TrendingUp, Filter, X, Navigation, Heart, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
@@ -12,6 +13,7 @@ import { calculateDistance, getDynamicRadius, formatDistance } from "@/utils/geo
 import { useFavorites } from "@/hooks/useFavorites";
 import { Sheet, SheetContent } from "./ui/sheet";
 import { DealDetailCard } from "./DealDetailCard";
+import { Skeleton } from "./ui/skeleton";
 import type { User } from "@supabase/supabase-js";
 
 interface UserPreferences {
@@ -504,94 +506,126 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
         />
       )}
 
-      {/* Deals Grid */}
+      {/* Deals Grid - First 3 items render immediately, rest lazy load */}
       {!isLoading && filteredDeals.length > 0 && (
         <div className="space-y-3">
-          {filteredDeals.map((deal, index) => (
-            <Card
-              key={deal.id}
-              className="overflow-hidden bg-card/90 backdrop-blur-sm hover-scale cursor-pointer transition-all animate-scale-in shadow-none"
-              style={{ animationDelay: `${index * 50}ms` }}
-              onClick={() => handleDealClick(deal)}
-            >
-              <div className="flex gap-4 p-4">
-                {/* Image or Icon */}
-                {deal.image_url ? (
-                  <OptimizedImage
-                    src={deal.image_url}
-                    alt={deal.venue_name}
-                    className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
-                    responsive={true}
-                    responsiveSizes={['thumbnail', 'small']}
-                    sizesConfig={{ mobile: '80px', tablet: '80px', desktop: '80px' }}
-                    fallback={
-                      <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-lg flex-shrink-0">
-                        <span className="text-3xl">{getDealIcon(deal.deal_type)}</span>
-                      </div>
-                    }
-                  />
-                ) : (
-                  <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-lg flex-shrink-0">
-                    <span className="text-3xl">{getDealIcon(deal.deal_type)}</span>
-                  </div>
-                )}
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-sm font-bold text-foreground line-clamp-1">
-                      {deal.title}
-                    </h3>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(deal.id);
-                        }}
-                      >
-                        <Heart
-                          className={`w-4 h-4 ${
-                            isFavorite(deal.id)
-                              ? "fill-primary text-primary"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      </Button>
-                      <Badge variant="secondary">
-                        {deal.deal_type}
-                      </Badge>
+          {filteredDeals.map((deal, index) => {
+            // First 3 deals render immediately (above fold)
+            const isAboveFold = index < 3;
+            
+            const dealCard = (
+              <Card
+                key={deal.id}
+                className="overflow-hidden bg-card/90 backdrop-blur-sm hover-scale cursor-pointer transition-all shadow-none"
+                onClick={() => handleDealClick(deal)}
+              >
+                <div className="flex gap-4 p-4">
+                  {/* Image or Icon */}
+                  {deal.image_url ? (
+                    <OptimizedImage
+                      src={deal.image_url}
+                      alt={deal.venue_name}
+                      className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                      responsive={true}
+                      responsiveSizes={['thumbnail', 'small']}
+                      sizesConfig={{ mobile: '80px', tablet: '80px', desktop: '80px' }}
+                      deferLoad={!isAboveFold}
+                      fallback={
+                        <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-lg flex-shrink-0">
+                          <span className="text-3xl">{getDealIcon(deal.deal_type)}</span>
+                        </div>
+                      }
+                    />
+                  ) : (
+                    <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-lg flex-shrink-0">
+                      <span className="text-3xl">{getDealIcon(deal.deal_type)}</span>
                     </div>
-                  </div>
-                  
-                  <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                    {deal.description}
-                  </p>
-                  
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <MapPin className="w-3 h-3" />
-                      <span className="truncate">{deal.venue_name}</span>
+                  )}
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="text-sm font-bold text-foreground line-clamp-1">
+                        {deal.title}
+                      </h3>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(deal.id);
+                          }}
+                        >
+                          <Heart
+                            className={`w-4 h-4 ${
+                              isFavorite(deal.id)
+                                ? "fill-primary text-primary"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                        </Button>
+                        <Badge variant="secondary">
+                          {deal.deal_type}
+                        </Badge>
+                      </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {deal.distance !== undefined && (
-                        <span className="text-accent font-medium">
-                          {formatDistance(deal.distance)}
-                        </span>
-                      )}
-                      <div className="flex items-center gap-1 text-primary font-medium">
-                        <Clock className="w-3 h-3" />
-                        {getTimeRemaining(deal.expires_at)}
+                    <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                      {deal.description}
+                    </p>
+                    
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <MapPin className="w-3 h-3" />
+                        <span className="truncate">{deal.venue_name}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {deal.distance !== undefined && (
+                          <span className="text-accent font-medium">
+                            {formatDistance(deal.distance)}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-1 text-primary font-medium">
+                          <Clock className="w-3 h-3" />
+                          {getTimeRemaining(deal.expires_at)}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+
+            // Items below fold use LazyComponent wrapper
+            if (!isAboveFold) {
+              return (
+                <LazyComponent
+                  key={deal.id}
+                  minHeight={96}
+                  rootMargin="150px"
+                  fallback={
+                    <Card className="overflow-hidden bg-card/90 backdrop-blur-sm shadow-none">
+                      <div className="flex gap-4 p-4">
+                        <Skeleton className="w-20 h-20 rounded-lg flex-shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-full" />
+                          <Skeleton className="h-3 w-1/2" />
+                        </div>
+                      </div>
+                    </Card>
+                  }
+                >
+                  {dealCard}
+                </LazyComponent>
+              );
+            }
+
+            return dealCard;
+          })}
         </div>
       )}
     </div>
