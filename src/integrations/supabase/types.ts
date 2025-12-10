@@ -327,6 +327,42 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_logs: {
+        Row: {
+          client_ip: string
+          created_at: string
+          details: Json | null
+          endpoint: string
+          event_type: string
+          id: string
+          request_count: number | null
+          time_window_seconds: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          client_ip: string
+          created_at?: string
+          details?: Json | null
+          endpoint: string
+          event_type: string
+          id?: string
+          request_count?: number | null
+          time_window_seconds?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          client_ip?: string
+          created_at?: string
+          details?: Json | null
+          endpoint?: string
+          event_type?: string
+          id?: string
+          request_count?: number | null
+          time_window_seconds?: number | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       user_connections: {
         Row: {
           created_at: string
@@ -623,6 +659,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_old_search_history: { Args: never; Returns: undefined }
+      cleanup_old_security_audit_logs: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
