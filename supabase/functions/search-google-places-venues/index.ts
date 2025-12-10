@@ -24,117 +24,192 @@ interface PlaceResult {
   business_status?: string;
 }
 
+interface PlaceDetails {
+  formatted_address: string;
+  formatted_phone_number?: string;
+  website?: string;
+  opening_hours?: {
+    weekday_text?: string[];
+  };
+  geometry?: {
+    location: {
+      lat: number;
+      lng: number;
+    };
+  };
+}
+
+// Top 10 most popular venues in Charlotte, NC metropolitan area
+const CHARLOTTE_TOP_VENUES = [
+  { name: "Merchant & Trade", category: "Rooftop Bar" },
+  { name: "The Punch Room", category: "Cocktail Bar" },
+  { name: "Heirloom Restaurant", category: "Restaurant" },
+  { name: "Supperland", category: "Restaurant" },
+  { name: "Haberdish", category: "Restaurant" },
+  { name: "Seoul Food Meat Company", category: "Restaurant" },
+  { name: "The Crunkleton", category: "Cocktail Bar" },
+  { name: "The Velvet Rope", category: "Nightclub" },
+  { name: "Fahrenheit", category: "Restaurant" },
+  { name: "Angeline's", category: "Restaurant" },
+];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const { location, radius = 5000, categories = ['bar', 'restaurant', 'night_club', 'cafe'] } = await req.json();
+    const { location, radius = 8000, categories = ['bar', 'restaurant', 'night_club', 'cafe'] } = await req.json();
     
     const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
     if (!apiKey) {
       throw new Error('Google Places API key not configured');
     }
 
-    if (!location || !location.lat || !location.lng) {
-      throw new Error('Location coordinates (lat, lng) are required');
+    // Charlotte coordinates
+    const charlotteLocation = location || { lat: 35.2271, lng: -80.8431 };
+
+    console.log(`Fetching top 10 Charlotte venues with full addresses...`);
+
+    const venues = [];
+
+    // Search for each popular venue by name to get exact place data
+    for (const venue of CHARLOTTE_TOP_VENUES) {
+      try {
+        // Use Text Search to find the specific venue
+        const searchUrl = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
+        searchUrl.searchParams.append('query', `${venue.name} Charlotte NC`);
+        searchUrl.searchParams.append('location', `${charlotteLocation.lat},${charlotteLocation.lng}`);
+        searchUrl.searchParams.append('radius', radius.toString());
+        searchUrl.searchParams.append('key', apiKey);
+
+        const searchResponse = await fetch(searchUrl.toString());
+        const searchData = await searchResponse.json();
+
+        if (searchData.status !== 'OK' || !searchData.results?.length) {
+          console.log(`Venue not found: ${venue.name}`);
+          continue;
+        }
+
+        const place = searchData.results[0];
+
+        // Get full place details including formatted address
+        const detailsUrl = new URL('https://maps.googleapis.com/maps/api/place/details/json');
+        detailsUrl.searchParams.append('place_id', place.place_id);
+        detailsUrl.searchParams.append('fields', 'formatted_address,formatted_phone_number,website,opening_hours,geometry');
+        detailsUrl.searchParams.append('key', apiKey);
+
+        const detailsResponse = await fetch(detailsUrl.toString());
+        const detailsData = await detailsResponse.json();
+
+        const details: PlaceDetails = detailsData.result || {};
+
+        // Calculate activity score based on Google metrics
+        const activityScore = Math.min(100, Math.round(
+          (place.rating || 4.0) * 12 + 
+          Math.min(40, (place.user_ratings_total || 100) / 25)
+        ));
+
+        venues.push({
+          id: place.place_id,
+          name: place.name,
+          lat: place.geometry?.location?.lat || details.geometry?.location?.lat,
+          lng: place.geometry?.location?.lng || details.geometry?.location?.lng,
+          address: details.formatted_address || place.formatted_address || place.vicinity,
+          category: venue.category,
+          googleRating: place.rating,
+          googleTotalRatings: place.user_ratings_total,
+          isOpen: place.opening_hours?.open_now ?? null,
+          openingHours: details.opening_hours?.weekday_text || [],
+          website: details.website,
+          phone: details.formatted_phone_number,
+          activity: activityScore,
+        });
+
+        console.log(`Found: ${place.name} at ${details.formatted_address || place.formatted_address}`);
+
+      } catch (venueError) {
+        console.error(`Error fetching venue ${venue.name}:`, venueError);
+      }
     }
 
-    console.log(`Searching for venues near ${location.lat},${location.lng} in categories: ${categories.join(', ')}`);
+    // If we found less than 10 named venues, supplement with nearby search
+    if (venues.length < 10) {
+      console.log(`Only found ${venues.length} named venues, searching for more...`);
+      
+      const seenPlaceIds = new Set(venues.map(v => v.id));
+      
+      for (const category of ['bar', 'restaurant', 'night_club']) {
+        if (venues.length >= 10) break;
+        
+        const searchUrl = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
+        searchUrl.searchParams.append('location', `${charlotteLocation.lat},${charlotteLocation.lng}`);
+        searchUrl.searchParams.append('radius', radius.toString());
+        searchUrl.searchParams.append('type', category);
+        searchUrl.searchParams.append('key', apiKey);
 
-    // Search for venues in each category
-    const allPlaces: PlaceResult[] = [];
-    const seenPlaceIds = new Set<string>();
+        const response = await fetch(searchUrl.toString());
+        const data = await response.json();
 
-    for (const category of categories) {
-      const searchUrl = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
-      searchUrl.searchParams.append('location', `${location.lat},${location.lng}`);
-      searchUrl.searchParams.append('radius', radius.toString());
-      searchUrl.searchParams.append('type', category);
-      searchUrl.searchParams.append('rankby', 'prominence'); // Get most popular places
-      searchUrl.searchParams.append('key', apiKey);
+        if (data.status !== 'OK') continue;
 
-      console.log(`Fetching ${category} venues...`);
-      const response = await fetch(searchUrl.toString());
+        for (const place of data.results) {
+          if (venues.length >= 10) break;
+          if (seenPlaceIds.has(place.place_id)) continue;
+          if (!place.rating || place.rating < 4.0) continue;
+          if (!place.user_ratings_total || place.user_ratings_total < 100) continue;
+          if (place.business_status !== 'OPERATIONAL') continue;
 
-      if (!response.ok) {
-        console.error(`Google Places API error for ${category}:`, response.status, await response.text());
-        continue;
+          seenPlaceIds.add(place.place_id);
+
+          // Get full address details
+          const detailsUrl = new URL('https://maps.googleapis.com/maps/api/place/details/json');
+          detailsUrl.searchParams.append('place_id', place.place_id);
+          detailsUrl.searchParams.append('fields', 'formatted_address,formatted_phone_number,website,opening_hours');
+          detailsUrl.searchParams.append('key', apiKey);
+
+          const detailsResponse = await fetch(detailsUrl.toString());
+          const detailsData = await detailsResponse.json();
+          const details: PlaceDetails = detailsData.result || {};
+
+          let venueCategory = 'Venue';
+          if (place.types?.includes('night_club')) venueCategory = 'Nightclub';
+          else if (place.types?.includes('bar')) venueCategory = 'Bar';
+          else if (place.types?.includes('restaurant')) venueCategory = 'Restaurant';
+
+          venues.push({
+            id: place.place_id,
+            name: place.name,
+            lat: place.geometry.location.lat,
+            lng: place.geometry.location.lng,
+            address: details.formatted_address || place.vicinity,
+            category: venueCategory,
+            googleRating: place.rating,
+            googleTotalRatings: place.user_ratings_total,
+            isOpen: place.opening_hours?.open_now ?? null,
+            openingHours: details.opening_hours?.weekday_text || [],
+            website: details.website,
+            phone: details.formatted_phone_number,
+            activity: Math.min(100, Math.round(
+              (place.rating || 4.0) * 12 + 
+              Math.min(40, (place.user_ratings_total || 100) / 25)
+            )),
+          });
+
+          console.log(`Added supplemental venue: ${place.name}`);
+        }
       }
-
-      const data = await response.json();
-
-      if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-        console.error(`Google Places API returned status: ${data.status}`);
-        continue;
-      }
-
-      // Filter for open, highly-rated venues
-      const categoryPlaces = (data.results || [])
-        .filter((place: PlaceResult) => {
-          // Skip if already seen
-          if (seenPlaceIds.has(place.place_id)) return false;
-          
-          // Only include places that are operational
-          if (place.business_status && place.business_status !== 'OPERATIONAL') return false;
-          
-          // Prefer places with ratings
-          if (!place.rating || place.rating < 3.5) return false;
-          
-          // Prefer places with more reviews
-          if (!place.user_ratings_total || place.user_ratings_total < 50) return false;
-          
-          return true;
-        })
-        .slice(0, 8); // Get top 8 from each category
-
-      categoryPlaces.forEach((place: PlaceResult) => {
-        seenPlaceIds.add(place.place_id);
-        allPlaces.push(place);
-      });
     }
 
-    // Sort by rating and review count, take top 25
-    const topVenues = allPlaces
-      .sort((a, b) => {
-        const scoreA = (a.rating || 0) * Math.log(a.user_ratings_total || 1);
-        const scoreB = (b.rating || 0) * Math.log(b.user_ratings_total || 1);
-        return scoreB - scoreA;
-      })
-      .slice(0, 25);
+    // Sort by activity score and take top 10
+    const topVenues = venues
+      .sort((a, b) => b.activity - a.activity)
+      .slice(0, 10);
 
-    console.log(`Found ${topVenues.length} top venues`);
-
-    // Transform to our venue format
-    const venues = topVenues.map((place) => {
-      // Determine category from types
-      let category = 'Venue';
-      if (place.types.includes('night_club')) category = 'Nightclub';
-      else if (place.types.includes('bar')) category = 'Bar';
-      else if (place.types.includes('restaurant')) category = 'Restaurant';
-      else if (place.types.includes('cafe')) category = 'Cafe';
-
-      return {
-        id: place.place_id,
-        name: place.name,
-        lat: place.geometry.location.lat,
-        lng: place.geometry.location.lng,
-        address: place.vicinity,
-        category,
-        googleRating: place.rating,
-        googleTotalRatings: place.user_ratings_total,
-        isOpen: place.opening_hours?.open_now ?? null,
-        // Activity score based on popularity metrics
-        activity: Math.min(100, Math.round(
-          (place.rating || 0) * 10 + 
-          Math.min(50, (place.user_ratings_total || 0) / 20)
-        )),
-      };
-    });
+    console.log(`Returning ${topVenues.length} top Charlotte venues with addresses`);
 
     return new Response(
-      JSON.stringify({ venues, total: venues.length }),
+      JSON.stringify({ venues: topVenues, total: topVenues.length }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
