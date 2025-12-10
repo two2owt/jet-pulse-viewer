@@ -48,8 +48,8 @@ interface MapboxHeatmapProps {
 const getActivityColor = (activity: number) => {
   if (activity >= 80) return "hsl(0, 85%, 55%)"; // hot red
   if (activity >= 60) return "hsl(45, 100%, 55%)"; // warm yellow
-  if (activity >= 40) return "hsl(210, 100%, 55%)"; // cool blue
-  return "hsl(0, 0%, 45%)"; // cold gray
+  // Always show blue for any activity level (no gray for low activity)
+  return "hsl(210, 100%, 55%)"; // cool blue
 };
 
 export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange }: MapboxHeatmapProps) => {
@@ -1041,53 +1041,54 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       el.className = "venue-marker";
       el.style.cssText = `
         width: ${markerSize}px;
-        height: ${markerSize * 1.5}px;
+        height: ${markerSize * 1.4}px;
         cursor: pointer;
         position: relative;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        will-change: transform, opacity;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
       `;
 
-      // Create glassmorphic pin element
+      // Create pin element with improved visibility
       const pinEl = document.createElement('div');
       pinEl.style.cssText = `
         width: ${markerSize}px;
         height: ${markerSize}px;
-        background: linear-gradient(135deg, ${color}25, ${color}45);
-        backdrop-filter: blur(16px) saturate(180%);
-        -webkit-backdrop-filter: blur(16px) saturate(180%);
-        border: 1.5px solid rgba(255, 255, 255, 0.18);
+        background: linear-gradient(145deg, ${color}, ${color}dd);
+        border: 2px solid rgba(255, 255, 255, 0.9);
         border-radius: 50% 50% 50% 0;
         display: flex;
         align-items: center;
         justify-content: center;
         box-shadow: 
-          0 8px 32px ${color}40,
-          0 0 0 1px rgba(255, 255, 255, 0.1),
-          inset 0 1px 2px rgba(255, 255, 255, 0.4),
-          inset 0 -1px 2px rgba(0, 0, 0, 0.1);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        filter: drop-shadow(0 4px 12px ${color}30);
+          0 4px 16px ${color}80,
+          0 2px 8px rgba(0, 0, 0, 0.4),
+          inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+        filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
         transform: rotate(-45deg);
         position: absolute;
         top: 0;
         left: 50%;
         margin-left: -${markerSize / 2}px;
-        will-change: transform;
       `;
 
-      // Add pulsating animation based on activity level
+      // Add activity indicator ring for high activity venues
       if (venue.activity >= 80) {
-        // Most popular venues - intense pulsating
         pinEl.style.animation = "venue-pulse-intense 1.5s ease-in-out infinite";
-        pinEl.style.setProperty('color', color);
+        pinEl.style.boxShadow = `
+          0 4px 20px ${color}90,
+          0 2px 8px rgba(0, 0, 0, 0.4),
+          0 0 0 3px ${color}40,
+          inset 0 2px 4px rgba(255, 255, 255, 0.3)
+        `;
       } else if (venue.activity >= 60) {
-        // High traffic venues - moderate pulsating
         pinEl.style.animation = "venue-pulse-moderate 2s ease-in-out infinite";
-        pinEl.style.setProperty('color', color);
-      } else if (venue.activity >= 40) {
-        // Medium traffic venues - subtle pulsating
-        pinEl.style.animation = "venue-pulse-subtle 2.5s ease-in-out infinite";
+        pinEl.style.boxShadow = `
+          0 4px 18px ${color}80,
+          0 2px 8px rgba(0, 0, 0, 0.4),
+          0 0 0 2px ${color}30,
+          inset 0 2px 4px rgba(255, 255, 255, 0.3)
+        `;
       }
 
       // Create inner content container (rotated back to normal)
@@ -1112,31 +1113,40 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       pinEl.appendChild(innerEl);
       el.appendChild(pinEl);
 
-      // Enhanced glassmorphic hover effects
+      // Enhanced hover effects
       el.addEventListener("mouseenter", () => {
         pinEl.style.transform = "rotate(-45deg) scale(1.15)";
-        pinEl.style.background = `linear-gradient(135deg, ${color}35, ${color}55)`;
         pinEl.style.boxShadow = `
-          0 12px 48px ${color}60,
-          0 0 0 2px rgba(255, 255, 255, 0.2),
-          inset 0 2px 3px rgba(255, 255, 255, 0.5),
-          inset 0 -2px 3px rgba(0, 0, 0, 0.15)
+          0 6px 24px ${color}90,
+          0 3px 12px rgba(0, 0, 0, 0.5),
+          0 0 0 4px ${color}50,
+          inset 0 2px 4px rgba(255, 255, 255, 0.4)
         `;
-        pinEl.style.filter = `drop-shadow(0 6px 20px ${color}50)`;
-        pinEl.style.borderColor = "rgba(255, 255, 255, 0.3)";
       });
 
       el.addEventListener("mouseleave", () => {
         pinEl.style.transform = "rotate(-45deg)";
-        pinEl.style.background = `linear-gradient(135deg, ${color}25, ${color}45)`;
-        pinEl.style.boxShadow = `
-          0 8px 32px ${color}40,
-          0 0 0 1px rgba(255, 255, 255, 0.1),
-          inset 0 1px 2px rgba(255, 255, 255, 0.4),
-          inset 0 -1px 2px rgba(0, 0, 0, 0.1)
-        `;
-        pinEl.style.filter = `drop-shadow(0 4px 12px ${color}30)`;
-        pinEl.style.borderColor = "rgba(255, 255, 255, 0.18)";
+        if (venue.activity >= 80) {
+          pinEl.style.boxShadow = `
+            0 4px 20px ${color}90,
+            0 2px 8px rgba(0, 0, 0, 0.4),
+            0 0 0 3px ${color}40,
+            inset 0 2px 4px rgba(255, 255, 255, 0.3)
+          `;
+        } else if (venue.activity >= 60) {
+          pinEl.style.boxShadow = `
+            0 4px 18px ${color}80,
+            0 2px 8px rgba(0, 0, 0, 0.4),
+            0 0 0 2px ${color}30,
+            inset 0 2px 4px rgba(255, 255, 255, 0.3)
+          `;
+        } else {
+          pinEl.style.boxShadow = `
+            0 4px 16px ${color}80,
+            0 2px 8px rgba(0, 0, 0, 0.4),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3)
+          `;
+        }
       });
 
       // Create marker with bottom anchor so pin tip points to exact coordinate
@@ -1192,13 +1202,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         // Bounce animation
         pinEl.style.animation = "bounce 0.6s ease-out";
         setTimeout(() => {
-          // Restore appropriate pulsating animation after bounce
+          // Restore appropriate pulsating animation after bounce (only for high activity)
           if (venue.activity >= 80) {
             pinEl.style.animation = "venue-pulse-intense 1.5s ease-in-out infinite";
           } else if (venue.activity >= 60) {
             pinEl.style.animation = "venue-pulse-moderate 2s ease-in-out infinite";
-          } else if (venue.activity >= 40) {
-            pinEl.style.animation = "venue-pulse-subtle 2.5s ease-in-out infinite";
           } else {
             pinEl.style.animation = "";
           }
