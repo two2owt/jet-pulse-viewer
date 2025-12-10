@@ -6,9 +6,69 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting: 15 requests per minute per IP
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 15;
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function getRateLimitKey(req: Request): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+         req.headers.get('x-real-ip') || 
+         'unknown';
+}
+
+function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetIn: number } {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  
+  if (!entry || now >= entry.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
+  }
+  
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, resetIn: entry.resetTime - now };
+  }
+  
+  entry.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count, resetIn: entry.resetTime - now };
+}
+
+// Cleanup old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitMap.entries()) {
+    if (now >= entry.resetTime) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}, 60000);
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Check rate limit
+  const clientIp = getRateLimitKey(req);
+  const rateLimit = checkRateLimit(clientIp);
+  
+  const rateLimitHeaders = {
+    ...corsHeaders,
+    'X-RateLimit-Limit': RATE_LIMIT_MAX_REQUESTS.toString(),
+    'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+    'X-RateLimit-Reset': Math.ceil(rateLimit.resetIn / 1000).toString(),
+  };
+
+  if (!rateLimit.allowed) {
+    console.warn(`Rate limit exceeded for IP: ${clientIp}`);
+    return new Response(
+      JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+      {
+        status: 429,
+        headers: { ...rateLimitHeaders, 'Content-Type': 'application/json', 'Retry-After': Math.ceil(rateLimit.resetIn / 1000).toString() },
+      }
+    );
   }
 
   try {
@@ -132,7 +192,7 @@ serve(async (req) => {
         },
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...rateLimitHeaders, 'Content-Type': 'application/json' },
       }
     );
   } catch (error) {
@@ -143,7 +203,7 @@ serve(async (req) => {
       JSON.stringify({ error: errorMessage }),
       {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...rateLimitHeaders, 'Content-Type': 'application/json' },
       }
     );
   }
