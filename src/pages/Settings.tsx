@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone, User, Heart, Shield, Trash2, CreditCard } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone, User, Heart, Shield, Trash2, CreditCard, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useTheme } from "next-themes";
@@ -277,14 +278,22 @@ const Settings = () => {
         {/* Subscription Section - visible when monetization is enabled OR user is admin */}
         {userId && showSubscriptionSection && (
           <Card className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6">
-            <div>
-              <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                <h2 className="text-base sm:text-lg font-bold text-foreground">Subscription</h2>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                  <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  <h2 className="text-base sm:text-lg font-bold text-foreground">Subscription</h2>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Manage your JET subscription plan
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Manage your JET subscription plan
-              </p>
+              {isAdmin && !isMonetizationEnabled() && (
+                <Badge variant="outline" className="flex items-center gap-1 text-xs border-primary/50 text-primary shrink-0">
+                  <ShieldCheck className="w-3 h-3" />
+                  Admin Only
+                </Badge>
+              )}
             </div>
 
             <Separator />
