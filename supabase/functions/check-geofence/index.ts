@@ -41,6 +41,33 @@ serve(async (req) => {
 
     const { latitude, longitude, accuracy } = await req.json();
 
+    // Validate coordinate inputs
+    if (typeof latitude !== 'number' || isNaN(latitude) || latitude < -90 || latitude > 90) {
+      console.error('Invalid latitude:', latitude);
+      return new Response(
+        JSON.stringify({ error: 'Invalid latitude. Must be a number between -90 and 90.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (typeof longitude !== 'number' || isNaN(longitude) || longitude < -180 || longitude > 180) {
+      console.error('Invalid longitude:', longitude);
+      return new Response(
+        JSON.stringify({ error: 'Invalid longitude. Must be a number between -180 and 180.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (accuracy !== undefined && accuracy !== null) {
+      if (typeof accuracy !== 'number' || isNaN(accuracy) || accuracy < 0 || accuracy > 100000) {
+        console.error('Invalid accuracy:', accuracy);
+        return new Response(
+          JSON.stringify({ error: 'Invalid accuracy. Must be a positive number up to 100000 meters.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     console.log('Checking geofence for user:', user.id, 'at', latitude, longitude);
 
     // Get all active neighborhoods
