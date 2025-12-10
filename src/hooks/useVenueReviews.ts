@@ -12,8 +12,19 @@ interface VenueReview {
   updated_at: string;
 }
 
+// Public review type without user_id for privacy
+interface PublicVenueReview {
+  id: string;
+  venue_id: string;
+  venue_name: string;
+  rating: number;
+  review_text: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export const useVenueReviews = (venueId?: string, userId?: string) => {
-  const [reviews, setReviews] = useState<VenueReview[]>([]);
+  const [reviews, setReviews] = useState<PublicVenueReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [userReview, setUserReview] = useState<VenueReview | null>(null);
 
@@ -28,20 +39,30 @@ export const useVenueReviews = (venueId?: string, userId?: string) => {
   const fetchReviews = async () => {
     try {
       setLoading(true);
+      // Fetch public reviews (without user_id) from the venue_reviews table
+      // RLS now requires authentication to view reviews
       const { data, error } = await supabase
         .from("venue_reviews")
-        .select("*")
+        .select("id, venue_id, venue_name, rating, review_text, created_at, updated_at")
         .eq("venue_id", venueId!)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      setReviews(data || []);
+      setReviews((data as PublicVenueReview[]) || []);
       
-      // Find user's review if exists
+      // Fetch user's own review separately (includes user_id for ownership verification)
       if (userId) {
-        const userRev = data?.find((r) => r.user_id === userId);
-        setUserReview(userRev || null);
+        const { data: userReviewData, error: userError } = await supabase
+          .from("venue_reviews")
+          .select("*")
+          .eq("venue_id", venueId!)
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (!userError && userReviewData) {
+          setUserReview(userReviewData);
+        }
       }
     } catch (error) {
       console.error("Error fetching reviews:", error);

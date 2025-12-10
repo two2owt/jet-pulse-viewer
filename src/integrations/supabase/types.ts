@@ -582,6 +582,36 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_reviews_public: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          rating: number | null
+          review_text: string | null
+          updated_at: string | null
+          venue_id: string | null
+          venue_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          rating?: number | null
+          review_text?: string | null
+          updated_at?: string | null
+          venue_id?: string | null
+          venue_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          rating?: number | null
+          review_text?: string | null
+          updated_at?: string | null
+          venue_id?: string | null
+          venue_name?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_view_profile_field: {
