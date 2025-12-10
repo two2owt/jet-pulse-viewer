@@ -20,10 +20,10 @@ import { useVenueImages } from "@/hooks/useVenueImages";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAutoScrapeVenueImages } from "@/hooks/useAutoScrapeVenueImages";
 import { useDeals } from "@/hooks/useDeals";
-import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+
 import { useVenueActivity } from "@/hooks/useVenueActivity";
 import { CITIES, type City } from "@/types/cities";
-import { Zap, Navigation, Map as MapIcon, Loader2, RefreshCw } from "lucide-react";
+import { Zap, Navigation, Map as MapIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import jetLogo from "@/assets/jet-logo.webp";
 import {
@@ -153,29 +153,6 @@ const Index = () => {
     setShowIntro(false);
   };
 
-  // Pull to refresh functionality
-  const handleRefresh = async () => {
-    try {
-      await Promise.all([
-        refreshDeals(),
-        refreshVenues(),
-        // Add a small delay to show the refresh indicator
-        new Promise(resolve => setTimeout(resolve, 500))
-      ]);
-      toast.success("Map refreshed", {
-        description: "Venue activity and deals updated"
-      });
-    } catch (error) {
-      console.error("Error refreshing:", error);
-      toast.error("Failed to refresh");
-    }
-  };
-
-  const { containerRef, isRefreshing, pullDistance, pullThreshold } = usePullToRefresh({
-    onRefresh: handleRefresh,
-    pullThreshold: 80,
-    maxPullDistance: 150,
-  });
 
   // Check onboarding status - only redirect to onboarding if needed, never sign out
   useEffect(() => {
@@ -360,36 +337,12 @@ const Index = () => {
       <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-fluid-md py-fluid-md'} gap-fluid-md`}>
         {activeTab === "map" && (
           <div 
-            ref={containerRef}
             className="relative h-[calc(100vh-8rem-var(--safe-area-inset-top)-var(--safe-area-inset-bottom))] sm:h-[calc(100vh-10rem-var(--safe-area-inset-top)-var(--safe-area-inset-bottom))] md:h-[calc(100vh-12rem-var(--safe-area-inset-top)-var(--safe-area-inset-bottom))] overflow-y-auto overflow-x-hidden -mx-3 sm:-mx-4 md:-mx-6"
             style={{ 
               WebkitOverflowScrolling: 'touch',
               touchAction: 'pan-y',
             }}
           >
-            {/* Pull to Refresh Indicator */}
-            {(pullDistance > 0 || isRefreshing) && (
-              <div 
-                className="sticky top-0 left-0 right-0 z-50 flex justify-center pointer-events-none mb-2"
-                style={{
-                  transform: `translateY(${Math.min(pullDistance - 40, 0)}px)`,
-                  opacity: Math.min(pullDistance / pullThreshold, 1),
-                  transition: pullDistance === 0 ? 'all 0.3s ease-out' : 'none'
-                }}
-              >
-                <div className="bg-card/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
-                  <RefreshCw 
-                    className={`w-4 h-4 text-primary ${isRefreshing ? 'animate-spin' : ''}`}
-                    style={{
-                      transform: isRefreshing ? 'none' : `rotate(${(pullDistance / pullThreshold) * 360}deg)`
-                    }}
-                  />
-                  <span className="text-xs font-medium text-foreground">
-                    {isRefreshing ? 'Refreshing...' : pullDistance >= pullThreshold ? 'Release to refresh' : 'Pull to refresh'}
-                  </span>
-                </div>
-              </div>
-            )}
 
             {/* Mapbox Heatmap - Edge to edge */}
             <div className="h-full w-full overflow-hidden animate-fade-in">
