@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { analytics } from "@/lib/analytics";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -39,28 +40,30 @@ const PageTracker = () => {
 
 const App = () => (
   <ErrorBoundary>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <PageTracker />
-      <PWAInstallPrompt />
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/social" element={<Social />} />
-          <Route path="/verification-success" element={<VerificationSuccess />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-of-service" element={<TermsOfService />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <PageTracker />
+        <PWAInstallPrompt />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/social" element={<Social />} />
+            <Route path="/verification-success" element={<VerificationSuccess />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </TooltipProvider>
+    </AuthProvider>
   </ErrorBoundary>
 );
 
