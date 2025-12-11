@@ -30,7 +30,7 @@ const PageLoader = () => (
 );
 
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>

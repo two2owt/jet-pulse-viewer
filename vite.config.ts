@@ -37,9 +37,10 @@ export default defineConfig(({ mode }) => ({
           preset: ['default', {
             discardComments: { removeAll: true },
             normalizeWhitespace: true,
-            colormin: true,
+            colormin: false, // Disable to preserve HSL color values
             reduceIdents: false,
             mergeRules: true,
+            calc: false, // Preserve calc() and clamp() functions
           }],
         }),
       ],
