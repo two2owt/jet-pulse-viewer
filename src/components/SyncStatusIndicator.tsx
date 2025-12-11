@@ -232,8 +232,13 @@ export const SyncStatusIndicator = ({
               {/* Runway track */}
               <div className="absolute inset-x-3 top-1/2 -translate-y-1/2 h-0.5 bg-muted-foreground/10 rounded-full" />
               
-              {/* Landed airplane (parked on right side) */}
+              {/* Landed airplane (parked on right side) with destination */}
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                {/* Arrived at destination text */}
+                <div className="flex flex-col items-end mr-1">
+                  <span className="text-[8px] text-muted-foreground/70 leading-tight">Arrived at:</span>
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-500 leading-tight">Synced</span>
+                </div>
                 <div className="relative landed-airplane">
                   <Plane className="w-4 h-4 text-primary/80 fill-primary/80 rotate-[-10deg]" />
                   {/* Synced indicator */}
@@ -246,7 +251,7 @@ export const SyncStatusIndicator = ({
               {/* Last sync time */}
               <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
                 <span className="text-[9px] sm:text-[10px] text-muted-foreground">
-                  {timeSinceUpdate || "Synced"}
+                  {timeSinceUpdate || "Just landed"}
                 </span>
               </div>
             </div>
