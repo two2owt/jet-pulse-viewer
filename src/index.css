@@ -298,7 +298,8 @@ All colors MUST be HSL.
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
-    background-color: hsl(0 0% 6%); /* Explicit dark fallback */
+    background-color: #0f0f0f !important; /* Hex fallback with !important */
+    color: #fafafa !important;
   }
 
   body {
@@ -314,7 +315,8 @@ All colors MUST be HSL.
     -webkit-overflow-scrolling: touch;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    background-color: hsl(0 0% 6%); /* Explicit dark fallback */
+    background-color: #0f0f0f !important; /* Hex fallback with !important */
+    color: #fafafa !important;
   }
   
   #root {
@@ -323,6 +325,7 @@ All colors MUST be HSL.
     min-height: 100%;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    background-color: #0f0f0f;
   }
 }
 

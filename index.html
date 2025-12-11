@@ -1,11 +1,12 @@
 <!doctype html>
-<html lang="en" class="dark" style="background-color: hsl(0, 0%, 6%)">
+<html lang="en" class="dark" style="background-color: #0f0f0f; color: #fafafa;">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    
+    <!-- Critical CSS - renders dark theme before main CSS loads -->
+    <style>html,body,#root{background-color:#0f0f0f!important;color:#fafafa!important;margin:0;padding:0;}*{box-sizing:border-box;}</style>
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#0f0f0f" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
