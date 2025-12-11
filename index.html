@@ -17,6 +17,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
+    <!-- Preload critical font files for faster text rendering -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/kanit/v15/nKKZ-Go6G5tXcraBGwCKd6xBDFs.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://fonts.gstatic.com/s/kanit/v15/nKKU-Go6G5tXcr5mOBWzVaF5NQ.woff2" as="font" type="font/woff2" crossorigin>
+    
     <!-- Supabase API preconnect for faster auth and data fetching -->
     <link rel="preconnect" href="https://zbrscuoqmkdbmdimdnqu.supabase.co" crossorigin>
     <link rel="dns-prefetch" href="https://zbrscuoqmkdbmdimdnqu.supabase.co">
@@ -29,6 +33,9 @@
     
     <!-- Preload critical LCP image with high priority -->
     <link rel="preload" href="/src/assets/jet-logo.webp" as="image" type="image/webp" fetchpriority="high">
+    
+    <!-- Preload critical CSS bundle -->
+    <link rel="modulepreload" href="/src/main.tsx">
     
     <!-- Defer non-critical Mapbox CSS - load async -->
     <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
