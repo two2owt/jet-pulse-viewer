@@ -1649,90 +1649,54 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Collapsible>
       </div>
 
-      {/* Mobile FAB (Floating Action Button) for Heat/Paths controls */}
+      {/* Mobile Controls - Slide style like desktop */}
       {isMobile && (
         <div 
-          className={`fixed z-50 transition-all duration-300 ease-out ${
-            mapLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+          className={`fixed z-50 flex flex-col gap-2 transition-all duration-300 ease-out ${
+            mapLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'
           }`}
           style={{
             bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))',
-            right: '1rem',
+            right: '0.75rem',
+            width: '120px',
           }}
         >
-          {/* FAB Menu - Expanded state */}
-          <div className={`flex flex-col items-end gap-3 transition-all duration-300 ${
-            controlsCollapsed ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100 scale-100'
-          }`}>
-            {/* Heat Toggle FAB Item */}
-            <button
-              onClick={() => {
-                triggerHaptic('medium');
-                const newState = !showDensityLayer;
-                setShowDensityLayer(newState);
-                if (newState) {
-                  setTimeFilter('all');
-                  setHourFilter(undefined);
-                  setDayFilter(undefined);
-                }
-              }}
-              className={`flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full shadow-xl border transition-all duration-200 active:scale-95 touch-manipulation ${
-                showDensityLayer 
-                  ? 'bg-primary text-primary-foreground border-primary shadow-primary/30' 
-                  : 'bg-card text-foreground border-border'
-              }`}
-            >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                showDensityLayer ? 'bg-primary-foreground/20' : 'bg-primary/10'
-              }`}>
-                <Layers className="w-5 h-5" />
-              </div>
-              <span className="text-sm font-semibold whitespace-nowrap">
-                {showDensityLayer ? "Heat On" : "Heat Off"}
-              </span>
-            </button>
-
-            {/* Paths Toggle FAB Item */}
-            <button
-              onClick={() => { triggerHaptic('medium'); setShowMovementPaths(!showMovementPaths); }}
-              className={`flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full shadow-xl border transition-all duration-200 active:scale-95 touch-manipulation ${
-                showMovementPaths 
-                  ? 'bg-primary text-primary-foreground border-primary shadow-primary/30' 
-                  : 'bg-card text-foreground border-border'
-              }`}
-            >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                showMovementPaths ? 'bg-primary-foreground/20' : 'bg-primary/10'
-              }`}>
-                <Route className="w-5 h-5" />
-              </div>
-              <span className="text-sm font-semibold whitespace-nowrap">
-                {showMovementPaths ? "Paths On" : "Paths Off"}
-              </span>
-            </button>
-          </div>
-
-          {/* Main FAB Button */}
-          <button
-            onClick={() => { triggerHaptic('light'); setControlsCollapsed(!controlsCollapsed); }}
-            className={`mt-3 w-14 h-14 rounded-full shadow-2xl border-2 flex items-center justify-center transition-all duration-300 active:scale-90 touch-manipulation ${
-              controlsCollapsed
-                ? 'bg-primary text-primary-foreground border-primary shadow-primary/40'
-                : 'bg-card text-foreground border-border rotate-45'
-            } ${(showDensityLayer || showMovementPaths) && controlsCollapsed ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}
-            aria-label={controlsCollapsed ? "Open layer controls" : "Close layer controls"}
+          <Button
+            onClick={() => {
+              triggerHaptic('medium');
+              const newState = !showDensityLayer;
+              setShowDensityLayer(newState);
+              if (newState) {
+                setTimeFilter('all');
+                setHourFilter(undefined);
+                setDayFilter(undefined);
+              }
+            }}
+            variant={showDensityLayer ? "default" : "outline"}
+            size="sm"
+            className={`w-full h-11 text-xs font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation ${
+              showDensityLayer 
+                ? 'bg-primary text-primary-foreground shadow-primary/30' 
+                : 'bg-card/95 backdrop-blur-xl text-foreground border-border'
+            }`}
           >
-            {controlsCollapsed ? (
-              <Layers className="w-6 h-6" />
-            ) : (
-              <X className="w-6 h-6" />
-            )}
-          </button>
+            <Layers className="w-4 h-4 mr-2" />
+            {showDensityLayer ? "Heat On" : "Heat Off"}
+          </Button>
 
-          {/* Activity indicator dot when layers are active but menu is closed */}
-          {controlsCollapsed && (showDensityLayer || showMovementPaths) && (
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-destructive rounded-full border-2 border-background animate-pulse" />
-          )}
+          <Button
+            onClick={() => { triggerHaptic('medium'); setShowMovementPaths(!showMovementPaths); }}
+            variant={showMovementPaths ? "default" : "outline"}
+            size="sm"
+            className={`w-full h-11 text-xs font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation ${
+              showMovementPaths 
+                ? 'bg-primary text-primary-foreground shadow-primary/30' 
+                : 'bg-card/95 backdrop-blur-xl text-foreground border-border'
+            }`}
+          >
+            <Route className="w-4 h-4 mr-2" />
+            {showMovementPaths ? "Paths On" : "Paths Off"}
+          </Button>
         </div>
       )}
 
@@ -2106,10 +2070,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Enhanced Legend - Bottom left, responsive for all devices */}
       <div 
         className={`absolute bg-card/95 backdrop-blur-xl px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-3 rounded-xl border border-border z-10 shadow-lg transition-all duration-300 ease-out ${
-          mapLoaded && !controlsCollapsed ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full pointer-events-none'
+          mapLoaded && (isMobile ? (showDensityLayer || showMovementPaths) : !controlsCollapsed) 
+            ? 'opacity-100 translate-x-0' 
+            : 'opacity-0 -translate-x-full pointer-events-none'
         }`}
         style={{
-          bottom: 'var(--map-ui-inset-bottom)',
+          bottom: isMobile ? 'calc(5rem + env(safe-area-inset-bottom, 0px))' : 'var(--map-ui-inset-bottom)',
           left: 'var(--map-ui-inset-left)',
           maxWidth: 'var(--map-control-max-width)',
         }}
