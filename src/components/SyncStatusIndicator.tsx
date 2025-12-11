@@ -152,39 +152,39 @@ export const SyncStatusIndicator = ({
       <div className={cn("flex items-center w-full", className)}>
         {/* Offline Status - Compact */}
         {!isOnline && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 rounded-full">
-            <WifiOff className="h-4 w-4 text-destructive" />
-            <span className="text-[10px] text-destructive font-medium">Offline</span>
+          <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-destructive/10 rounded-full">
+            <WifiOff className="h-3 w-3 sm:h-4 sm:w-4 text-destructive" />
+            <span className="text-[9px] sm:text-[10px] text-destructive font-medium">Offline</span>
           </div>
         )}
 
         {/* Syncing - Full width runway with flying airplane */}
         {isLoading && isOnline && (
-          <div className="flex-1 flex items-center gap-2">
+          <div className="flex-1 flex items-center gap-1 sm:gap-1.5 md:gap-2">
             {/* Runway container */}
-            <div className="flex-1 relative h-8 bg-card/60 backdrop-blur-md rounded-full border border-border/40 overflow-hidden">
+            <div className="flex-1 relative h-6 sm:h-7 md:h-8 bg-card/60 backdrop-blur-md rounded-full border border-border/40 overflow-hidden">
               {/* Passing clouds background */}
               <div className="runway-passing-clouds" />
               
               {/* Runway track with dashes */}
-              <div className="absolute inset-x-3 top-1/2 -translate-y-1/2 h-0.5 bg-muted-foreground/20 rounded-full" />
-              <div className="absolute inset-x-3 top-1/2 -translate-y-1/2 h-px border-t border-dashed border-muted-foreground/30" />
+              <div className="absolute inset-x-2 sm:inset-x-3 top-1/2 -translate-y-1/2 h-0.5 bg-muted-foreground/20 rounded-full" />
+              <div className="absolute inset-x-2 sm:inset-x-3 top-1/2 -translate-y-1/2 h-px border-t border-dashed border-muted-foreground/30" />
               
-              {/* Cloud waypoints */}
-              <Cloud className="absolute top-1/2 -translate-y-1/2 left-[15%] w-3 h-3 text-muted-foreground/20 runway-cloud" />
-              <Cloud className="absolute top-1/2 -translate-y-1/2 left-[40%] w-4 h-4 text-muted-foreground/25 runway-cloud" style={{ animationDelay: '0.5s' }} />
-              <Cloud className="absolute top-1/2 -translate-y-1/2 left-[65%] w-3 h-3 text-muted-foreground/20 runway-cloud" style={{ animationDelay: '1s' }} />
+              {/* Cloud waypoints - hidden on smallest screens */}
+              <Cloud className="hidden sm:block absolute top-1/2 -translate-y-1/2 left-[15%] w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground/20 runway-cloud" />
+              <Cloud className="hidden xs:block absolute top-1/2 -translate-y-1/2 left-[40%] w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground/25 runway-cloud" style={{ animationDelay: '0.5s' }} />
+              <Cloud className="hidden sm:block absolute top-1/2 -translate-y-1/2 left-[65%] w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground/20 runway-cloud" style={{ animationDelay: '1s' }} />
               
               {/* Takeoff marker (left) */}
-              <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-                <div className="w-1 h-3 bg-primary/40 rounded-full" />
-                <div className="w-0.5 h-2 bg-primary/30 rounded-full" />
+              <div className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                <div className="w-0.5 sm:w-1 h-2 sm:h-3 bg-primary/40 rounded-full" />
+                <div className="w-0.5 h-1.5 sm:h-2 bg-primary/30 rounded-full hidden sm:block" />
               </div>
               
               {/* Landing marker (right) */}
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-                <div className="w-0.5 h-2 bg-emerald-500/30 rounded-full" />
-                <div className="w-1 h-3 bg-emerald-500/40 rounded-full" />
+              <div className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                <div className="w-0.5 h-1.5 sm:h-2 bg-emerald-500/30 rounded-full hidden sm:block" />
+                <div className="w-0.5 sm:w-1 h-2 sm:h-3 bg-emerald-500/40 rounded-full" />
               </div>
               
               {/* Progress fill underneath */}
@@ -197,24 +197,24 @@ export const SyncStatusIndicator = ({
               <div 
                 className="absolute top-1/2 transition-all duration-200 ease-out runway-airplane"
                 style={{ 
-                  left: `calc(${Math.max(5, Math.min(95, syncProgress))}% - 8px)`,
+                  left: `calc(${Math.max(5, Math.min(95, syncProgress))}% - 6px)`,
                   transform: `translateY(-50%) translateY(${Math.sin(syncProgress * 0.1) * 2}px) rotate(${syncProgress < 15 ? -25 - (15 - syncProgress) : syncProgress > 85 ? -15 + (syncProgress - 85) * 0.5 : -20}deg)`,
                 }}
               >
                 <div className="relative">
-                  <Plane className="w-4 h-4 sm:w-5 sm:h-5 text-primary fill-primary drop-shadow-md" />
+                  <Plane className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary fill-primary drop-shadow-md" />
                   {/* Contrails */}
-                  <div className="absolute right-full top-1/2 -translate-y-1/2 w-6 sm:w-8 h-0.5 overflow-hidden">
+                  <div className="absolute right-full top-1/2 -translate-y-1/2 w-4 sm:w-6 md:w-8 h-0.5 overflow-hidden">
                     <div className="runway-contrail" />
                   </div>
                   {/* Engine glow */}
-                  <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-accent rounded-full blur-[2px] animate-pulse" />
+                  <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1 h-1 sm:w-1.5 sm:h-1.5 bg-accent rounded-full blur-[2px] animate-pulse" />
                 </div>
               </div>
               
               {/* Progress percentage */}
-              <div className="absolute right-8 top-1/2 -translate-y-1/2">
-                <span className="text-[9px] sm:text-[10px] text-primary font-semibold">
+              <div className="absolute right-5 sm:right-6 md:right-8 top-1/2 -translate-y-1/2">
+                <span className="text-[8px] sm:text-[9px] md:text-[10px] text-primary font-semibold">
                   {Math.round(syncProgress)}%
                 </span>
               </div>
@@ -224,35 +224,35 @@ export const SyncStatusIndicator = ({
 
         {/* Synced - Full width with landed airplane and refresh */}
         {!isLoading && isOnline && (
-          <div className="flex-1 flex items-center gap-2">
+          <div className="flex-1 flex items-center gap-1 sm:gap-1.5 md:gap-2">
             <div 
               className={cn(
-                "flex-1 relative h-8 bg-card/60 backdrop-blur-md rounded-full border border-border/40 overflow-hidden transition-all duration-500",
+                "flex-1 relative h-6 sm:h-7 md:h-8 bg-card/60 backdrop-blur-md rounded-full border border-border/40 overflow-hidden transition-all duration-500",
                 showSuccessFlash && "runway-landing-flash"
               )}
             >
               {/* Runway track */}
-              <div className="absolute inset-x-3 top-1/2 -translate-y-1/2 h-0.5 bg-muted-foreground/10 rounded-full" />
+              <div className="absolute inset-x-2 sm:inset-x-3 top-1/2 -translate-y-1/2 h-0.5 bg-muted-foreground/10 rounded-full" />
               
               {/* Landed airplane (parked on right side) with destination */}
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              <div className="absolute right-1.5 sm:right-2 md:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-1.5">
                 {/* Arrived at destination text */}
-                <div className="flex flex-col items-end mr-1">
-                  <span className="text-[8px] text-muted-foreground/70 leading-tight">Arrived at:</span>
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-500 leading-tight truncate max-w-[80px] sm:max-w-[100px]">{cityName}</span>
+                <div className="flex flex-col items-end mr-0.5 sm:mr-1">
+                  <span className="text-[7px] sm:text-[8px] text-muted-foreground/70 leading-tight">Arrived at:</span>
+                  <span className="text-[8px] sm:text-[10px] md:text-[11px] font-semibold text-emerald-500 leading-tight truncate max-w-[50px] sm:max-w-[70px] md:max-w-[100px]">{cityName}</span>
                 </div>
                 <div className="relative landed-airplane">
-                  <Plane className="w-4 h-4 text-primary/80 fill-primary/80 rotate-[-10deg]" />
+                  <Plane className="w-3 h-3 sm:w-4 sm:h-4 text-primary/80 fill-primary/80 rotate-[-10deg]" />
                   {/* Synced indicator */}
-                  <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full flex items-center justify-center">
-                    <Check className="w-1.5 h-1.5 text-white" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full flex items-center justify-center">
+                    <Check className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-white" />
                   </div>
                 </div>
               </div>
               
               {/* Last sync time */}
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                <span className="text-[9px] sm:text-[10px] text-muted-foreground">
+              <div className="absolute left-1.5 sm:left-2 md:left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-1.5">
+                <span className="text-[8px] sm:text-[9px] md:text-[10px] text-muted-foreground truncate max-w-[40px] sm:max-w-[60px] md:max-w-[80px]">
                   {timeSinceUpdate || "Just landed"}
                 </span>
               </div>
@@ -262,10 +262,10 @@ export const SyncStatusIndicator = ({
             {onRefresh && (
               <button
                 onClick={onRefresh}
-                className="p-1.5 sm:p-2 hover:bg-accent/20 rounded-full transition-colors flex-shrink-0"
+                className="p-1 sm:p-1.5 md:p-2 hover:bg-accent/20 rounded-full transition-colors flex-shrink-0"
                 aria-label="Refresh data"
               >
-                <RefreshCw className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                <RefreshCw className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-muted-foreground hover:text-primary transition-colors" />
               </button>
             )}
           </div>
