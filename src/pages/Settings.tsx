@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone, User, Heart, Shield, Trash2, CreditCard, ShieldCheck } from "lucide-react";
+import { SettingsSkeleton } from "@/components/skeletons";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useTheme } from "next-themes";
@@ -197,8 +198,25 @@ const Settings = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background pb-[calc(4rem+var(--safe-area-inset-bottom))] sm:pb-[calc(5rem+var(--safe-area-inset-bottom))]">
+        <header className="bg-card border-b border-border sticky top-0 z-40 safe-area-top">
+          <div className="max-w-3xl mx-auto px-fluid-md py-fluid-sm">
+            <div className="flex items-center gap-fluid-sm">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/")}
+                className="hover:bg-muted w-8 h-8 sm:w-9 sm:h-9"
+              >
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+              <h1 className="text-fluid-xl font-bold text-foreground">Settings</h1>
+            </div>
+          </div>
+        </header>
+        <main className="max-w-3xl mx-auto px-fluid-md py-fluid-lg">
+          <SettingsSkeleton />
+        </main>
       </div>
     );
   }

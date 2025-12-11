@@ -2,7 +2,7 @@ import { useEffect, useState, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useConnections } from "@/hooks/useConnections";
 import { useNotifications } from "@/hooks/useNotifications";
-import { Users, UserPlus, Loader2, Check, X, UserX, Crown } from "lucide-react";
+import { Users, UserPlus, Check, X, UserX, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ConnectionProfileDialog } from "@/components/ConnectionProfileDialog";
 import { UpgradePrompt, useFeatureAccess } from "@/components/UpgradePrompt";
 import { VirtualGrid } from "@/components/ui/virtual-list";
+import { SocialPageSkeleton } from "@/components/skeletons";
 
 interface Profile {
   id: string;
@@ -150,9 +151,23 @@ export default function Social() {
 
   if (loading || connectionsLoading || subscriptionLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <>
+        <Header 
+          venues={[]}
+          deals={[]}
+          onVenueSelect={() => {}}
+        />
+        <div className="min-h-screen bg-background pb-[calc(5rem+var(--safe-area-inset-bottom))]">
+          <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
+            <SocialPageSkeleton />
+          </div>
+        </div>
+        <BottomNav 
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          notificationCount={0}
+        />
+      </>
     );
   }
 
