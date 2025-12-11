@@ -1568,7 +1568,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           mapLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
         }`}
         style={{
-          top: isMobile ? 'calc(var(--map-ui-inset-top) + 2.75rem)' : 'calc(var(--map-ui-inset-top) + 3rem)',
+          top: isMobile ? 'calc(var(--map-ui-inset-top) + 3.25rem)' : 'calc(var(--map-ui-inset-top) + 3.75rem)',
           left: 'var(--map-ui-inset-left)',
           maxWidth: isMobile ? 'calc(50vw - 1rem)' : 'var(--map-control-max-width)',
         }}
@@ -1578,13 +1578,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             <Button
               variant="secondary"
               size="sm"
-              className="bg-card/95 backdrop-blur-xl border border-border text-[9px] sm:text-[10px] md:text-xs shadow-lg h-7 sm:h-8 md:h-9 px-2 sm:px-2.5 md:px-3"
+              className="bg-card/95 backdrop-blur-xl border border-border text-[9px] sm:text-[10px] md:text-xs shadow-lg h-7 sm:h-8 md:h-9 px-2 sm:px-2.5 md:px-3 transition-all duration-200"
             >
               <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-0.5 sm:mr-1" />
               <span>Map Style</span>
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="mt-1.5 sm:mt-2">
+          <CollapsibleContent className="mt-1.5 sm:mt-2 overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
             <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-1.5 sm:p-2 shadow-lg space-y-1.5 sm:space-y-2">
               <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                 <Button
