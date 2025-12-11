@@ -1652,12 +1652,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Mobile FAB (Floating Action Button) for Heat/Paths controls */}
       {isMobile && (
         <div 
-          className={`absolute z-40 transition-all duration-300 ease-out ${
+          className={`fixed z-50 transition-all duration-300 ease-out ${
             mapLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
           }`}
           style={{
-            bottom: '1rem',
-            right: '0.75rem',
+            bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))',
+            right: '1rem',
           }}
         >
           {/* FAB Menu - Expanded state */}
