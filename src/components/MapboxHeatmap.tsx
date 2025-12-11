@@ -1652,7 +1652,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Controls Toggle Button - Always visible */}
       <button
         onClick={() => { triggerHaptic('light'); setControlsCollapsed(!controlsCollapsed); }}
-        className={`absolute z-20 bg-card/95 backdrop-blur-xl rounded-full p-1.5 sm:p-2 border border-border shadow-lg transition-all duration-300 hover:bg-card ${
+        className={`absolute z-20 bg-card/95 backdrop-blur-xl rounded-full p-2.5 border border-border shadow-lg transition-all duration-300 hover:bg-card active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation ${
           mapLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
         }`}
         style={{
@@ -1666,9 +1666,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         aria-label={controlsCollapsed ? "Show map controls" : "Hide map controls"}
       >
         {controlsCollapsed ? (
-          <PanelRightOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-foreground" />
+          <PanelRightOpen className="w-5 h-5 text-foreground" />
         ) : (
-          <PanelRightClose className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-foreground" />
+          <PanelRightClose className="w-5 h-5 text-foreground" />
         )}
       </button>
 
@@ -1719,9 +1719,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           }}
           variant={showDensityLayer ? "default" : "secondary"}
           size="sm"
-          className="bg-card/95 backdrop-blur-xl border border-border text-[10px] sm:text-xs shadow-lg w-full animate-fade-in h-7 sm:h-8"
+          className="bg-card/95 backdrop-blur-xl border border-border text-xs shadow-lg w-full animate-fade-in min-h-[44px] touch-manipulation"
         >
-          <Layers className="w-3 h-3 mr-1" />
+          <Layers className="w-4 h-4 mr-1.5" />
           <span>{showDensityLayer ? "Hide" : "Show"} Heat</span>
         </Button>
 
@@ -1946,9 +1946,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           onClick={() => { triggerHaptic('medium'); setShowMovementPaths(!showMovementPaths); }}
           variant={showMovementPaths ? "default" : "secondary"}
           size="sm"
-          className="bg-card/95 backdrop-blur-xl border border-border text-[10px] sm:text-xs shadow-lg w-full animate-fade-in h-7 sm:h-8"
+          className="bg-card/95 backdrop-blur-xl border border-border text-xs shadow-lg w-full animate-fade-in min-h-[44px] touch-manipulation"
         >
-          <Route className="w-3 h-3 mr-1" />
+          <Route className="w-4 h-4 mr-1.5" />
           <span>{showMovementPaths ? "Hide" : "Show"} Paths</span>
         </Button>
 

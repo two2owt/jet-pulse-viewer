@@ -27,8 +27,8 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
         paddingRight: 'env(safe-area-inset-right, 0px)',
       }}
     >
-      <div className="max-w-7xl mx-auto px-2 sm:px-3 py-1.5 sm:py-2">
-        <div className="flex items-center justify-around gap-1">
+      <div className="max-w-7xl mx-auto px-1 sm:px-2">
+        <div className="flex items-center justify-around">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;
@@ -37,14 +37,14 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`relative flex flex-col items-center justify-center gap-0.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl transition-all duration-300 min-w-[3rem] sm:min-w-[3.5rem] ${
+                className={`relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] touch-manipulation ${
                   isActive
                     ? "bg-gradient-primary shadow-glow text-primary-foreground scale-105"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 active:bg-secondary/70"
                 }`}
               >
                 <Icon 
-                  className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300" 
+                  className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300" 
                   strokeWidth={isActive ? 2.5 : 2}
                 />
                 

@@ -316,6 +316,22 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  /* Touch target utilities - ensures minimum 44px touch area for accessibility */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .touch-target-sm {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  
+  .touch-target-lg {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
   /* Safe area spacing utilities */
   .safe-area-top {
     padding-top: var(--safe-area-inset-top);
