@@ -2281,23 +2281,23 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             </div>
           </>
         ) : (
-          <>
-            <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-muted-foreground mb-1 sm:mb-1.5 md:mb-2">Activity Level</p>
-            <div className="flex gap-1.5 sm:gap-2 md:gap-3 flex-wrap">
-              <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className="flex flex-row items-center gap-2 sm:flex-col sm:items-start sm:gap-0">
+            <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-muted-foreground sm:mb-1.5 md:mb-2">Activity</p>
+            <div className="flex gap-2 sm:gap-2 md:gap-3">
+              <div className="flex items-center gap-1">
                 <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-hot rounded-full" />
                 <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Hot</span>
               </div>
-              <div className="flex items-center gap-1 sm:gap-1.5">
+              <div className="flex items-center gap-1">
                 <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-warm rounded-full" />
                 <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Warm</span>
               </div>
-              <div className="flex items-center gap-1 sm:gap-1.5">
+              <div className="flex items-center gap-1">
                 <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-cool rounded-full" />
                 <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Cool</span>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
 
