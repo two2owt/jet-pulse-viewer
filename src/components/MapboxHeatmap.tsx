@@ -1479,7 +1479,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         style={{
           top: 'var(--map-ui-inset-top)',
           left: 'var(--map-ui-inset-left)',
-          maxWidth: isMobile ? 'calc(100vw - 6rem)' : 'var(--map-control-max-width)',
+          maxWidth: isMobile ? 'calc(100vw - 7rem)' : 'var(--map-control-max-width)',
         }}
       >
         <Select
@@ -1520,16 +1520,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             }
           }}
         >
-          <SelectTrigger className="w-auto text-[10px] sm:text-xs md:text-sm h-8 sm:h-9 md:h-10">
+          <SelectTrigger className="w-auto text-[9px] sm:text-[10px] md:text-xs lg:text-sm h-7 sm:h-8 md:h-9 lg:h-10 px-2 sm:px-2.5 md:px-3">
             <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
               <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-primary flex-shrink-0" />
-              <span className="font-semibold truncate">
+              <span className="font-semibold truncate max-w-[100px] sm:max-w-[140px] md:max-w-[180px]">
                 {isUsingCurrentLocation 
                   ? (detectedCity ? `${detectedCity.name}, ${detectedCity.state}` : "Locating...") 
                   : `${selectedCity.name}, ${selectedCity.state}`}
               </span>
               {isUsingCurrentLocation && detectedCity && (
-                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-pulse" />
               )}
             </div>
           </SelectTrigger>
@@ -1569,24 +1569,24 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         }`}
         style={{
           top: 'var(--map-ui-inset-top)',
-          right: isMobile ? 'calc(var(--map-ui-inset-right) + 2rem)' : 'calc(var(--map-ui-inset-right) + 3rem)',
+          right: 'var(--map-ui-inset-right)',
         }}
       >
-        <div className="bg-card/95 backdrop-blur-xl px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-border flex items-center gap-1 sm:gap-1.5 shadow-lg">
-          <div className="w-1.5 h-1.5 bg-destructive rounded-full pulse-glow" />
-          <p className="text-[10px] sm:text-xs font-semibold text-foreground">Live</p>
+        <div className="bg-card/95 backdrop-blur-xl px-2 py-1 sm:px-2.5 sm:py-1 md:px-3 md:py-1.5 rounded-full border border-border flex items-center gap-1 sm:gap-1.5 shadow-lg">
+          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-destructive rounded-full pulse-glow" />
+          <p className="text-[9px] sm:text-[10px] md:text-xs font-semibold text-foreground">Live</p>
         </div>
       </div>
 
       {/* Map Controls - Top left below city selector, collapsible on mobile/tablet */}
       <div 
-        className={`absolute z-10 space-y-1.5 transition-all duration-500 ease-out delay-150 ${
+        className={`absolute z-10 space-y-1.5 sm:space-y-2 transition-all duration-500 ease-out delay-150 ${
           mapLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
         }`}
         style={{
-          top: isMobile ? 'calc(var(--map-ui-inset-top) + 2.5rem)' : 'calc(var(--map-ui-inset-top) + 2.75rem)',
+          top: isMobile ? 'calc(var(--map-ui-inset-top) + 2.75rem)' : 'calc(var(--map-ui-inset-top) + 3rem)',
           left: 'var(--map-ui-inset-left)',
-          maxWidth: isMobile ? 'calc(50vw - 1.5rem)' : 'var(--map-control-max-width)',
+          maxWidth: isMobile ? 'calc(50vw - 1rem)' : 'var(--map-control-max-width)',
         }}
       >
         <Collapsible defaultOpen={!isMobile}>
@@ -1594,7 +1594,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             <Button
               variant="secondary"
               size="sm"
-              className="bg-card/95 backdrop-blur-xl border border-border text-[9px] sm:text-[10px] md:text-xs shadow-lg h-7 sm:h-8 md:h-9 px-1.5 sm:px-2 md:px-3"
+              className="bg-card/95 backdrop-blur-xl border border-border text-[9px] sm:text-[10px] md:text-xs shadow-lg h-7 sm:h-8 md:h-9 px-2 sm:px-2.5 md:px-3"
             >
               <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-0.5 sm:mr-1" />
               <span className="hidden sm:inline">Map Style</span>
