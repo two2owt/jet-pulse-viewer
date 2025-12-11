@@ -386,6 +386,7 @@ const Index = () => {
                   mapboxToken={mapboxToken}
                   selectedCity={selectedCity}
                   onCityChange={handleCityChange}
+                  isLoadingVenues={venuesLoading}
                 />
               </Suspense>
               )}
