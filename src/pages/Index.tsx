@@ -40,15 +40,18 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 
-const mockVenues: Venue[] = [
-  { id: "1", name: "Rooftop 210", lat: 35.220, lng: -80.840, activity: 92, category: "Bar", neighborhood: "South End" },
-  { id: "2", name: "Pin House", lat: 35.218, lng: -80.842, activity: 78, category: "Bar", neighborhood: "South End" },
-  { id: "3", name: "Wooden Robot", lat: 35.215, lng: -80.838, activity: 85, category: "Brewery", neighborhood: "South End" },
-  { id: "4", name: "Ink N Ivy", lat: 35.227, lng: -80.843, activity: 67, category: "Restaurant", neighborhood: "Uptown" },
-  { id: "5", name: "Fitzgerald's", lat: 35.205, lng: -80.820, activity: 88, category: "Bar", neighborhood: "Plaza Midwood" },
-  { id: "6", name: "The Punch Room", lat: 35.225, lng: -80.845, activity: 55, category: "Cocktail Bar", neighborhood: "Uptown" },
-  { id: "7", name: "NoDa Brewing", lat: 35.251, lng: -80.800, activity: 73, category: "Brewery", neighborhood: "NoDa" },
-  { id: "8", name: "Camp North End", lat: 35.240, lng: -80.830, activity: 81, category: "Food Hall", neighborhood: "Camp North End" },
+// Top 10 most popular venues in Charlotte, NC metropolitan area with real addresses
+const charlotteVenues: Venue[] = [
+  { id: "merchant-trade", name: "Merchant & Trade", lat: 35.2271, lng: -80.8393, activity: 95, category: "Rooftop Bar", neighborhood: "Uptown", address: "201 S College St, Charlotte, NC 28202" },
+  { id: "punch-room", name: "The Punch Room", lat: 35.2269, lng: -80.8405, activity: 88, category: "Cocktail Bar", neighborhood: "Uptown", address: "100 W Trade St, Charlotte, NC 28202" },
+  { id: "heirloom", name: "Heirloom Restaurant", lat: 35.2163, lng: -80.8482, activity: 92, category: "Restaurant", neighborhood: "South End", address: "2000 South Blvd Suite 420, Charlotte, NC 28203" },
+  { id: "supperland", name: "Supperland", lat: 35.2381, lng: -80.8237, activity: 87, category: "Restaurant", neighborhood: "Camp North End", address: "1212 N Davidson St, Charlotte, NC 28206" },
+  { id: "haberdish", name: "Haberdish", lat: 35.2488, lng: -80.8067, activity: 85, category: "Restaurant", neighborhood: "NoDa", address: "3106 N Davidson St, Charlotte, NC 28205" },
+  { id: "seoul-food", name: "Seoul Food Meat Company", lat: 35.2188, lng: -80.8441, activity: 83, category: "Restaurant", neighborhood: "South End", address: "2001 South Blvd, Charlotte, NC 28203" },
+  { id: "crunkleton", name: "The Crunkleton", lat: 35.2193, lng: -80.8137, activity: 80, category: "Cocktail Bar", neighborhood: "Plaza Midwood", address: "1957 E 7th St, Charlotte, NC 28204" },
+  { id: "fahrenheit", name: "Fahrenheit", lat: 35.2272, lng: -80.8394, activity: 90, category: "Restaurant", neighborhood: "Uptown", address: "222 S Caldwell St, Charlotte, NC 28202" },
+  { id: "angelines", name: "Angeline's", lat: 35.2257, lng: -80.8401, activity: 82, category: "Restaurant", neighborhood: "Uptown", address: "125 W Trade St, Charlotte, NC 28202" },
+  { id: "wooden-robot", name: "Wooden Robot Brewery", lat: 35.2156, lng: -80.8485, activity: 78, category: "Brewery", neighborhood: "South End", address: "1440 S Tryon St Suite 110, Charlotte, NC 28203" },
 ];
 
 const Index = () => {
@@ -74,8 +77,8 @@ const Index = () => {
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const jetCardRef = useRef<HTMLDivElement>(null);
 
-  // Use real venues when available, fallback to mock for compatibility
-  const venues = realVenues && realVenues.length > 0 ? realVenues : mockVenues;
+  // Use real venues when available, fallback to Charlotte venues
+  const venues = realVenues && realVenues.length > 0 ? realVenues : charlotteVenues;
 
   // Handle deep linked deal - select the venue associated with the deal
   const handleDeepLinkDeal = useCallback(async (dealId: string, dealData: any) => {
