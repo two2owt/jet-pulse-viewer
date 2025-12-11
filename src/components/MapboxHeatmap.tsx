@@ -2234,7 +2234,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Enhanced Legend - Bottom left, responsive for all devices */}
       <div 
         className={`${isMobile ? 'fixed' : 'absolute'} bg-card/95 backdrop-blur-xl px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-3 rounded-xl border border-border z-30 shadow-lg transition-all ease-out ${
-          mapLoaded && (isMobile ? ((showDensityLayer || showMovementPaths) && !selectedVenue) : !controlsCollapsed) 
+          mapLoaded && (isMobile ? !selectedVenue : !controlsCollapsed) 
             ? 'opacity-100 translate-x-0 scale-100 duration-500 delay-200' 
             : 'opacity-0 -translate-x-full scale-95 duration-200 delay-0 pointer-events-none'
         }`}
