@@ -1380,4 +1380,37 @@ All colors MUST be HSL.
       opacity: 1;
     }
   }
+
+  .arrival-destination {
+    animation: arrival-fade-in 0.8s ease-out 0.3s both;
+  }
+
+  @keyframes arrival-fade-in {
+    0% {
+      opacity: 0;
+      transform: translateX(8px);
+    }
+    60% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .arrival-city-name {
+    animation: city-slide-in 0.6s ease-out 0.5s both;
+  }
+
+  @keyframes city-slide-in {
+    0% {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
