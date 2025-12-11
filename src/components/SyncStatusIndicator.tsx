@@ -10,6 +10,7 @@ interface SyncStatusIndicatorProps {
   className?: string;
   showTimestamp?: boolean;
   compact?: boolean;
+  cityName?: string;
 }
 
 export const SyncStatusIndicator = ({
@@ -19,6 +20,7 @@ export const SyncStatusIndicator = ({
   className,
   showTimestamp = true,
   compact = false,
+  cityName = "Charlotte",
 }: SyncStatusIndicatorProps) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [timeSinceUpdate, setTimeSinceUpdate] = useState<string>("");
@@ -237,7 +239,7 @@ export const SyncStatusIndicator = ({
                 {/* Arrived at destination text */}
                 <div className="flex flex-col items-end mr-1">
                   <span className="text-[8px] text-muted-foreground/70 leading-tight">Arrived at:</span>
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-500 leading-tight">Synced</span>
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-500 leading-tight truncate max-w-[80px] sm:max-w-[100px]">{cityName}</span>
                 </div>
                 <div className="relative landed-airplane">
                   <Plane className="w-4 h-4 text-primary/80 fill-primary/80 rotate-[-10deg]" />

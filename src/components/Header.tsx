@@ -23,9 +23,10 @@ interface HeaderProps {
   isLoading?: boolean;
   lastUpdated?: Date | null;
   onRefresh?: () => void;
+  cityName?: string;
 }
 
-export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, onRefresh }: HeaderProps) => {
+export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, onRefresh, cityName }: HeaderProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
@@ -134,6 +135,7 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
               onRefresh={onRefresh}
               showTimestamp={true}
               compact={true}
+              cityName={cityName}
             />
           </div>
 
