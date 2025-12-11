@@ -355,6 +355,7 @@ const Index = () => {
             refreshDeals();
             refreshVenues();
           }}
+          cityName={`${selectedCity.name}, ${selectedCity.state}`}
         />
 
       {/* Main Content */}
