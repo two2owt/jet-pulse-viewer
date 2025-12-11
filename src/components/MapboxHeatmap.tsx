@@ -1595,8 +1595,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           mapLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
         }`}
         style={{
-          bottom: 'var(--map-ui-inset-bottom)',
-          right: controlsCollapsed ? 'var(--map-ui-inset-right)' : 'calc(var(--map-ui-inset-right) + var(--map-control-max-width) + 0.5rem)',
+          bottom: isMobile ? '0.5rem' : 'var(--map-ui-inset-bottom)',
+          right: controlsCollapsed 
+            ? (isMobile ? '0.5rem' : 'var(--map-ui-inset-right)') 
+            : isMobile 
+              ? 'calc(180px + 1rem)' 
+              : 'calc(var(--map-ui-inset-right) + var(--map-control-max-width) + 0.5rem)',
         }}
         aria-label={controlsCollapsed ? "Show map controls" : "Hide map controls"}
       >
@@ -1610,13 +1614,17 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Density Layer Controls - Bottom right, responsive for all devices */}
       <div 
         className={`absolute z-10 space-y-2 transition-all duration-300 ease-out ${
-          mapLoaded && !controlsCollapsed ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full pointer-events-none'
+          controlsCollapsed 
+            ? 'opacity-0 translate-x-full pointer-events-none' 
+            : mapLoaded 
+              ? 'opacity-100 translate-x-0' 
+              : 'opacity-0'
         }`}
         style={{
-          bottom: 'var(--map-ui-inset-bottom)',
-          right: 'var(--map-ui-inset-right)',
-          maxWidth: 'var(--map-control-max-width)',
-          width: '100%',
+          bottom: isMobile ? '0.5rem' : 'var(--map-ui-inset-bottom)',
+          right: isMobile ? '0.5rem' : 'var(--map-ui-inset-right)',
+          maxWidth: isMobile ? 'calc(100vw - 1rem)' : 'var(--map-control-max-width)',
+          width: isMobile ? '180px' : '100%',
         }}
       >
         <Button
