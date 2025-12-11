@@ -92,7 +92,7 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
       }}
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Logo */}
           <div 
             className="flex items-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
@@ -103,8 +103,8 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
             </h1>
           </div>
           
-          {/* Search Bar - Minimized width */}
-          <div className="flex-1 min-w-0 max-w-[140px] sm:max-w-[180px] md:max-w-[240px] relative">
+          {/* Search Bar - Responsive width */}
+          <div className="flex-1 min-w-0 max-w-[120px] sm:max-w-[160px] md:max-w-[220px] lg:max-w-[280px] relative">
             <Search className="absolute left-2 sm:left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
@@ -126,13 +126,14 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
             />
           </div>
 
-          {/* Sync Status - Now visible on all screens */}
-          <div className="flex-shrink-0">
+          {/* Sync Status - Compact mode with flexible width */}
+          <div className="flex-1 flex justify-center min-w-0">
             <SyncStatusIndicator
               isLoading={isLoading}
               lastUpdated={lastUpdated}
               onRefresh={onRefresh}
               showTimestamp={false}
+              compact={true}
             />
           </div>
 

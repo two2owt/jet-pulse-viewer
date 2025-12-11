@@ -9,6 +9,7 @@ interface SyncStatusIndicatorProps {
   onRefresh?: () => void;
   className?: string;
   showTimestamp?: boolean;
+  compact?: boolean;
 }
 
 export const SyncStatusIndicator = ({
@@ -17,6 +18,7 @@ export const SyncStatusIndicator = ({
   onRefresh,
   className,
   showTimestamp = true,
+  compact = false,
 }: SyncStatusIndicatorProps) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [timeSinceUpdate, setTimeSinceUpdate] = useState<string>("");
@@ -142,6 +144,77 @@ export const SyncStatusIndicator = ({
     return () => clearInterval(interval);
   }, [lastUpdated]);
 
+  // Compact mode rendering
+  if (compact) {
+    return (
+      <div className={cn("flex items-center", className)}>
+        {/* Offline Status - Compact */}
+        {!isOnline && (
+          <div className="p-1.5 rounded-full bg-destructive/10">
+            <WifiOff className="h-4 w-4 text-destructive" />
+          </div>
+        )}
+
+        {/* Syncing - Compact with flying airplane and clouds */}
+        {isLoading && isOnline && (
+          <div className="compact-sync-container relative flex items-center gap-1 px-2 py-1 bg-card/80 backdrop-blur-md rounded-full border border-border/40 overflow-hidden">
+            {/* Passing clouds background */}
+            <div className="compact-passing-clouds" />
+            
+            {/* Airplane with animation */}
+            <div className="relative z-10 flex items-center gap-1.5">
+              <div className="relative">
+                {/* Small cloud */}
+                <Cloud className="compact-cloud-bg w-4 h-4 text-muted-foreground/30 absolute -left-1 -top-0.5" />
+                
+                {/* Flying airplane */}
+                <div className="compact-airplane-fly relative">
+                  <Plane className="w-4 h-4 text-primary fill-primary rotate-[-15deg]" />
+                  {/* Contrails */}
+                  <div className="absolute right-full top-1/2 -translate-y-1/2 w-6 h-px">
+                    <div className="compact-contrail" />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Progress indicator */}
+              <div className="flex items-center gap-1">
+                <div className="w-8 h-1 bg-muted/50 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-200"
+                    style={{ width: `${syncProgress}%` }}
+                  />
+                </div>
+                <span className="text-[8px] text-primary font-medium min-w-[20px]">
+                  {Math.round(syncProgress)}%
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Synced - Compact (just airplane icon) */}
+        {!isLoading && isOnline && (
+          <div 
+            className={cn(
+              "p-1.5 rounded-full transition-all duration-300 cursor-pointer hover:bg-accent/20",
+              showSuccessFlash && "sync-success-flash"
+            )}
+            onClick={onRefresh}
+            title={timeSinceUpdate ? `Last synced: ${timeSinceUpdate}` : "Synced"}
+          >
+            <div className="relative">
+              <Plane className="w-4 h-4 text-primary/70 rotate-[-15deg]" />
+              {/* Small green dot indicating synced */}
+              <div className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Full mode rendering
   return (
     <div
       className={cn(
@@ -188,7 +261,7 @@ export const SyncStatusIndicator = ({
                   <span className="sync-contrail sync-contrail-2" />
                 </div>
               </div>
-              <span className="font-medium text-[10px] sm:text-xs">Flying through clouds...</span>
+              <span className="font-medium text-[10px] sm:text-xs">Syncing...</span>
             </div>
           </div>
         )}
