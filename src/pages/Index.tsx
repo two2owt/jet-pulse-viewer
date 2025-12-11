@@ -351,7 +351,7 @@ const Index = () => {
       <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 py-3 sm:py-4'}`}>
         {activeTab === "map" && (
           <div 
-            className="relative w-full overflow-hidden"
+            className="relative w-full"
             style={{ 
               height: 'calc(100dvh - 7rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
               minHeight: '400px',
@@ -359,7 +359,7 @@ const Index = () => {
           >
 
             {/* Mapbox Heatmap - Edge to edge */}
-            <div className="h-full w-full overflow-hidden animate-fade-in">
+            <div className="h-full w-full animate-fade-in">
               {mapboxLoading && (
                 <div className="h-full flex items-center justify-center bg-card">
                   <div className="text-center space-y-3 sm:space-y-4">
