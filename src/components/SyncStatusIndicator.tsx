@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { RefreshCw, Check, WifiOff, Cloud, Plane } from "lucide-react";
+import { RefreshCw, Check, WifiOff, Cloud, Plane, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
@@ -144,48 +144,75 @@ export const SyncStatusIndicator = ({
     return () => clearInterval(interval);
   }, [lastUpdated]);
 
-  // Compact mode rendering
+  // Compact mode rendering - Full width runway with takeoff/landing
   if (compact) {
     return (
-      <div className={cn("flex items-center", className)}>
+      <div className={cn("flex items-center w-full", className)}>
         {/* Offline Status - Compact */}
         {!isOnline && (
-          <div className="p-1.5 rounded-full bg-destructive/10">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 rounded-full">
             <WifiOff className="h-4 w-4 text-destructive" />
+            <span className="text-[10px] text-destructive font-medium">Offline</span>
           </div>
         )}
 
-        {/* Syncing - Compact with flying airplane and clouds */}
+        {/* Syncing - Full width runway with flying airplane */}
         {isLoading && isOnline && (
-          <div className="compact-sync-container relative flex items-center gap-1 px-2 py-1 bg-card/80 backdrop-blur-md rounded-full border border-border/40 overflow-hidden">
-            {/* Passing clouds background */}
-            <div className="compact-passing-clouds" />
-            
-            {/* Airplane with animation */}
-            <div className="relative z-10 flex items-center gap-1.5">
-              <div className="relative">
-                {/* Small cloud */}
-                <Cloud className="compact-cloud-bg w-4 h-4 text-muted-foreground/30 absolute -left-1 -top-0.5" />
-                
-                {/* Flying airplane */}
-                <div className="compact-airplane-fly relative">
-                  <Plane className="w-4 h-4 text-primary fill-primary rotate-[-15deg]" />
+          <div className="flex-1 flex items-center gap-2">
+            {/* Runway container */}
+            <div className="flex-1 relative h-8 bg-card/60 backdrop-blur-md rounded-full border border-border/40 overflow-hidden">
+              {/* Passing clouds background */}
+              <div className="runway-passing-clouds" />
+              
+              {/* Runway track with dashes */}
+              <div className="absolute inset-x-3 top-1/2 -translate-y-1/2 h-0.5 bg-muted-foreground/20 rounded-full" />
+              <div className="absolute inset-x-3 top-1/2 -translate-y-1/2 h-px border-t border-dashed border-muted-foreground/30" />
+              
+              {/* Cloud waypoints */}
+              <Cloud className="absolute top-1/2 -translate-y-1/2 left-[15%] w-3 h-3 text-muted-foreground/20 runway-cloud" />
+              <Cloud className="absolute top-1/2 -translate-y-1/2 left-[40%] w-4 h-4 text-muted-foreground/25 runway-cloud" style={{ animationDelay: '0.5s' }} />
+              <Cloud className="absolute top-1/2 -translate-y-1/2 left-[65%] w-3 h-3 text-muted-foreground/20 runway-cloud" style={{ animationDelay: '1s' }} />
+              
+              {/* Takeoff marker (left) */}
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                <div className="w-1 h-3 bg-primary/40 rounded-full" />
+                <div className="w-0.5 h-2 bg-primary/30 rounded-full" />
+              </div>
+              
+              {/* Landing marker (right) */}
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                <div className="w-0.5 h-2 bg-emerald-500/30 rounded-full" />
+                <div className="w-1 h-3 bg-emerald-500/40 rounded-full" />
+              </div>
+              
+              {/* Progress fill underneath */}
+              <div 
+                className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-full transition-all duration-200"
+                style={{ width: `${syncProgress}%` }}
+              />
+              
+              {/* Flying airplane with takeoff animation */}
+              <div 
+                className="absolute top-1/2 transition-all duration-200 ease-out runway-airplane"
+                style={{ 
+                  left: `calc(${Math.max(5, Math.min(95, syncProgress))}% - 8px)`,
+                  transform: `translateY(-50%) translateY(${Math.sin(syncProgress * 0.1) * 2}px) rotate(${syncProgress < 15 ? -25 - (15 - syncProgress) : syncProgress > 85 ? -15 + (syncProgress - 85) * 0.5 : -20}deg)`,
+                }}
+              >
+                <div className="relative">
+                  <Plane className="w-4 h-4 sm:w-5 sm:h-5 text-primary fill-primary drop-shadow-md" />
                   {/* Contrails */}
-                  <div className="absolute right-full top-1/2 -translate-y-1/2 w-6 h-px">
-                    <div className="compact-contrail" />
+                  <div className="absolute right-full top-1/2 -translate-y-1/2 w-6 sm:w-8 h-0.5 overflow-hidden">
+                    <div className="runway-contrail" />
                   </div>
+                  {/* Engine glow */}
+                  <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-accent rounded-full blur-[2px] animate-pulse" />
                 </div>
               </div>
               
-              {/* Progress indicator */}
-              <div className="flex items-center gap-1">
-                <div className="w-8 h-1 bg-muted/50 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-200"
-                    style={{ width: `${syncProgress}%` }}
-                  />
-                </div>
-                <span className="text-[8px] text-primary font-medium min-w-[20px]">
+              {/* Progress percentage */}
+              <div className="absolute right-8 top-1/2 -translate-y-1/2">
+                <span className="text-[9px] sm:text-[10px] text-primary font-semibold">
                   {Math.round(syncProgress)}%
                 </span>
               </div>
@@ -193,26 +220,54 @@ export const SyncStatusIndicator = ({
           </div>
         )}
 
-        {/* Synced - Compact (just airplane icon) */}
+        {/* Synced - Full width with landed airplane and refresh */}
         {!isLoading && isOnline && (
-          <div 
-            className={cn(
-              "p-1.5 rounded-full transition-all duration-300 cursor-pointer hover:bg-accent/20",
-              showSuccessFlash && "sync-success-flash"
-            )}
-            onClick={onRefresh}
-            title={timeSinceUpdate ? `Last synced: ${timeSinceUpdate}` : "Synced"}
-          >
-            <div className="relative">
-              <Plane className="w-4 h-4 text-primary/70 rotate-[-15deg]" />
-              {/* Small green dot indicating synced */}
-              <div className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+          <div className="flex-1 flex items-center gap-2">
+            <div 
+              className={cn(
+                "flex-1 relative h-8 bg-card/60 backdrop-blur-md rounded-full border border-border/40 overflow-hidden transition-all duration-500",
+                showSuccessFlash && "runway-landing-flash"
+              )}
+            >
+              {/* Runway track */}
+              <div className="absolute inset-x-3 top-1/2 -translate-y-1/2 h-0.5 bg-muted-foreground/10 rounded-full" />
+              
+              {/* Landed airplane (parked on right side) */}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                <div className="relative landed-airplane">
+                  <Plane className="w-4 h-4 text-primary/80 fill-primary/80 rotate-[-10deg]" />
+                  {/* Synced indicator */}
+                  <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full flex items-center justify-center">
+                    <Check className="w-1.5 h-1.5 text-white" />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Last sync time */}
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground">
+                  {timeSinceUpdate || "Synced"}
+                </span>
+              </div>
             </div>
+            
+            {/* Refresh button */}
+            {onRefresh && (
+              <button
+                onClick={onRefresh}
+                className="p-1.5 sm:p-2 hover:bg-accent/20 rounded-full transition-colors flex-shrink-0"
+                aria-label="Refresh data"
+              >
+                <RefreshCw className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+              </button>
+            )}
           </div>
         )}
       </div>
     );
   }
+
+
 
   // Full mode rendering
   return (

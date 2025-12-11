@@ -1250,4 +1250,134 @@ All colors MUST be HSL.
       transform: scaleX(1) translateX(-100%);
     }
   }
+
+  /* Runway sync indicator styles */
+  .runway-passing-clouds {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .runway-passing-clouds::before,
+  .runway-passing-clouds::after {
+    content: '';
+    position: absolute;
+    width: 20%;
+    height: 70%;
+    top: 15%;
+    background: radial-gradient(ellipse, hsl(var(--foreground) / 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(3px);
+    animation: runway-cloud-pass 4s linear infinite;
+  }
+
+  .runway-passing-clouds::before {
+    animation-delay: 0s;
+  }
+
+  .runway-passing-clouds::after {
+    animation-delay: 2s;
+  }
+
+  @keyframes runway-cloud-pass {
+    0% {
+      left: 100%;
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.5;
+    }
+    90% {
+      opacity: 0.5;
+    }
+    100% {
+      left: -20%;
+      opacity: 0;
+    }
+  }
+
+  .runway-cloud {
+    animation: runway-cloud-bob 3s ease-in-out infinite;
+  }
+
+  @keyframes runway-cloud-bob {
+    0%, 100% {
+      transform: translateY(-50%) translateY(0) scale(1);
+      opacity: 0.2;
+    }
+    50% {
+      transform: translateY(-50%) translateY(-2px) scale(1.1);
+      opacity: 0.35;
+    }
+  }
+
+  .runway-airplane {
+    filter: drop-shadow(0 2px 4px hsl(var(--primary) / 0.4));
+  }
+
+  .runway-contrail {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.2) 30%,
+      hsl(var(--primary) / 0.5) 70%,
+      hsl(var(--primary-foreground) / 0.7) 100%
+    );
+    animation: runway-contrail-stream 0.7s ease-out infinite;
+    border-radius: 2px;
+  }
+
+  @keyframes runway-contrail-stream {
+    0% {
+      opacity: 0.8;
+      transform: scaleX(0.2) translateX(0);
+    }
+    50% {
+      opacity: 0.4;
+    }
+    100% {
+      opacity: 0;
+      transform: scaleX(1.2) translateX(-100%);
+    }
+  }
+
+  .runway-landing-flash {
+    animation: runway-landing 0.6s ease-out forwards;
+  }
+
+  @keyframes runway-landing {
+    0% {
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 15px 2px hsl(142 76% 45% / 0.5);
+    }
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+
+  .landed-airplane {
+    animation: landed-settle 0.5s ease-out forwards;
+  }
+
+  @keyframes landed-settle {
+    0% {
+      transform: translateX(10px) rotate(-15deg);
+      opacity: 0;
+    }
+    60% {
+      transform: translateX(-2px) rotate(-8deg);
+    }
+    100% {
+      transform: translateX(0) rotate(-10deg);
+      opacity: 1;
+    }
+  }
 }
