@@ -220,29 +220,81 @@ export const SyncStatusIndicator = ({
         )}
       </div>
 
-      {/* Progress Bar - Only show during sync */}
+      {/* Progress Bar with Flight Path - Only show during sync */}
       {isLoading && isOnline && (
-        <div className="w-full px-1">
-          <div className="relative h-1 sm:h-1.5 bg-muted/50 rounded-full overflow-hidden">
-            {/* Animated gradient background */}
-            <div className="absolute inset-0 sync-progress-shimmer" />
+        <div className="w-full px-1 mt-1">
+          {/* Flight path container */}
+          <div className="relative h-6 sm:h-7">
+            {/* Dotted flight path line */}
+            <div className="absolute top-1/2 left-0 right-0 h-px border-t border-dashed border-muted-foreground/30" />
             
-            {/* Progress fill */}
-            <div 
-              className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary via-primary to-accent rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${syncProgress}%` }}
-            />
+            {/* Cloud waypoints along the path */}
+            <div className="absolute top-1/2 -translate-y-1/2 left-[10%]">
+              <Cloud className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground/20" />
+            </div>
+            <div className="absolute top-1/2 -translate-y-1/2 left-[35%]">
+              <Cloud className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground/25" />
+            </div>
+            <div className="absolute top-1/2 -translate-y-1/2 left-[60%]">
+              <Cloud className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-muted-foreground/20" />
+            </div>
+            <div className="absolute top-1/2 -translate-y-1/2 left-[85%]">
+              <Cloud className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground/30" />
+            </div>
             
-            {/* Glowing tip */}
+            {/* Progress bar track */}
+            <div className="absolute bottom-0 left-0 right-0 h-1.5 sm:h-2 bg-muted/40 rounded-full overflow-hidden">
+              {/* Animated gradient background */}
+              <div className="absolute inset-0 sync-progress-shimmer" />
+              
+              {/* Progress fill with gradient */}
+              <div 
+                className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary via-accent to-primary rounded-full transition-all duration-200 ease-out"
+                style={{ width: `${syncProgress}%` }}
+              />
+              
+              {/* Contrail effect following the progress */}
+              <div 
+                className="absolute inset-y-0 left-0 bg-gradient-to-r from-transparent via-primary-foreground/30 to-transparent rounded-full transition-all duration-200"
+                style={{ width: `${Math.max(0, syncProgress - 5)}%` }}
+              />
+            </div>
+            
+            {/* Flying airplane on the flight path */}
             <div 
-              className="absolute top-0 bottom-0 w-2 bg-primary-foreground/80 rounded-full blur-sm transition-all duration-300"
-              style={{ left: `calc(${syncProgress}% - 4px)` }}
-            />
+              className="absolute top-0 transition-all duration-200 ease-out"
+              style={{ 
+                left: `calc(${syncProgress}% - 10px)`,
+                transform: `translateY(${Math.sin(syncProgress * 0.15) * 3}px)` // Gentle bobbing
+              }}
+            >
+              <div className="relative flight-path-airplane">
+                {/* Contrails behind airplane */}
+                <div className="absolute right-full top-1/2 -translate-y-1/2 w-8 sm:w-12 h-0.5 overflow-hidden">
+                  <div className="flight-contrail-trail" />
+                </div>
+                
+                {/* Airplane with glow */}
+                <div className="relative">
+                  <Plane className="w-4 h-4 sm:w-5 sm:h-5 text-primary fill-primary rotate-[-15deg] drop-shadow-lg" />
+                  {/* Engine glow */}
+                  <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-accent rounded-full blur-sm animate-pulse" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Destination marker */}
+            <div className="absolute top-0 right-0 opacity-40">
+              <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-dashed border-primary/50 rounded-full flex items-center justify-center">
+                <div className="w-1 h-1 bg-primary rounded-full" />
+              </div>
+            </div>
           </div>
           
           {/* Progress percentage */}
-          <div className="flex justify-end mt-0.5">
-            <span className="text-[8px] sm:text-[9px] text-muted-foreground font-medium">
+          <div className="flex justify-between items-center mt-0.5">
+            <span className="text-[7px] sm:text-[8px] text-muted-foreground/60">Syncing data</span>
+            <span className="text-[8px] sm:text-[9px] text-primary font-semibold">
               {Math.round(syncProgress)}%
             </span>
           </div>
