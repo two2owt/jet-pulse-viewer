@@ -369,33 +369,7 @@ All colors MUST be HSL.
   .text-fluid-3xl { font-size: var(--text-3xl); }
 }
 
-/* Responsive adjustments for map UI insets across device sizes */
-@media (min-width: 640px) {
-  :root {
-    --map-ui-inset-top: max(1.25rem, calc(var(--safe-area-inset-top) + 1rem));
-    --map-ui-inset-right: max(1rem, calc(var(--safe-area-inset-right) + 0.75rem));
-    --map-ui-inset-bottom: max(1rem, calc(var(--safe-area-inset-bottom) + 0.75rem));
-    --map-ui-inset-left: max(1rem, calc(var(--safe-area-inset-left) + 0.75rem));
-  }
-}
-
-@media (min-width: 768px) {
-  :root {
-    --map-ui-inset-top: max(1.5rem, calc(var(--safe-area-inset-top) + 1.25rem));
-    --map-ui-inset-right: max(1.25rem, calc(var(--safe-area-inset-right) + 1rem));
-    --map-ui-inset-bottom: max(1.25rem, calc(var(--safe-area-inset-bottom) + 1rem));
-    --map-ui-inset-left: max(1.25rem, calc(var(--safe-area-inset-left) + 1rem));
-  }
-}
-
-@media (min-width: 1024px) {
-  :root {
-    --map-ui-inset-top: max(1.5rem, calc(var(--safe-area-inset-top) + 1.25rem));
-    --map-ui-inset-right: max(1.5rem, calc(var(--safe-area-inset-right) + 1.25rem));
-    --map-ui-inset-bottom: max(1.5rem, calc(var(--safe-area-inset-bottom) + 1.25rem));
-    --map-ui-inset-left: max(1.5rem, calc(var(--safe-area-inset-left) + 1.25rem));
-  }
-}
+/* Note: Primary responsive map UI insets are defined earlier in the file */
 
 @layer utilities {
   .pulse-glow {
@@ -410,6 +384,27 @@ All colors MUST be HSL.
     50% {
       opacity: 0.7;
       transform: scale(1.1);
+    }
+  }
+
+  /* Shimmer loading animation for skeletons */
+  .animate-shimmer {
+    animation: shimmer 1.5s ease-in-out infinite;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--card)) 0%,
+      hsl(var(--muted)) 50%,
+      hsl(var(--card)) 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
     }
   }
 

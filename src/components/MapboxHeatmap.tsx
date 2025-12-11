@@ -1611,6 +1611,23 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         )}
       </button>
 
+      {/* Controls Loading Skeleton - Shows while map is initializing */}
+      {!mapLoaded && !controlsCollapsed && (
+        <div 
+          className="absolute z-10 space-y-2 animate-pulse"
+          style={{
+            bottom: isMobile ? '0.5rem' : 'var(--map-ui-inset-bottom)',
+            right: isMobile ? '0.5rem' : 'var(--map-ui-inset-right)',
+            width: isMobile ? '180px' : 'var(--map-control-max-width)',
+          }}
+        >
+          {/* Heat button skeleton */}
+          <div className="h-7 sm:h-8 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" />
+          {/* Paths button skeleton */}
+          <div className="h-7 sm:h-8 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" style={{ animationDelay: '150ms' }} />
+        </div>
+      )}
+
       {/* Density Layer Controls - Bottom right, responsive for all devices */}
       <div 
         className={`absolute z-10 space-y-2 transition-all duration-300 ease-out ${
@@ -1618,7 +1635,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             ? 'opacity-0 translate-x-full pointer-events-none' 
             : mapLoaded 
               ? 'opacity-100 translate-x-0' 
-              : 'opacity-0'
+              : 'opacity-0 pointer-events-none'
         }`}
         style={{
           bottom: isMobile ? '0.5rem' : 'var(--map-ui-inset-bottom)',
