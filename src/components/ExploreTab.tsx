@@ -13,7 +13,7 @@ import { calculateDistance, getDynamicRadius, formatDistance } from "@/utils/geo
 import { useFavorites } from "@/hooks/useFavorites";
 import { Sheet, SheetContent } from "./ui/sheet";
 import { DealDetailCard } from "./DealDetailCard";
-import { Skeleton } from "./ui/skeleton";
+import { ExploreTabSkeleton } from "./skeletons";
 import type { User } from "@supabase/supabase-js";
 
 interface UserPreferences {
@@ -480,11 +480,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
       </div>
 
       {/* Loading State */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
+      {isLoading && <ExploreTabSkeleton />}
 
       {/* No Results */}
       {!isLoading && filteredDeals.length === 0 && (searchQuery || selectedCategories.length > 0) && (

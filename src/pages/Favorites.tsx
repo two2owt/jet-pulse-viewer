@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useNotifications } from "@/hooks/useNotifications";
-import { Heart, Loader2, Compass } from "lucide-react";
+import { Heart, Compass } from "lucide-react";
 import { DealCard } from "@/components/DealCard";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 import { EmptyState } from "@/components/EmptyState";
 import { VirtualGrid } from "@/components/ui/virtual-list";
-
+import { FavoritesSkeleton } from "@/components/skeletons";
 interface Deal {
   id: string;
   title: string;
@@ -120,9 +120,23 @@ export default function Favorites() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <>
+        <Header 
+          venues={[]}
+          deals={[]}
+          onVenueSelect={() => {}}
+        />
+        <div className="min-h-screen bg-background pb-[calc(5rem+var(--safe-area-inset-bottom))]">
+          <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
+            <FavoritesSkeleton />
+          </div>
+        </div>
+        <BottomNav 
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          notificationCount={0}
+        />
+      </>
     );
   }
 

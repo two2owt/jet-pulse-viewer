@@ -33,6 +33,7 @@ import {
   Linkedin,
   Video
 } from "lucide-react";
+import { ProfileSkeleton } from "@/components/skeletons";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -404,9 +405,23 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <>
+        <Header 
+          venues={[]}
+          deals={[]}
+          onVenueSelect={() => {}}
+        />
+        <div className="min-h-screen bg-background pb-20">
+          <div className="max-w-4xl mx-auto px-4 py-6">
+            <ProfileSkeleton />
+          </div>
+        </div>
+        <BottomNav 
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          notificationCount={0}
+        />
+      </>
     );
   }
 
