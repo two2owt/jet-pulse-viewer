@@ -328,7 +328,12 @@ const Index = () => {
       {/* Intro Screen */}
       {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
       
-      <div className="min-h-screen bg-background pb-[calc(4rem+var(--safe-area-inset-bottom))] sm:pb-[calc(5rem+var(--safe-area-inset-bottom))] md:pb-[calc(6rem+var(--safe-area-inset-bottom))]">
+      <div 
+        className="min-h-screen bg-background"
+        style={{
+          paddingBottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
+        }}
+      >
         {/* Header */}
         <Header 
           venues={venues}
@@ -343,13 +348,13 @@ const Index = () => {
         />
 
       {/* Main Content */}
-      <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-fluid-md py-fluid-md'} gap-fluid-md`}>
+      <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 py-3 sm:py-4'}`}>
         {activeTab === "map" && (
           <div 
-            className="relative h-[calc(100vh-8rem-var(--safe-area-inset-top)-var(--safe-area-inset-bottom))] sm:h-[calc(100vh-10rem-var(--safe-area-inset-top)-var(--safe-area-inset-bottom))] md:h-[calc(100vh-12rem-var(--safe-area-inset-top)-var(--safe-area-inset-bottom))] overflow-y-auto overflow-x-hidden -mx-3 sm:-mx-4 md:-mx-6"
+            className="relative w-full overflow-hidden"
             style={{ 
-              WebkitOverflowScrolling: 'touch',
-              touchAction: 'pan-y',
+              height: 'calc(100dvh - 7rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
+              minHeight: '400px',
             }}
           >
 

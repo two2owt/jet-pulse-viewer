@@ -86,29 +86,34 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
   };
 
   return (
-    <header className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-40 safe-area-top">
-      <div className="max-w-7xl mx-auto px-fluid-md py-fluid-sm">
-        <div className="flex items-center gap-fluid-sm">
+    <header 
+      className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-40"
+      style={{
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+      }}
+    >
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Logo */}
           <div 
             className="flex items-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => navigate('/')}
           >
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-wider">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground tracking-wider">
               JET
             </h1>
           </div>
           
           {/* Search Bar */}
-          <div className="flex-1 max-w-2xl relative">
-            <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground pointer-events-none" />
+          <div className="flex-1 min-w-0 max-w-2xl relative">
+            <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
-              placeholder="Search venues, events..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={handleSearchChange}
               onFocus={() => searchQuery.trim() && setShowResults(true)}
-              className="w-full pl-9 sm:pl-12 pr-3 sm:pr-4 h-10 sm:h-11 md:h-12 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-sm sm:text-base text-foreground placeholder:text-muted-foreground"
+              className="w-full pl-8 sm:pl-10 pr-2 sm:pr-3 h-9 sm:h-10 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-sm text-foreground placeholder:text-muted-foreground"
               maxLength={100}
             />
             
@@ -123,20 +128,22 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <SyncStatusIndicator
-              isLoading={isLoading}
-              lastUpdated={lastUpdated}
-              onRefresh={onRefresh}
-              showTimestamp={true}
-            />
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <div className="hidden sm:block">
+              <SyncStatusIndicator
+                isLoading={isLoading}
+                lastUpdated={lastUpdated}
+                onRefresh={onRefresh}
+                showTimestamp={true}
+              />
+            </div>
             <ThemeToggle />
             <Avatar 
-              className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all"
+              className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all flex-shrink-0"
               onClick={() => navigate('/settings')}
             >
               <AvatarImage src={avatarUrl || ""} />
-              <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-xs sm:text-sm">
+              <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-[10px] sm:text-xs">
                 {displayName.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
