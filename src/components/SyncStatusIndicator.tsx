@@ -21,9 +21,45 @@ export const SyncStatusIndicator = ({
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [timeSinceUpdate, setTimeSinceUpdate] = useState<string>("");
   const [showSuccessFlash, setShowSuccessFlash] = useState(false);
+  const [syncProgress, setSyncProgress] = useState(0);
   const wasOfflineRef = useRef(false);
   const previousLoadingRef = useRef(isLoading);
   const wasReconnectSyncRef = useRef(false);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Simulate progress during sync
+  useEffect(() => {
+    if (isLoading && isOnline) {
+      setSyncProgress(0);
+      
+      // Simulate progress with easing - faster at start, slower near end
+      progressIntervalRef.current = setInterval(() => {
+        setSyncProgress(prev => {
+          if (prev >= 95) return prev; // Cap at 95% until actually done
+          // Slow down as we get closer to 100
+          const increment = Math.max(1, (100 - prev) * 0.08);
+          return Math.min(95, prev + increment);
+        });
+      }, 100);
+    } else {
+      // Complete the progress when loading finishes
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      if (syncProgress > 0 && syncProgress < 100) {
+        setSyncProgress(100);
+        // Reset after animation completes
+        setTimeout(() => setSyncProgress(0), 500);
+      }
+    }
+
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, [isLoading, isOnline]);
 
   useEffect(() => {
     const handleOnline = () => {
@@ -109,77 +145,108 @@ export const SyncStatusIndicator = ({
   return (
     <div
       className={cn(
-        "flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground",
+        "flex flex-col gap-1",
         className
       )}
     >
-      {/* Offline Status */}
-      {!isOnline && (
-        <div className="flex items-center gap-1 text-destructive">
-          <WifiOff className="h-3 w-3" />
-          <span>Offline</span>
-        </div>
-      )}
+      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
+        {/* Offline Status */}
+        {!isOnline && (
+          <div className="flex items-center gap-1 text-destructive">
+            <WifiOff className="h-3 w-3" />
+            <span>Offline</span>
+          </div>
+        )}
 
-      {/* Syncing Indicator with Cloud Animation */}
-      {isLoading && isOnline && (
-        <div 
-          className={cn(
-            "sync-cloud-container syncing",
-            "flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-card/60 backdrop-blur-md rounded-full border border-border/40"
-          )}
-        >
-          {/* Cloud fog layers */}
-          <div className="sync-cloud" />
-          <div className="sync-cloud-wisps" />
-          
-          {/* Flying clouds that pass by */}
-          <div className="sync-passing-clouds" />
-          
-          {/* Content with airplane flying through clouds */}
-          <div className="relative flex items-center gap-1.5 sm:gap-2 text-primary z-10">
-            <div className="relative w-8 h-5 sm:w-10 sm:h-6">
-              {/* Background clouds */}
-              <Cloud className="sync-cloud-bg h-4 w-4 sm:h-5 sm:w-5 absolute left-0 top-0.5 opacity-40" />
-              <Cloud className="sync-cloud-bg-2 h-3 w-3 sm:h-4 sm:w-4 absolute right-0 bottom-0 opacity-30" />
-              
-              {/* Flying airplane */}
-              <div className="sync-airplane-wrapper absolute inset-0 flex items-center justify-center">
-                <Plane className="sync-airplane h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary fill-primary rotate-[-20deg]" />
-                {/* Contrails */}
-                <span className="sync-contrail sync-contrail-1" />
-                <span className="sync-contrail sync-contrail-2" />
+        {/* Syncing Indicator with Cloud Animation */}
+        {isLoading && isOnline && (
+          <div 
+            className={cn(
+              "sync-cloud-container syncing",
+              "flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-card/60 backdrop-blur-md rounded-full border border-border/40"
+            )}
+          >
+            {/* Cloud fog layers */}
+            <div className="sync-cloud" />
+            <div className="sync-cloud-wisps" />
+            
+            {/* Flying clouds that pass by */}
+            <div className="sync-passing-clouds" />
+            
+            {/* Content with airplane flying through clouds */}
+            <div className="relative flex items-center gap-1.5 sm:gap-2 text-primary z-10">
+              <div className="relative w-8 h-5 sm:w-10 sm:h-6">
+                {/* Background clouds */}
+                <Cloud className="sync-cloud-bg h-4 w-4 sm:h-5 sm:w-5 absolute left-0 top-0.5 opacity-40" />
+                <Cloud className="sync-cloud-bg-2 h-3 w-3 sm:h-4 sm:w-4 absolute right-0 bottom-0 opacity-30" />
+                
+                {/* Flying airplane */}
+                <div className="sync-airplane-wrapper absolute inset-0 flex items-center justify-center">
+                  <Plane className="sync-airplane h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary fill-primary rotate-[-20deg]" />
+                  {/* Contrails */}
+                  <span className="sync-contrail sync-contrail-1" />
+                  <span className="sync-contrail sync-contrail-2" />
+                </div>
               </div>
+              <span className="font-medium text-[10px] sm:text-xs">Flying through clouds...</span>
             </div>
-            <span className="font-medium text-[10px] sm:text-xs">Flying through clouds...</span>
+          </div>
+        )}
+
+        {/* Synced Status with Timestamp */}
+        {!isLoading && isOnline && (
+          <div 
+            className={cn(
+              "flex items-center gap-1 px-2 py-1 rounded-full transition-all duration-300",
+              showSuccessFlash && "sync-success-flash"
+            )}
+          >
+            <Check className="h-3 w-3 text-emerald-500" />
+            {showTimestamp && timeSinceUpdate && (
+              <span className="opacity-70">{timeSinceUpdate}</span>
+            )}
+          </div>
+        )}
+
+        {/* Manual Refresh Button */}
+        {onRefresh && !isLoading && isOnline && (
+          <button
+            onClick={onRefresh}
+            className="p-1 hover:bg-accent rounded-full transition-colors"
+            aria-label="Refresh data"
+          >
+            <RefreshCw className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+
+      {/* Progress Bar - Only show during sync */}
+      {isLoading && isOnline && (
+        <div className="w-full px-1">
+          <div className="relative h-1 sm:h-1.5 bg-muted/50 rounded-full overflow-hidden">
+            {/* Animated gradient background */}
+            <div className="absolute inset-0 sync-progress-shimmer" />
+            
+            {/* Progress fill */}
+            <div 
+              className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary via-primary to-accent rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${syncProgress}%` }}
+            />
+            
+            {/* Glowing tip */}
+            <div 
+              className="absolute top-0 bottom-0 w-2 bg-primary-foreground/80 rounded-full blur-sm transition-all duration-300"
+              style={{ left: `calc(${syncProgress}% - 4px)` }}
+            />
+          </div>
+          
+          {/* Progress percentage */}
+          <div className="flex justify-end mt-0.5">
+            <span className="text-[8px] sm:text-[9px] text-muted-foreground font-medium">
+              {Math.round(syncProgress)}%
+            </span>
           </div>
         </div>
-      )}
-
-      {/* Synced Status with Timestamp */}
-      {!isLoading && isOnline && (
-        <div 
-          className={cn(
-            "flex items-center gap-1 px-2 py-1 rounded-full transition-all duration-300",
-            showSuccessFlash && "sync-success-flash"
-          )}
-        >
-          <Check className="h-3 w-3 text-emerald-500" />
-          {showTimestamp && timeSinceUpdate && (
-            <span className="opacity-70">{timeSinceUpdate}</span>
-          )}
-        </div>
-      )}
-
-      {/* Manual Refresh Button */}
-      {onRefresh && !isLoading && isOnline && (
-        <button
-          onClick={onRefresh}
-          className="p-1 hover:bg-accent rounded-full transition-colors"
-          aria-label="Refresh data"
-        >
-          <RefreshCw className="h-3 w-3" />
-        </button>
       )}
     </div>
   );
