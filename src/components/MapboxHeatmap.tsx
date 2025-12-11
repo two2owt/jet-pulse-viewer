@@ -1562,23 +1562,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Select>
       </div>
 
-      {/* Live Indicator - Top Right, offset from map controls */}
-      <div 
-        className={`absolute z-10 transition-all duration-500 ease-out delay-100 ${
-          mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
-        }`}
-        style={{
-          top: 'var(--map-ui-inset-top)',
-          right: 'var(--map-ui-inset-right)',
-        }}
-      >
-        <div className="bg-card/95 backdrop-blur-xl px-2 py-1 sm:px-2.5 sm:py-1 md:px-3 md:py-1.5 rounded-full border border-border flex items-center gap-1 sm:gap-1.5 shadow-lg">
-          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-destructive rounded-full pulse-glow" />
-          <p className="text-[9px] sm:text-[10px] md:text-xs font-semibold text-foreground">Live</p>
-        </div>
-      </div>
-
-      {/* Map Controls - Top left below city selector, collapsible on mobile/tablet */}
+      {/* Map Controls - Top left below city selector, expanded by default */}
       <div 
         className={`absolute z-10 space-y-1.5 sm:space-y-2 transition-all duration-500 ease-out delay-150 ${
           mapLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
@@ -1589,7 +1573,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           maxWidth: isMobile ? 'calc(50vw - 1rem)' : 'var(--map-control-max-width)',
         }}
       >
-        <Collapsible defaultOpen={!isMobile}>
+        <Collapsible defaultOpen={true}>
           <CollapsibleTrigger asChild>
             <Button
               variant="secondary"
@@ -1597,8 +1581,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               className="bg-card/95 backdrop-blur-xl border border-border text-[9px] sm:text-[10px] md:text-xs shadow-lg h-7 sm:h-8 md:h-9 px-2 sm:px-2.5 md:px-3"
             >
               <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-0.5 sm:mr-1" />
-              <span className="hidden sm:inline">Map Style</span>
-              <span className="sm:hidden">Style</span>
+              <span>Map Style</span>
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-1.5 sm:mt-2">
