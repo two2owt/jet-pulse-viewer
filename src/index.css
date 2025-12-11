@@ -15,14 +15,17 @@ All colors MUST be HSL.
     --safe-area-inset-left: env(safe-area-inset-left, 0px);
     
     /* Adaptive map UI spacing - device-aware with safe area consideration */
-    /* Mobile (default) - compact for better map visibility */
-    --map-ui-inset-top: max(0.5rem, calc(var(--safe-area-inset-top) + 0.25rem));
-    --map-ui-inset-right: 0.5rem;
-    --map-ui-inset-bottom: 0.5rem;
-    --map-ui-inset-left: 0.5rem;
+    /* For absolute positioned elements inside map container (no bottom nav consideration needed) */
+    --map-ui-inset-top: max(0.75rem, calc(var(--safe-area-inset-top) + 0.5rem));
+    --map-ui-inset-right: 1rem;
+    --map-ui-inset-bottom: 1rem;
+    --map-ui-inset-left: 1rem;
+    
+    /* For fixed positioned elements that need to clear bottom nav */
+    --map-fixed-bottom: calc(5rem + var(--safe-area-inset-bottom));
     
     /* Map control panel max width for responsive layouts - smaller on mobile */
-    --map-control-max-width: 180px;
+    --map-control-max-width: 140px;
     
     /* Touch-friendly sizing for mobile controls - based on device specs */
     --touch-target-min: 44px;
@@ -207,11 +210,12 @@ All colors MUST be HSL.
 /* Ultra-small mobile devices (iPhone SE, small Android phones) */
 @media (max-width: 375px) {
   :root {
-    --map-ui-inset-top: 0.375rem;
-    --map-ui-inset-right: 0.25rem;
-    --map-ui-inset-bottom: 0.25rem;
-    --map-ui-inset-left: 0.25rem;
-    --map-control-max-width: 160px;
+    --map-ui-inset-top: 0.5rem;
+    --map-ui-inset-right: 0.75rem;
+    --map-ui-inset-bottom: 0.75rem;
+    --map-ui-inset-left: 0.75rem;
+    --map-fixed-bottom: calc(4.5rem + var(--safe-area-inset-bottom));
+    --map-control-max-width: 120px;
     --venue-marker-base: 26px;
     --venue-marker-active: 30px;
     --venue-marker-icon: 12px;
@@ -223,9 +227,11 @@ All colors MUST be HSL.
 /* Standard mobile phones */
 @media (min-width: 376px) and (max-width: 639px) {
   :root {
-    --map-ui-inset-right: 0.5rem;
-    --map-ui-inset-bottom: 0.5rem;
-    --map-control-max-width: 180px;
+    --map-ui-inset-right: 1rem;
+    --map-ui-inset-bottom: 1rem;
+    --map-ui-inset-left: 1rem;
+    --map-fixed-bottom: calc(5rem + var(--safe-area-inset-bottom));
+    --map-control-max-width: 140px;
   }
 }
 
@@ -233,10 +239,11 @@ All colors MUST be HSL.
 @media (min-width: 640px) {
   :root {
     --map-ui-inset-top: 1rem;
-    --map-ui-inset-right: 0.75rem;
-    --map-ui-inset-bottom: 0.75rem;
-    --map-ui-inset-left: 0.75rem;
-    --map-control-max-width: 220px;
+    --map-ui-inset-right: 1.25rem;
+    --map-ui-inset-bottom: 1.25rem;
+    --map-ui-inset-left: 1.25rem;
+    --map-fixed-bottom: calc(5.5rem + var(--safe-area-inset-bottom));
+    --map-control-max-width: 200px;
     --venue-marker-base: 36px;
     --venue-marker-active: 44px;
     --venue-marker-icon: 18px;
@@ -249,10 +256,11 @@ All colors MUST be HSL.
 @media (min-width: 768px) {
   :root {
     --map-ui-inset-top: 1.25rem;
-    --map-ui-inset-right: 1rem;
-    --map-ui-inset-bottom: 1rem;
-    --map-ui-inset-left: 1rem;
-    --map-control-max-width: 260px;
+    --map-ui-inset-right: 1.5rem;
+    --map-ui-inset-bottom: 1.5rem;
+    --map-ui-inset-left: 1.5rem;
+    --map-fixed-bottom: calc(5.5rem + var(--safe-area-inset-bottom));
+    --map-control-max-width: 240px;
     --venue-marker-base: 40px;
     --venue-marker-active: 48px;
     --venue-marker-icon: 20px;
@@ -263,17 +271,18 @@ All colors MUST be HSL.
 @media (min-width: 1024px) {
   :root {
     --map-ui-inset-top: 1.5rem;
-    --map-ui-inset-right: 1.25rem;
-    --map-ui-inset-bottom: 1.25rem;
-    --map-ui-inset-left: 1.25rem;
-    --map-control-max-width: 300px;
+    --map-ui-inset-right: 1.5rem;
+    --map-ui-inset-bottom: 1.5rem;
+    --map-ui-inset-left: 1.5rem;
+    --map-fixed-bottom: calc(5.5rem + var(--safe-area-inset-bottom));
+    --map-control-max-width: 280px;
   }
 }
 
 /* Large desktop */
 @media (min-width: 1280px) {
   :root {
-    --map-control-max-width: 380px;
+    --map-control-max-width: 340px;
     --venue-marker-base: 44px;
     --venue-marker-active: 52px;
   }
