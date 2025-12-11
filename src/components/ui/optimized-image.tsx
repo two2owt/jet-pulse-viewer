@@ -1,4 +1,4 @@
-import { useState, ImgHTMLAttributes, memo } from "react";
+import { useState, ImgHTMLAttributes, memo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { 
   generateSrcSet, 
@@ -8,7 +8,6 @@ import {
   ImageSize 
 } from "@/lib/image-utils";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
-import { Skeleton } from "./skeleton";
 
 interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'loading' | 'sizes'> {
   src: string;
@@ -26,6 +25,8 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   quality?: number;
   /** Use intersection observer for deferred loading (more aggressive than native lazy) */
   deferLoad?: boolean;
+  /** Enable blur-up placeholder effect */
+  blurUp?: boolean;
 }
 
 export const OptimizedImage = memo(({ 
@@ -39,11 +40,13 @@ export const OptimizedImage = memo(({
   sizesConfig,
   quality = 80,
   deferLoad = false,
+  blurUp = true,
   onError,
   ...props 
 }: OptimizedImageProps) => {
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [placeholderLoaded, setPlaceholderLoaded] = useState(false);
   
   // Use intersection observer for deferred loading
   const [ref, isVisible] = useIntersectionObserver<HTMLDivElement>({
@@ -69,34 +72,71 @@ export const OptimizedImage = memo(({
   const optimizedSrc = isSupabase ? getSupabaseImageUrl(src, 640, quality) : src;
   const srcSet = responsive && isSupabase ? generateSrcSet(src, responsiveSizes, quality) : undefined;
   const sizes = responsive && isSupabase ? generateSizesAttribute(sizesConfig) : undefined;
+  
+  // Low-quality placeholder for blur-up effect (20px width, very low quality)
+  const placeholderSrc = isSupabase 
+    ? getSupabaseImageUrl(src, 20, 20) 
+    : src;
+
+  // Shared image element for blur-up
+  const renderImage = (showBlur: boolean = false) => (
+    <>
+      {/* Blur placeholder */}
+      {blurUp && !isLoaded && (
+        <img
+          src={placeholderSrc}
+          alt=""
+          aria-hidden="true"
+          className={cn(
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-500",
+            "blur-lg scale-105",
+            placeholderLoaded ? "opacity-100" : "opacity-0"
+          )}
+          onLoad={() => setPlaceholderLoaded(true)}
+        />
+      )}
+      {/* Full quality image */}
+      <img
+        src={optimizedSrc}
+        srcSet={srcSet}
+        sizes={sizes}
+        alt={alt}
+        loading={eager ? "eager" : "lazy"}
+        decoding="async"
+        className={cn(
+          "transition-opacity duration-500 w-full h-full object-cover",
+          isLoaded ? "opacity-100" : "opacity-0"
+        )}
+        onError={handleError}
+        onLoad={handleLoad}
+        {...props}
+      />
+    </>
+  );
 
   // If deferLoad is enabled, wrap in observer
   if (deferLoad) {
     return (
-      <div ref={ref} className={cn("relative", className)}>
+      <div ref={ref} className={cn("relative overflow-hidden", className)}>
         {isVisible ? (
-          <img
-            src={optimizedSrc}
-            srcSet={srcSet}
-            sizes={sizes}
-            alt={alt}
-            loading={eager ? "eager" : "lazy"}
-            decoding="async"
-            className={cn(
-              "transition-opacity duration-300 w-full h-full object-cover",
-              isLoaded ? "opacity-100" : "opacity-0"
-            )}
-            onError={handleError}
-            onLoad={handleLoad}
-            {...props}
-          />
+          renderImage(true)
         ) : (
-          <Skeleton className="absolute inset-0 w-full h-full" />
+          <div className="absolute inset-0 w-full h-full bg-muted/50 animate-pulse" />
         )}
       </div>
     );
   }
 
+  // Standard blur-up with placeholder
+  if (blurUp) {
+    return (
+      <div className={cn("relative overflow-hidden", className)}>
+        {renderImage(true)}
+      </div>
+    );
+  }
+
+  // Simple image without blur-up
   return (
     <img
       src={optimizedSrc}
