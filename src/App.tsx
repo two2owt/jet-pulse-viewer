@@ -9,18 +9,19 @@ import { analytics } from "@/lib/analytics";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-// Lazy load pages for better performance
-const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
+// Lazy load pages for better performance with webpack magic comments for prefetching
+const Index = lazy(() => import(/* webpackPrefetch: true */ "./pages/Index"));
+const Auth = lazy(() => import(/* webpackPrefetch: true */ "./pages/Auth"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Settings = lazy(() => import("./pages/Settings"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("./pages/TermsOfService"));
-const NotFound = lazy(() => import("./pages/NotFound"));
 const Favorites = lazy(() => import("./pages/Favorites"));
 const Social = lazy(() => import("./pages/Social"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const VerificationSuccess = lazy(() => import("./pages/VerificationSuccess"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-background">
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/social" element={<Social />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/verification-success" element={<VerificationSuccess />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
