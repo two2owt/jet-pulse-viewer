@@ -44,6 +44,7 @@ interface MapboxHeatmapProps {
   mapboxToken: string;
   selectedCity: City;
   onCityChange: (city: City) => void;
+  isLoadingVenues?: boolean;
 }
 
 const getActivityColor = (activity: number) => {
@@ -53,7 +54,7 @@ const getActivityColor = (activity: number) => {
   return "hsl(210, 100%, 55%)"; // cool blue
 };
 
-export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange }: MapboxHeatmapProps) => {
+export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, isLoadingVenues = false }: MapboxHeatmapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -1032,6 +1033,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   }, [mapLoaded, pathData, showMovementPaths]);
 
 
+  // Skeleton marker positions (static positions around the city center for loading state)
+  const skeletonMarkerPositions = [
+    { lat: selectedCity.lat + 0.008, lng: selectedCity.lng - 0.012 },
+    { lat: selectedCity.lat - 0.005, lng: selectedCity.lng + 0.015 },
+    { lat: selectedCity.lat + 0.012, lng: selectedCity.lng + 0.008 },
+    { lat: selectedCity.lat - 0.010, lng: selectedCity.lng - 0.006 },
+    { lat: selectedCity.lat + 0.003, lng: selectedCity.lng - 0.018 },
+    { lat: selectedCity.lat - 0.015, lng: selectedCity.lng + 0.003 },
+  ];
+
   // Optimized marker updates with throttling
   const updateMarkers = () => {
     if (!map.current || !mapLoaded) return;
@@ -1061,6 +1072,56 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     }
     
     const baseSize = 36 * zoomFactor;
+
+    // Show skeleton markers while loading
+    if (isLoadingVenues && venues.length === 0) {
+      skeletonMarkerPositions.forEach((pos, index) => {
+        if (!mapInstance) return;
+        
+        const el = document.createElement("div");
+        el.className = "venue-marker-skeleton";
+        el.style.cssText = `
+          width: ${baseSize}px;
+          height: ${baseSize * 1.4}px;
+          position: relative;
+        `;
+
+        const pinEl = document.createElement('div');
+        pinEl.style.cssText = `
+          width: ${baseSize}px;
+          height: ${baseSize}px;
+          background: linear-gradient(90deg, 
+            hsl(var(--muted)) 0%, 
+            hsl(var(--muted-foreground) / 0.3) 50%, 
+            hsl(var(--muted)) 100%
+          );
+          background-size: 200% 100%;
+          animation: shimmer 1.5s ease-in-out infinite;
+          animation-delay: ${index * 150}ms;
+          border: 2px solid hsl(var(--border) / 0.5);
+          border-radius: 50% 50% 50% 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          transform: rotate(-45deg);
+          position: absolute;
+          top: 0;
+          left: 50%;
+          margin-left: -${baseSize / 2}px;
+          opacity: 0.7;
+        `;
+
+        el.appendChild(pinEl);
+
+        const marker = new mapboxgl.Marker({ element: el })
+          .setLngLat([pos.lng, pos.lat])
+          .addTo(mapInstance);
+
+        markersRef.current.push(marker);
+      });
+      return;
+    }
 
     // Calculate distances between venues to detect clusters
     const getDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
@@ -1290,7 +1351,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   // Call updateMarkers on initial load and when venues change
   useEffect(() => {
     updateMarkers();
-  }, [venues, mapLoaded]);
+  }, [venues, mapLoaded, isLoadingVenues, selectedCity]);
 
   // Add smooth zoom and pan transitions
   useEffect(() => {
