@@ -2249,10 +2249,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         {/* Mobile collapsed view - just shows indicator dots */}
         {isMobile && legendCollapsed ? (
           <div className="flex items-center gap-2 cursor-pointer">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-hot rounded-full" />
-              <div className="w-2 h-2 bg-warm rounded-full" />
-              <div className="w-2 h-2 bg-cool rounded-full" />
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 bg-hot rounded-full shadow-sm" />
+              <div className="w-2 h-2 bg-warm rounded-full shadow-sm" />
+              <div className="w-2 h-2 bg-cool rounded-full shadow-sm" />
             </div>
             <ChevronUp className="w-3 h-3 text-muted-foreground" />
           </div>
