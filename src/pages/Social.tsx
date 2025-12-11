@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useConnections } from "@/hooks/useConnections";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -12,6 +12,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { EmptyState } from "@/components/EmptyState";
 import { ConnectionProfileDialog } from "@/components/ConnectionProfileDialog";
 import { UpgradePrompt, useFeatureAccess } from "@/components/UpgradePrompt";
+import { VirtualGrid } from "@/components/ui/virtual-list";
 
 interface Profile {
   id: string;
@@ -263,14 +264,16 @@ export default function Social() {
               description="Start connecting with friends below to share deals and discover new spots together"
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {connections.map((connection) => {
+            <VirtualGrid
+              items={connections}
+              estimateSize={80}
+              className="min-h-[30vh]"
+              columns={{ mobile: 1, tablet: 2, desktop: 3 }}
+              getItemKey={(connection) => connection.id}
+              renderItem={(connection) => {
                 const friendId = connection.user_id === user?.id ? connection.friend_id : connection.user_id;
                 return (
-                  <div
-                    key={connection.id}
-                    className="bg-card border border-border rounded-xl p-4 flex items-center justify-between"
-                  >
+                  <div className="bg-card border border-border rounded-xl p-4 flex items-center justify-between h-full">
                     <button
                       className="flex items-center gap-3 text-left flex-1 min-w-0"
                       onClick={() => setSelectedProfileId(friendId)}
@@ -294,8 +297,8 @@ export default function Social() {
                     </Button>
                   </div>
                 );
-              })}
-            </div>
+              }}
+            />
           )}
         </div>
 
@@ -304,12 +307,14 @@ export default function Social() {
           <h2 className="text-2xl font-bold text-foreground mb-4">
             Discover People
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {profiles.map((profile) => (
-              <div
-                key={profile.id}
-                className="bg-card border border-border rounded-xl p-4 flex items-center justify-between"
-              >
+          <VirtualGrid
+            items={profiles}
+            estimateSize={80}
+            className="min-h-[30vh]"
+            columns={{ mobile: 1, tablet: 2, desktop: 3 }}
+            getItemKey={(profile) => profile.id}
+            renderItem={(profile) => (
+              <div className="bg-card border border-border rounded-xl p-4 flex items-center justify-between h-full">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10">
                     <AvatarImage src={profile.avatar_url || undefined} alt={profile.display_name || "User"} />
@@ -331,8 +336,8 @@ export default function Social() {
                   Add
                 </Button>
               </div>
-            ))}
-          </div>
+            )}
+          />
         </div>
         </div>
       </div>
