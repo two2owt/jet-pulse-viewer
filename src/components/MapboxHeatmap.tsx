@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Slider } from "./ui/slider";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { TimelapseSwipeControl } from "./TimelapseSwipeControl";
+import { MapSkeleton } from "./skeletons";
 import { CITIES, type City, getDistanceKm } from "@/types/cities";
 
 // Venue type definition
@@ -1441,19 +1442,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         minHeight: isMobile ? '100dvh' : '500px',
       }}
     >
-      {/* Map Loading Overlay */}
+      {/* Map Loading Skeleton */}
       {mapInitializing && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/95 backdrop-blur-sm z-50 animate-fade-in">
-          <div className="flex flex-col items-center gap-3 sm:gap-4 px-4">
-            <div className="relative">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-primary/30 rounded-full" />
-              <div className="absolute inset-0 w-12 h-12 sm:w-16 sm:h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm sm:text-base font-semibold text-foreground mb-1">Loading Map</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Initializing {selectedCity.name}...</p>
-            </div>
-          </div>
+        <div className="absolute inset-0 z-50">
+          <MapSkeleton />
         </div>
       )}
       
