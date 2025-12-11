@@ -1700,8 +1700,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </Button>
 
           {/* Mobile Filter Controls - Show when Heat layer is active */}
-          {showDensityLayer && (
-            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2 animate-fade-in">
+          <div 
+            className={`overflow-hidden transition-all duration-300 ease-out ${
+              showDensityLayer 
+                ? 'max-h-[500px] opacity-100' 
+                : 'max-h-0 opacity-0'
+            }`}
+          >
+            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2 animate-scale-in">
               {/* Time-lapse toggle */}
               <Button
                 onClick={() => {
@@ -1714,22 +1720,28 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 }}
                 variant={timelapseMode ? "default" : "outline"}
                 size="sm"
-                className="w-full h-8 text-[10px] font-semibold"
+                className="w-full h-8 text-[10px] font-semibold transition-all duration-200"
               >
                 <Clock className="w-3 h-3 mr-1" />
                 {timelapseMode ? "Time-lapse On" : "Time-lapse"}
               </Button>
 
               {/* Time-lapse controls when active */}
-              {timelapseMode ? (
-                <div className="space-y-2 pt-1 border-t border-border/50">
+              <div 
+                className={`overflow-hidden transition-all duration-300 ease-out ${
+                  timelapseMode 
+                    ? 'max-h-[300px] opacity-100' 
+                    : 'max-h-0 opacity-0'
+                }`}
+              >
+                <div className="space-y-2 pt-1 border-t border-border/50 animate-fade-in">
                   {/* Play controls */}
                   <div className="flex items-center justify-between gap-1">
                     <Button
                       onClick={() => { triggerHaptic('light'); timelapse.stepBackward(); }}
                       variant="outline"
                       size="sm"
-                      className="h-7 w-7 p-0"
+                      className="h-7 w-7 p-0 transition-transform duration-150 active:scale-90"
                       disabled={timelapse.isPlaying}
                     >
                       <SkipBack className="w-3 h-3" />
@@ -1738,7 +1750,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                       onClick={() => { triggerHaptic('medium'); timelapse.isPlaying ? timelapse.pause() : timelapse.play(); }}
                       variant={timelapse.isPlaying ? "default" : "outline"}
                       size="sm"
-                      className="h-7 flex-1"
+                      className="h-7 flex-1 transition-all duration-200"
                     >
                       {timelapse.isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                     </Button>
@@ -1746,7 +1758,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                       onClick={() => { triggerHaptic('light'); timelapse.stepForward(); }}
                       variant="outline"
                       size="sm"
-                      className="h-7 w-7 p-0"
+                      className="h-7 w-7 p-0 transition-transform duration-150 active:scale-90"
                       disabled={timelapse.isPlaying}
                     >
                       <SkipForward className="w-3 h-3" />
@@ -1754,7 +1766,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   </div>
 
                   {/* Current hour display */}
-                  <div className="text-center text-[10px] font-semibold text-primary">
+                  <div className="text-center text-[10px] font-semibold text-primary transition-all duration-200">
                     {timelapse.formatHour(timelapse.currentHour)}
                   </div>
 
@@ -1771,13 +1783,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
                   {/* Speed control */}
                   <div className="flex gap-1">
-                    {[2, 1, 0.5].map((speed) => (
+                    {[2, 1, 0.5].map((speed, i) => (
                       <Button
                         key={speed}
                         onClick={() => timelapse.setSpeed(speed)}
                         variant={timelapse.speed === speed ? "default" : "outline"}
                         size="sm"
-                        className="h-6 flex-1 text-[9px] px-1"
+                        className="h-6 flex-1 text-[9px] px-1 transition-all duration-200"
+                        style={{ animationDelay: `${i * 50}ms` }}
                       >
                         {speed === 2 ? '0.5x' : speed === 1 ? '1x' : '2x'}
                       </Button>
@@ -1785,17 +1798,25 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   </div>
 
                   {timelapse.loading && (
-                    <div className="flex items-center justify-center gap-1 py-1">
+                    <div className="flex items-center justify-center gap-1 py-1 animate-fade-in">
                       <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                       <span className="text-[9px] text-muted-foreground">Loading...</span>
                     </div>
                   )}
                 </div>
-              ) : (
-                /* Regular filters when time-lapse is off */
-                <>
+              </div>
+
+              {/* Regular filters when time-lapse is off */}
+              <div 
+                className={`overflow-hidden transition-all duration-300 ease-out ${
+                  !timelapseMode 
+                    ? 'max-h-[200px] opacity-100' 
+                    : 'max-h-0 opacity-0'
+                }`}
+              >
+                <div className="space-y-2 animate-fade-in">
                   <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
-                    <SelectTrigger className="h-8 text-[10px] bg-background/80">
+                    <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200">
                       <SelectValue placeholder="Time" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1807,7 +1828,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   </Select>
 
                   <Select value={hourFilter?.toString() || "all"} onValueChange={(v) => setHourFilter(v === "all" ? undefined : parseInt(v))}>
-                    <SelectTrigger className="h-8 text-[10px] bg-background/80">
+                    <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200">
                       <SelectValue placeholder="Hour" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1819,7 +1840,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   </Select>
 
                   <Select value={dayFilter?.toString() || "all"} onValueChange={(v) => setDayFilter(v === "all" ? undefined : parseInt(v))}>
-                    <SelectTrigger className="h-8 text-[10px] bg-background/80">
+                    <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200">
                       <SelectValue placeholder="Day" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1833,10 +1854,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                       <SelectItem value="6">Sat</SelectItem>
                     </SelectContent>
                   </Select>
-                </>
-              )}
+                </div>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       )}
 
