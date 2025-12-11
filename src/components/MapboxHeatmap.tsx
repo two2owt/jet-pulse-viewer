@@ -1150,36 +1150,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       pinEl.appendChild(innerEl);
       el.appendChild(pinEl);
 
-      // Create coordinate debug overlay
-      const coordOverlay = document.createElement('div');
-      coordOverlay.style.cssText = `
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.9);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 6px;
-        padding: 6px 10px;
-        font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-        font-size: 10px;
-        color: #00ff88;
-        white-space: nowrap;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        z-index: 1000;
-        margin-bottom: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      `;
-      coordOverlay.innerHTML = `
-        <div style="color: rgba(255,255,255,0.7); font-size: 9px; margin-bottom: 2px;">${venue.name}</div>
-        <div><span style="color: #ff6b6b;">lat:</span> ${venue.lat.toFixed(6)}</div>
-        <div><span style="color: #4ecdc4;">lng:</span> ${venue.lng.toFixed(6)}</div>
-      `;
-      el.appendChild(coordOverlay);
-
       // Enhanced hover effects
       el.addEventListener("mouseenter", () => {
         pinEl.style.transform = "rotate(-45deg) scale(1.15)";
@@ -1189,12 +1159,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           0 0 0 4px ${color}50,
           inset 0 2px 4px rgba(255, 255, 255, 0.4)
         `;
-        coordOverlay.style.opacity = '1';
       });
 
       el.addEventListener("mouseleave", () => {
         pinEl.style.transform = "rotate(-45deg)";
-        coordOverlay.style.opacity = '0';
         if (venue.activity >= 80) {
           pinEl.style.boxShadow = `
             0 4px 20px ${color}90,
