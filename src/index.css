@@ -823,22 +823,106 @@ All colors MUST be HSL.
     }
   }
 
+  .sync-airplane-wrapper {
+    animation: airplane-fly 2.5s ease-in-out infinite;
+  }
+
   .sync-airplane {
-    animation: airplane-bob 1.5s ease-in-out infinite;
-    filter: drop-shadow(0 1px 2px hsl(var(--primary) / 0.5));
+    animation: airplane-bob 1s ease-in-out infinite;
+    filter: drop-shadow(0 2px 4px hsl(var(--primary) / 0.6));
+  }
+
+  @keyframes airplane-fly {
+    0%, 100% {
+      transform: translateX(-2px) translateY(1px);
+    }
+    25% {
+      transform: translateX(2px) translateY(-2px);
+    }
+    50% {
+      transform: translateX(0px) translateY(0px);
+    }
+    75% {
+      transform: translateX(-1px) translateY(-1px);
+    }
+  }
+
+  .sync-cloud-bg {
+    animation: cloud-bg-drift 3s ease-in-out infinite;
+  }
+
+  .sync-cloud-bg-2 {
+    animation: cloud-bg-drift 3.5s ease-in-out infinite reverse;
+  }
+
+  @keyframes cloud-bg-drift {
+    0%, 100% {
+      transform: translateX(0) scale(1);
+      opacity: 0.4;
+    }
+    50% {
+      transform: translateX(2px) scale(1.1);
+      opacity: 0.6;
+    }
+  }
+
+  .sync-passing-clouds {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .sync-passing-clouds::before,
+  .sync-passing-clouds::after {
+    content: '';
+    position: absolute;
+    width: 40%;
+    height: 60%;
+    background: radial-gradient(ellipse, hsl(var(--foreground) / 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(3px);
+    animation: passing-cloud 4s linear infinite;
+  }
+
+  .sync-passing-clouds::before {
+    top: 20%;
+    animation-delay: 0s;
+  }
+
+  .sync-passing-clouds::after {
+    top: 40%;
+    animation-delay: 2s;
+  }
+
+  @keyframes passing-cloud {
+    0% {
+      left: 100%;
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.5;
+    }
+    90% {
+      opacity: 0.5;
+    }
+    100% {
+      left: -40%;
+      opacity: 0;
+    }
   }
 
   @keyframes contrail-fade {
     0% {
-      opacity: 0.7;
-      transform: scaleX(0.3) translateX(0);
+      opacity: 0.8;
+      transform: scaleX(0.2) translateX(0);
     }
     50% {
-      opacity: 0.4;
+      opacity: 0.5;
     }
     100% {
       opacity: 0;
-      transform: scaleX(1.5) translateX(-8px);
+      transform: scaleX(2) translateX(-10px);
     }
   }
 
@@ -846,22 +930,22 @@ All colors MUST be HSL.
     position: absolute;
     right: 100%;
     top: 50%;
-    height: 1px;
-    width: 12px;
-    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.6));
+    height: 1.5px;
+    width: 16px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.7));
     transform-origin: right center;
-    animation: contrail-fade 1s ease-out infinite;
+    animation: contrail-fade 0.8s ease-out infinite;
     border-radius: 1px;
   }
 
   .sync-contrail-1 {
-    top: 35%;
+    top: 30%;
     animation-delay: 0s;
   }
 
   .sync-contrail-2 {
-    top: 65%;
-    animation-delay: 0.1s;
+    top: 70%;
+    animation-delay: 0.15s;
   }
 
   @keyframes cloud-float {
