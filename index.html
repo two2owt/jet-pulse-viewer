@@ -1,10 +1,25 @@
 <!doctype html>
-<html lang="en" class="dark" style="background-color: #0f0f0f; color: #fafafa;">
+<html lang="en" class="dark" style="background-color: #0f0f0f !important; color: #fafafa !important; min-height: 100%;">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <!-- Critical CSS - renders dark theme before main CSS loads -->
-    <style>html,body,#root{background-color:#0f0f0f!important;color:#fafafa!important;margin:0;padding:0;}*{box-sizing:border-box;}</style>
+    <!-- Critical CSS - MUST render dark theme before any other CSS loads -->
+    <style id="critical-dark-theme">
+      :root { color-scheme: dark; }
+      html, body, #root, .dark { 
+        background-color: #0f0f0f !important; 
+        color: #fafafa !important; 
+        margin: 0; 
+        padding: 0; 
+        min-height: 100%; 
+      }
+      * { box-sizing: border-box; }
+      body { 
+        -webkit-font-smoothing: antialiased; 
+        -moz-osx-font-smoothing: grayscale;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+    </style>
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0f0f0f" />
     <meta name="mobile-web-app-capable" content="yes" />

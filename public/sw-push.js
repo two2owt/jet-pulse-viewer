@@ -115,9 +115,22 @@ self.addEventListener('pushsubscriptionchange', function(event) {
   );
 });
 
-// Log service worker activation
+// Log service worker activation - delete old caches
 self.addEventListener('activate', function(event) {
   console.log('[SW] Service worker activated');
+  event.waitUntil(
+    caches.keys().then(function(cacheNames) {
+      return Promise.all(
+        cacheNames.map(function(cacheName) {
+          // Delete all old caches to ensure fresh assets
+          console.log('[SW] Deleting old cache:', cacheName);
+          return caches.delete(cacheName);
+        })
+      );
+    }).then(function() {
+      return self.clients.claim();
+    })
+  );
 });
 
 self.addEventListener('install', function(event) {
