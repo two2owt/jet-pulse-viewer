@@ -10,6 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { triggerHaptic } from "@/lib/haptics";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Slider } from "./ui/slider";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { TimelapseSwipeControl } from "./TimelapseSwipeControl";
 import { CITIES, type City, getDistanceKm } from "@/types/cities";
@@ -1701,45 +1702,139 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           {/* Mobile Filter Controls - Show when Heat layer is active */}
           {showDensityLayer && (
             <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2 animate-fade-in">
-              <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
-                <SelectTrigger className="h-8 text-[10px] bg-background/80">
-                  <SelectValue placeholder="Time" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="this_week">This Week</SelectItem>
-                  <SelectItem value="this_hour">This Hour</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Time-lapse toggle */}
+              <Button
+                onClick={() => {
+                  triggerHaptic('medium');
+                  const newMode = !timelapseMode;
+                  setTimelapseMode(newMode);
+                  if (newMode) {
+                    timelapse.loadHourlyData();
+                  }
+                }}
+                variant={timelapseMode ? "default" : "outline"}
+                size="sm"
+                className="w-full h-8 text-[10px] font-semibold"
+              >
+                <Clock className="w-3 h-3 mr-1" />
+                {timelapseMode ? "Time-lapse On" : "Time-lapse"}
+              </Button>
 
-              <Select value={hourFilter?.toString() || "all"} onValueChange={(v) => setHourFilter(v === "all" ? undefined : parseInt(v))}>
-                <SelectTrigger className="h-8 text-[10px] bg-background/80">
-                  <SelectValue placeholder="Hour" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Hours</SelectItem>
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <SelectItem key={i} value={i.toString()}>{i}:00</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Time-lapse controls when active */}
+              {timelapseMode ? (
+                <div className="space-y-2 pt-1 border-t border-border/50">
+                  {/* Play controls */}
+                  <div className="flex items-center justify-between gap-1">
+                    <Button
+                      onClick={() => { triggerHaptic('light'); timelapse.stepBackward(); }}
+                      variant="outline"
+                      size="sm"
+                      className="h-7 w-7 p-0"
+                      disabled={timelapse.isPlaying}
+                    >
+                      <SkipBack className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      onClick={() => { triggerHaptic('medium'); timelapse.isPlaying ? timelapse.pause() : timelapse.play(); }}
+                      variant={timelapse.isPlaying ? "default" : "outline"}
+                      size="sm"
+                      className="h-7 flex-1"
+                    >
+                      {timelapse.isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                    </Button>
+                    <Button
+                      onClick={() => { triggerHaptic('light'); timelapse.stepForward(); }}
+                      variant="outline"
+                      size="sm"
+                      className="h-7 w-7 p-0"
+                      disabled={timelapse.isPlaying}
+                    >
+                      <SkipForward className="w-3 h-3" />
+                    </Button>
+                  </div>
 
-              <Select value={dayFilter?.toString() || "all"} onValueChange={(v) => setDayFilter(v === "all" ? undefined : parseInt(v))}>
-                <SelectTrigger className="h-8 text-[10px] bg-background/80">
-                  <SelectValue placeholder="Day" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Days</SelectItem>
-                  <SelectItem value="0">Sun</SelectItem>
-                  <SelectItem value="1">Mon</SelectItem>
-                  <SelectItem value="2">Tue</SelectItem>
-                  <SelectItem value="3">Wed</SelectItem>
-                  <SelectItem value="4">Thu</SelectItem>
-                  <SelectItem value="5">Fri</SelectItem>
-                  <SelectItem value="6">Sat</SelectItem>
-                </SelectContent>
-              </Select>
+                  {/* Current hour display */}
+                  <div className="text-center text-[10px] font-semibold text-primary">
+                    {timelapse.formatHour(timelapse.currentHour)}
+                  </div>
+
+                  {/* Hour slider */}
+                  <Slider
+                    value={[timelapse.currentHour]}
+                    onValueChange={([v]) => timelapse.setHour(v)}
+                    min={0}
+                    max={23}
+                    step={1}
+                    className="w-full"
+                    disabled={timelapse.isPlaying}
+                  />
+
+                  {/* Speed control */}
+                  <div className="flex gap-1">
+                    {[2, 1, 0.5].map((speed) => (
+                      <Button
+                        key={speed}
+                        onClick={() => timelapse.setSpeed(speed)}
+                        variant={timelapse.speed === speed ? "default" : "outline"}
+                        size="sm"
+                        className="h-6 flex-1 text-[9px] px-1"
+                      >
+                        {speed === 2 ? '0.5x' : speed === 1 ? '1x' : '2x'}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {timelapse.loading && (
+                    <div className="flex items-center justify-center gap-1 py-1">
+                      <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <span className="text-[9px] text-muted-foreground">Loading...</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Regular filters when time-lapse is off */
+                <>
+                  <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
+                    <SelectTrigger className="h-8 text-[10px] bg-background/80">
+                      <SelectValue placeholder="Time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Time</SelectItem>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="this_week">This Week</SelectItem>
+                      <SelectItem value="this_hour">This Hour</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={hourFilter?.toString() || "all"} onValueChange={(v) => setHourFilter(v === "all" ? undefined : parseInt(v))}>
+                    <SelectTrigger className="h-8 text-[10px] bg-background/80">
+                      <SelectValue placeholder="Hour" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Hours</SelectItem>
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <SelectItem key={i} value={i.toString()}>{i}:00</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={dayFilter?.toString() || "all"} onValueChange={(v) => setDayFilter(v === "all" ? undefined : parseInt(v))}>
+                    <SelectTrigger className="h-8 text-[10px] bg-background/80">
+                      <SelectValue placeholder="Day" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Days</SelectItem>
+                      <SelectItem value="0">Sun</SelectItem>
+                      <SelectItem value="1">Mon</SelectItem>
+                      <SelectItem value="2">Tue</SelectItem>
+                      <SelectItem value="3">Wed</SelectItem>
+                      <SelectItem value="4">Thu</SelectItem>
+                      <SelectItem value="5">Fri</SelectItem>
+                      <SelectItem value="6">Sat</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
             </div>
           )}
         </div>
