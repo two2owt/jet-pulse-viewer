@@ -17,12 +17,12 @@ All colors MUST be HSL.
     /* Adaptive map UI spacing - device-aware with safe area consideration */
     /* Mobile (default) - compact for better map visibility */
     --map-ui-inset-top: max(0.5rem, calc(var(--safe-area-inset-top) + 0.25rem));
-    --map-ui-inset-right: max(0.375rem, calc(var(--safe-area-inset-right) + 0.25rem));
-    --map-ui-inset-bottom: max(0.375rem, calc(var(--safe-area-inset-bottom) + 0.25rem));
-    --map-ui-inset-left: max(0.375rem, calc(var(--safe-area-inset-left) + 0.25rem));
+    --map-ui-inset-right: 0.5rem;
+    --map-ui-inset-bottom: 0.5rem;
+    --map-ui-inset-left: 0.5rem;
     
     /* Map control panel max width for responsive layouts - smaller on mobile */
-    --map-control-max-width: min(200px, calc(100vw - 3rem));
+    --map-control-max-width: 180px;
     
     /* Touch-friendly sizing for mobile controls - based on device specs */
     --touch-target-min: 44px;
@@ -207,11 +207,11 @@ All colors MUST be HSL.
 /* Ultra-small mobile devices (iPhone SE, small Android phones) */
 @media (max-width: 375px) {
   :root {
-    --map-ui-inset-top: max(0.375rem, calc(var(--safe-area-inset-top) + 0.125rem));
-    --map-ui-inset-right: max(0.25rem, calc(var(--safe-area-inset-right) + 0.125rem));
-    --map-ui-inset-bottom: max(0.25rem, calc(var(--safe-area-inset-bottom) + 0.125rem));
-    --map-ui-inset-left: max(0.25rem, calc(var(--safe-area-inset-left) + 0.125rem));
-    --map-control-max-width: min(180px, calc(100vw - 2.5rem));
+    --map-ui-inset-top: 0.375rem;
+    --map-ui-inset-right: 0.25rem;
+    --map-ui-inset-bottom: 0.25rem;
+    --map-ui-inset-left: 0.25rem;
+    --map-control-max-width: 160px;
     --venue-marker-base: 26px;
     --venue-marker-active: 30px;
     --venue-marker-icon: 12px;
@@ -220,14 +220,23 @@ All colors MUST be HSL.
   }
 }
 
+/* Standard mobile phones */
+@media (min-width: 376px) and (max-width: 639px) {
+  :root {
+    --map-ui-inset-right: 0.5rem;
+    --map-ui-inset-bottom: 0.5rem;
+    --map-control-max-width: 180px;
+  }
+}
+
 /* Responsive map UI spacing - tablet */
 @media (min-width: 640px) {
   :root {
-    --map-ui-inset-top: max(1rem, calc(var(--safe-area-inset-top) + 0.75rem));
-    --map-ui-inset-right: max(0.75rem, calc(var(--safe-area-inset-right) + 0.5rem));
-    --map-ui-inset-bottom: max(0.75rem, calc(var(--safe-area-inset-bottom) + 0.5rem));
-    --map-ui-inset-left: max(0.75rem, calc(var(--safe-area-inset-left) + 0.5rem));
-    --map-control-max-width: 260px;
+    --map-ui-inset-top: 1rem;
+    --map-ui-inset-right: 0.75rem;
+    --map-ui-inset-bottom: 0.75rem;
+    --map-ui-inset-left: 0.75rem;
+    --map-control-max-width: 220px;
     --venue-marker-base: 36px;
     --venue-marker-active: 44px;
     --venue-marker-icon: 18px;
@@ -239,11 +248,11 @@ All colors MUST be HSL.
 /* Responsive map UI spacing - tablet landscape / small desktop */
 @media (min-width: 768px) {
   :root {
-    --map-ui-inset-top: max(1.25rem, calc(var(--safe-area-inset-top) + 1rem));
-    --map-ui-inset-right: max(1rem, calc(var(--safe-area-inset-right) + 0.75rem));
-    --map-ui-inset-bottom: max(1rem, calc(var(--safe-area-inset-bottom) + 0.75rem));
-    --map-ui-inset-left: max(1rem, calc(var(--safe-area-inset-left) + 0.75rem));
-    --map-control-max-width: 300px;
+    --map-ui-inset-top: 1.25rem;
+    --map-ui-inset-right: 1rem;
+    --map-ui-inset-bottom: 1rem;
+    --map-ui-inset-left: 1rem;
+    --map-control-max-width: 260px;
     --venue-marker-base: 40px;
     --venue-marker-active: 48px;
     --venue-marker-icon: 20px;
@@ -253,11 +262,11 @@ All colors MUST be HSL.
 /* Responsive map UI spacing - desktop */
 @media (min-width: 1024px) {
   :root {
-    --map-ui-inset-top: max(1.5rem, calc(var(--safe-area-inset-top) + 1.25rem));
-    --map-ui-inset-right: max(1.25rem, calc(var(--safe-area-inset-right) + 1rem));
-    --map-ui-inset-bottom: max(1.25rem, calc(var(--safe-area-inset-bottom) + 1rem));
-    --map-ui-inset-left: max(1.25rem, calc(var(--safe-area-inset-left) + 1rem));
-    --map-control-max-width: 340px;
+    --map-ui-inset-top: 1.5rem;
+    --map-ui-inset-right: 1.25rem;
+    --map-ui-inset-bottom: 1.25rem;
+    --map-ui-inset-left: 1.25rem;
+    --map-control-max-width: 300px;
   }
 }
 
@@ -624,6 +633,23 @@ All colors MUST be HSL.
   .map-control-compact {
     @apply bg-card/90 backdrop-blur-lg rounded-lg border border-border/50 shadow-md;
     padding: var(--control-compact-padding, 0.375rem);
+    /* Ensure visibility on mobile */
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Mobile-specific control panel adjustments */
+  @media (max-width: 640px) {
+    .map-control-compact {
+      max-width: 180px !important;
+      font-size: 10px !important;
+    }
+    
+    .map-control-compact select,
+    .map-control-compact button {
+      min-height: 28px !important;
+    }
   }
 
   .map-control-compact .control-header {
