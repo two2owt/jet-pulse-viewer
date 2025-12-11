@@ -46,6 +46,7 @@ interface MapboxHeatmapProps {
   selectedCity: City;
   onCityChange: (city: City) => void;
   isLoadingVenues?: boolean;
+  selectedVenue?: Venue | null;
 }
 
 const getActivityColor = (activity: number) => {
@@ -55,7 +56,7 @@ const getActivityColor = (activity: number) => {
   return "hsl(210, 100%, 55%)"; // cool blue
 };
 
-export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, isLoadingVenues = false }: MapboxHeatmapProps) => {
+export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, isLoadingVenues = false, selectedVenue }: MapboxHeatmapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -1654,7 +1655,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {isMobile && (
         <div 
           className={`fixed z-50 flex flex-col gap-2 transition-all duration-300 ease-out ${
-            mapLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'
+            mapLoaded && !selectedVenue ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full pointer-events-none'
           }`}
           style={{
             bottom: 'var(--map-fixed-bottom)',
@@ -2231,7 +2232,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Enhanced Legend - Bottom left, responsive for all devices */}
       <div 
         className={`${isMobile ? 'fixed' : 'absolute'} bg-card/95 backdrop-blur-xl px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-3 rounded-xl border border-border z-30 shadow-lg transition-all duration-300 ease-out ${
-          mapLoaded && (isMobile ? (showDensityLayer || showMovementPaths) : !controlsCollapsed) 
+          mapLoaded && (isMobile ? ((showDensityLayer || showMovementPaths) && !selectedVenue) : !controlsCollapsed) 
             ? 'opacity-100 translate-x-0' 
             : 'opacity-0 -translate-x-full pointer-events-none'
         }`}

@@ -392,6 +392,7 @@ const Index = () => {
                   selectedCity={selectedCity}
                   onCityChange={handleCityChange}
                   isLoadingVenues={venuesLoading}
+                  selectedVenue={selectedVenue}
                 />
               </Suspense>
               )}
