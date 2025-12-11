@@ -174,281 +174,295 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       return;
     }
 
-    try {
-      initStartTime.current = performance.now();
-      setMapInitializing(true);
-      mapboxgl.accessToken = mapboxToken;
-      console.log('MapboxHeatmap: Initializing map for', selectedCity.name);
-
-      // Initialize map centered on selected city with performance optimizations
-      map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: `mapbox://styles/mapbox/${mapStyle}-v11`,
-      center: [selectedCity.lng, selectedCity.lat],
-      zoom: selectedCity.zoom,
-      pitch: isMobile ? 30 : 50,
-      bearing: 0,
-      antialias: true,
-      attributionControl: false,
-      cooperativeGestures: isMobile,
-      touchZoomRotate: true,
-      touchPitch: !isMobile,
-      dragRotate: !isMobile,
-      projection: 'globe' as any,
-      // Performance optimizations
-      fadeDuration: 100, // Faster tile fade for quicker perceived load
-      refreshExpiredTiles: false, // Don't refresh tiles automatically
-    });
-
-    // Add attribution control in a better position
-    map.current.addControl(
-      new mapboxgl.AttributionControl({
-        compact: true,
-      }),
-      'bottom-right'
-    );
-
-
-    // Ensure map resizes to container after initialization
-    map.current.on('load', () => {
-      const loadTime = performance.now() - initStartTime.current;
-      console.log(`MapboxHeatmap: Map loaded successfully in ${loadTime.toFixed(2)}ms`);
+    // Defer map initialization to reduce main thread blocking during initial load
+    const initializeMap = () => {
+      if (!mapContainer.current || map.current) return;
       
-      // Use requestAnimationFrame for smoother initialization
-      requestAnimationFrame(() => {
-        if (map.current) {
-          map.current.resize();
-          setMapLoaded(true);
-          setMapInitializing(false);
-        }
-      });
-    });
+      try {
+        initStartTime.current = performance.now();
+        setMapInitializing(true);
+        mapboxgl.accessToken = mapboxToken;
+        console.log('MapboxHeatmap: Initializing map for', selectedCity.name);
 
-    // Add error handler
-    map.current.on('error', (e) => {
-      console.error('MapboxHeatmap: Map error', e.error);
-    });
-    } catch (error) {
-      console.error('MapboxHeatmap: Failed to initialize map', error);
+        // Initialize map centered on selected city with performance optimizations
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: `mapbox://styles/mapbox/${mapStyle}-v11`,
+          center: [selectedCity.lng, selectedCity.lat],
+          zoom: selectedCity.zoom,
+          pitch: isMobile ? 30 : 50,
+          bearing: 0,
+          antialias: false, // Disable antialiasing for faster initial render
+          attributionControl: false,
+          cooperativeGestures: isMobile,
+          touchZoomRotate: true,
+          touchPitch: !isMobile,
+          dragRotate: !isMobile,
+          projection: 'globe' as any,
+          // Performance optimizations
+          fadeDuration: 0, // No fade for fastest initial render
+          refreshExpiredTiles: false, // Don't refresh tiles automatically
+          maxTileCacheSize: 50, // Limit tile cache for memory efficiency
+          trackResize: false, // We handle resize manually
+        });
+
+        // Add attribution control in a better position
+        map.current.addControl(
+          new mapboxgl.AttributionControl({
+            compact: true,
+          }),
+          'bottom-right'
+        );
+
+        // Add atmospheric effects and terrain when style loads
+        map.current.on('style.load', () => {
+          if (!map.current) return;
+          
+          // Dynamic fog based on map style
+          const fogConfig = mapStyle === 'dark' ? {
+            color: 'rgb(10, 10, 15)',
+            'high-color': 'rgb(30, 20, 40)',
+            'horizon-blend': 0.05,
+            'space-color': 'rgb(5, 5, 10)',
+            'star-intensity': 0.2,
+          } : mapStyle === 'light' ? {
+            color: 'rgb(220, 220, 230)',
+            'high-color': 'rgb(180, 200, 230)',
+            'horizon-blend': 0.1,
+          } : {
+            color: 'rgb(186, 210, 235)',
+            'high-color': 'rgb(120, 170, 220)',
+            'horizon-blend': 0.08,
+          };
+          
+          map.current.setFog(fogConfig);
+
+          // Add terrain source
+          if (!map.current.getSource('mapbox-dem')) {
+            map.current.addSource('mapbox-dem', {
+              type: 'raster-dem',
+              url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+              tileSize: 512,
+              maxzoom: 14,
+            });
+          }
+
+          // Enhance 3D buildings with dynamic styling
+          const layers = map.current.getStyle().layers;
+          if (layers) {
+            const labelLayerId = layers.find(
+              (layer) => layer.type === 'symbol' && layer.layout && layer.layout['text-field']
+            )?.id;
+
+            if (labelLayerId && !map.current.getLayer('3d-buildings')) {
+              const buildingColor = mapStyle === 'dark' 
+                ? 'hsl(0, 0%, 15%)' 
+                : mapStyle === 'light' 
+                ? 'hsl(0, 0%, 85%)'
+                : 'hsl(0, 0%, 70%)';
+                
+              map.current.addLayer(
+                {
+                  id: '3d-buildings',
+                  source: 'composite',
+                  'source-layer': 'building',
+                  filter: ['==', 'extrude', 'true'],
+                  type: 'fill-extrusion',
+                  minzoom: 14,
+                  paint: {
+                    'fill-extrusion-color': buildingColor,
+                    'fill-extrusion-height': [
+                      'interpolate',
+                      ['linear'],
+                      ['zoom'],
+                      14, 0,
+                      14.05, ['get', 'height'],
+                    ],
+                    'fill-extrusion-base': [
+                      'interpolate',
+                      ['linear'],
+                      ['zoom'],
+                      14, 0,
+                      14.05, ['get', 'min_height'],
+                    ],
+                    'fill-extrusion-opacity': mapStyle === 'satellite' ? 0.6 : 0.8,
+                  },
+                },
+                labelLayerId
+              );
+            }
+          }
+        });
+
+        // Add navigation controls
+        map.current.addControl(
+          new mapboxgl.NavigationControl({
+            visualizePitch: true,
+          }),
+          "top-right"
+        );
+
+        // Add geolocate control with location change handler
+        const geolocateControl = new mapboxgl.GeolocateControl({
+          positionOptions: {
+            enableHighAccuracy: true,
+          },
+          trackUserLocation: true,
+          showUserHeading: true,
+          showUserLocation: false, // Hide default marker, we'll use custom
+        });
+        
+        geolocateControlRef.current = geolocateControl;
+        map.current.addControl(geolocateControl, "top-right");
+        
+        // Create custom marker element for user location
+        const createUserMarker = () => {
+          const el = document.createElement('div');
+          el.className = 'user-location-marker';
+          el.style.width = '56px';
+          el.style.height = '56px';
+          el.style.display = 'flex';
+          el.style.alignItems = 'center';
+          el.style.justifyContent = 'center';
+          el.style.transition = 'transform 0.3s ease';
+          el.style.position = 'relative';
+          
+          // Glassmorphic container
+          const glassContainer = document.createElement('div');
+          glassContainer.style.width = '100%';
+          glassContainer.style.height = '100%';
+          glassContainer.style.borderRadius = '50%';
+          glassContainer.style.background = 'linear-gradient(135deg, rgba(255, 69, 58, 0.15), rgba(255, 105, 97, 0.1))';
+          glassContainer.style.backdropFilter = 'blur(12px)';
+          (glassContainer.style as any).WebkitBackdropFilter = 'blur(12px)';
+          glassContainer.style.border = '1.5px solid rgba(255, 255, 255, 0.2)';
+          glassContainer.style.boxShadow = '0 8px 32px 0 rgba(255, 69, 58, 0.37), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1)';
+          glassContainer.style.display = 'flex';
+          glassContainer.style.alignItems = 'center';
+          glassContainer.style.justifyContent = 'center';
+          glassContainer.style.position = 'relative';
+          glassContainer.style.zIndex = '1';
+          
+          const img = document.createElement('img');
+          img.src = locationTrackerIcon;
+          img.style.width = '60%';
+          img.style.height = '60%';
+          img.style.objectFit = 'contain';
+          img.style.filter = 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))';
+          
+          glassContainer.appendChild(img);
+          el.appendChild(glassContainer);
+          return el;
+        };
+        
+        // Track if this is the initial geolocate (for auto-centering on load)
+        let isInitialGeolocate = true;
+        
+        // Listen for geolocate events to update city and marker
+        geolocateControl.on('geolocate', (e: any) => {
+          const { longitude, latitude } = e.coords;
+          
+          // Update user location state
+          setUserLocation({ lat: latitude, lng: longitude });
+          
+          // Find the nearest city to detect which metro area user is in
+          let nearestCity = CITIES[0];
+          let minDistance = Infinity;
+          
+          CITIES.forEach(city => {
+            const distance = Math.sqrt(
+              Math.pow(city.lat - latitude, 2) + 
+              Math.pow(city.lng - longitude, 2)
+            );
+            
+            if (distance < minDistance) {
+              minDistance = distance;
+              nearestCity = city;
+            }
+          });
+          
+          // Set detected city based on location
+          setDetectedCity(nearestCity);
+          
+          // Only fly to user location on initial load (default behavior)
+          // After that, users can pan/zoom freely without being pulled back
+          if (isInitialGeolocate && map.current) {
+            map.current.flyTo({
+              center: [longitude, latitude],
+              zoom: Math.max(map.current.getZoom(), 13),
+              duration: 1500,
+              essential: true
+            });
+            isInitialGeolocate = false;
+          }
+          
+          // Create or update user marker
+          if (!userMarker.current && map.current) {
+            userMarker.current = new mapboxgl.Marker({
+              element: createUserMarker(),
+              anchor: 'center'
+            })
+              .setLngLat([longitude, latitude])
+              .addTo(map.current);
+          } else if (userMarker.current) {
+            userMarker.current.setLngLat([longitude, latitude]);
+          }
+        });
+        
+        // Remove marker when tracking stops
+        geolocateControl.on('trackuserlocationend', () => {
+          if (userMarker.current) {
+            userMarker.current.remove();
+            userMarker.current = null;
+          }
+        });
+
+        // Ensure map resizes to container after initialization
+        map.current.on('load', () => {
+          const loadTime = performance.now() - initStartTime.current;
+          console.log(`MapboxHeatmap: Map loaded successfully in ${loadTime.toFixed(2)}ms`);
+          
+          // Use requestAnimationFrame for smoother initialization
+          requestAnimationFrame(() => {
+            if (map.current) {
+              map.current.resize();
+              setMapLoaded(true);
+              setMapInitializing(false);
+            }
+          });
+          
+          // Automatically trigger geolocation when map loads
+          if (geolocateControlRef.current) {
+            setTimeout(() => {
+              geolocateControlRef.current?.trigger();
+            }, 500);
+          }
+        });
+
+        // Add error handler
+        map.current.on('error', (e) => {
+          console.error('MapboxHeatmap: Map error', e.error);
+        });
+      } catch (error) {
+        console.error('MapboxHeatmap: Failed to initialize map', error);
+        setMapInitializing(false);
+      }
+    };
+
+    // Use requestIdleCallback to defer initialization, with fallback to setTimeout
+    let idleId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    
+    if ('requestIdleCallback' in window) {
+      idleId = requestIdleCallback(initializeMap, { timeout: 100 });
+    } else {
+      timeoutId = setTimeout(initializeMap, 0);
     }
 
-    // Add atmospheric effects and terrain when style loads
-    map.current.on('style.load', () => {
-      if (!map.current) return;
-      
-      // Dynamic fog based on map style
-      const fogConfig = mapStyle === 'dark' ? {
-        color: 'rgb(10, 10, 15)',
-        'high-color': 'rgb(30, 20, 40)',
-        'horizon-blend': 0.05,
-        'space-color': 'rgb(5, 5, 10)',
-        'star-intensity': 0.2,
-      } : mapStyle === 'light' ? {
-        color: 'rgb(220, 220, 230)',
-        'high-color': 'rgb(180, 200, 230)',
-        'horizon-blend': 0.1,
-      } : {
-        color: 'rgb(186, 210, 235)',
-        'high-color': 'rgb(120, 170, 220)',
-        'horizon-blend': 0.08,
-      };
-      
-      map.current.setFog(fogConfig);
-
-      // Add terrain source
-      if (!map.current.getSource('mapbox-dem')) {
-        map.current.addSource('mapbox-dem', {
-          type: 'raster-dem',
-          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-          tileSize: 512,
-          maxzoom: 14,
-        });
-      }
-
-      // Enhance 3D buildings with dynamic styling
-      const layers = map.current.getStyle().layers;
-      if (layers) {
-        const labelLayerId = layers.find(
-          (layer) => layer.type === 'symbol' && layer.layout && layer.layout['text-field']
-        )?.id;
-
-        if (labelLayerId && !map.current.getLayer('3d-buildings')) {
-          const buildingColor = mapStyle === 'dark' 
-            ? 'hsl(0, 0%, 15%)' 
-            : mapStyle === 'light' 
-            ? 'hsl(0, 0%, 85%)'
-            : 'hsl(0, 0%, 70%)';
-            
-          map.current.addLayer(
-            {
-              id: '3d-buildings',
-              source: 'composite',
-              'source-layer': 'building',
-              filter: ['==', 'extrude', 'true'],
-              type: 'fill-extrusion',
-              minzoom: 14,
-              paint: {
-                'fill-extrusion-color': buildingColor,
-                'fill-extrusion-height': [
-                  'interpolate',
-                  ['linear'],
-                  ['zoom'],
-                  14, 0,
-                  14.05, ['get', 'height'],
-                ],
-                'fill-extrusion-base': [
-                  'interpolate',
-                  ['linear'],
-                  ['zoom'],
-                  14, 0,
-                  14.05, ['get', 'min_height'],
-                ],
-                'fill-extrusion-opacity': mapStyle === 'satellite' ? 0.6 : 0.8,
-              },
-            },
-            labelLayerId
-          );
-        }
-      }
-    });
-
-    // Add navigation controls
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: true,
-      }),
-      "top-right"
-    );
-
-    // Add geolocate control with location change handler
-    const geolocateControl = new mapboxgl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true,
-      },
-      trackUserLocation: true,
-      showUserHeading: true,
-      showUserLocation: false, // Hide default marker, we'll use custom
-    });
-    
-    geolocateControlRef.current = geolocateControl;
-    map.current.addControl(geolocateControl, "top-right");
-    
-    // Create custom marker element for user location
-    const createUserMarker = () => {
-      const el = document.createElement('div');
-      el.className = 'user-location-marker';
-      el.style.width = '56px';
-      el.style.height = '56px';
-      el.style.display = 'flex';
-      el.style.alignItems = 'center';
-      el.style.justifyContent = 'center';
-      el.style.transition = 'transform 0.3s ease';
-      el.style.position = 'relative';
-      
-      // Glassmorphic container
-      const glassContainer = document.createElement('div');
-      glassContainer.style.width = '100%';
-      glassContainer.style.height = '100%';
-      glassContainer.style.borderRadius = '50%';
-      glassContainer.style.background = 'linear-gradient(135deg, rgba(255, 69, 58, 0.15), rgba(255, 105, 97, 0.1))';
-      glassContainer.style.backdropFilter = 'blur(12px)';
-      (glassContainer.style as any).WebkitBackdropFilter = 'blur(12px)';
-      glassContainer.style.border = '1.5px solid rgba(255, 255, 255, 0.2)';
-      glassContainer.style.boxShadow = '0 8px 32px 0 rgba(255, 69, 58, 0.37), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1)';
-      glassContainer.style.display = 'flex';
-      glassContainer.style.alignItems = 'center';
-      glassContainer.style.justifyContent = 'center';
-      glassContainer.style.position = 'relative';
-      glassContainer.style.zIndex = '1';
-      
-      const img = document.createElement('img');
-      img.src = locationTrackerIcon;
-      img.style.width = '60%';
-      img.style.height = '60%';
-      img.style.objectFit = 'contain';
-      img.style.filter = 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))';
-      
-      glassContainer.appendChild(img);
-      el.appendChild(glassContainer);
-      return el;
-    };
-    
-    // Track if this is the initial geolocate (for auto-centering on load)
-    let isInitialGeolocate = true;
-    
-    // Listen for geolocate events to update city and marker
-    geolocateControl.on('geolocate', (e: any) => {
-      const { longitude, latitude } = e.coords;
-      
-      // Update user location state
-      setUserLocation({ lat: latitude, lng: longitude });
-      
-      // Find the nearest city to detect which metro area user is in
-      let nearestCity = CITIES[0];
-      let minDistance = Infinity;
-      
-      CITIES.forEach(city => {
-        const distance = Math.sqrt(
-          Math.pow(city.lat - latitude, 2) + 
-          Math.pow(city.lng - longitude, 2)
-        );
-        
-        if (distance < minDistance) {
-          minDistance = distance;
-          nearestCity = city;
-        }
-      });
-      
-      // Set detected city based on location
-      setDetectedCity(nearestCity);
-      
-      // Only fly to user location on initial load (default behavior)
-      // After that, users can pan/zoom freely without being pulled back
-      if (isInitialGeolocate && map.current) {
-        map.current.flyTo({
-          center: [longitude, latitude],
-          zoom: Math.max(map.current.getZoom(), 13),
-          duration: 1500,
-          essential: true
-        });
-        isInitialGeolocate = false;
-      }
-      
-      // Create or update user marker
-      if (!userMarker.current && map.current) {
-        userMarker.current = new mapboxgl.Marker({
-          element: createUserMarker(),
-          anchor: 'center'
-        })
-          .setLngLat([longitude, latitude])
-          .addTo(map.current);
-      } else if (userMarker.current) {
-        userMarker.current.setLngLat([longitude, latitude]);
-      }
-    });
-    
-    // Remove marker when tracking stops
-    geolocateControl.on('trackuserlocationend', () => {
-      if (userMarker.current) {
-        userMarker.current.remove();
-        userMarker.current = null;
-      }
-    });
-
-    map.current.on("load", () => {
-      setMapLoaded(true);
-      
-      // Automatically trigger geolocation when map loads
-      if (geolocateControlRef.current) {
-        // Wait a brief moment for the map to fully settle before triggering
-        setTimeout(() => {
-          geolocateControlRef.current?.trigger();
-        }, 500);
-      }
-    });
-
     return () => {
-      // Prevent rendering effects while map is tearing down
+      if (idleId !== undefined) cancelIdleCallback(idleId);
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+      // Cleanup map resources
       setMapLoaded(false);
       if (userMarker.current) {
         userMarker.current.remove();
@@ -456,6 +470,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       markersRef.current.forEach((marker) => marker.remove());
       dealMarkersRef.current.forEach((marker) => marker.remove());
       map.current?.remove();
+      map.current = null;
     };
   }, [mapboxToken]);
   useEffect(() => {
