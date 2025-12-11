@@ -1475,9 +1475,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
         }`}
         style={{
-          top: 'var(--map-ui-inset-top)',
-          left: 'var(--map-ui-inset-left)',
-          maxWidth: 'var(--map-control-max-width)',
+          top: isMobile ? '0.5rem' : 'var(--map-ui-inset-top)',
+          left: isMobile ? '0.5rem' : 'var(--map-ui-inset-left)',
+          maxWidth: isMobile ? 'calc(100vw - 5rem)' : 'var(--map-control-max-width)',
         }}
       >
         <Select
@@ -1566,25 +1566,25 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
         }`}
         style={{
-          top: 'var(--map-ui-inset-top)',
-          right: 'calc(var(--map-ui-inset-right) + 3rem)',
+          top: isMobile ? '0.5rem' : 'var(--map-ui-inset-top)',
+          right: isMobile ? '2.75rem' : 'calc(var(--map-ui-inset-right) + 3rem)',
         }}
       >
-        <div className="bg-card/95 backdrop-blur-xl px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-border flex items-center gap-1.5 sm:gap-2 shadow-lg">
-          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-destructive rounded-full pulse-glow" />
-          <p className="text-xs sm:text-sm font-semibold text-foreground">Live</p>
+        <div className="bg-card/95 backdrop-blur-xl px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-border flex items-center gap-1 sm:gap-1.5 shadow-lg">
+          <div className="w-1.5 h-1.5 bg-destructive rounded-full pulse-glow" />
+          <p className="text-[10px] sm:text-xs font-semibold text-foreground">Live</p>
         </div>
       </div>
 
       {/* Map Controls - Top left below city selector, collapsible on mobile/tablet */}
       <div 
-        className={`absolute z-10 space-y-1.5 sm:space-y-2 transition-all duration-500 ease-out delay-150 ${
+        className={`absolute z-10 space-y-1.5 transition-all duration-500 ease-out delay-150 ${
           mapLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
         }`}
         style={{
-          top: 'calc(var(--map-ui-inset-top) + 2.5rem)',
-          left: 'var(--map-ui-inset-left)',
-          maxWidth: 'var(--map-control-max-width)',
+          top: isMobile ? '3rem' : 'calc(var(--map-ui-inset-top) + 2.5rem)',
+          left: isMobile ? '0.5rem' : 'var(--map-ui-inset-left)',
+          maxWidth: isMobile ? 'calc(50vw - 1rem)' : 'var(--map-control-max-width)',
         }}
       >
         <Collapsible defaultOpen={!isMobile}>
@@ -1652,23 +1652,23 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Controls Toggle Button - Always visible */}
       <button
         onClick={() => { triggerHaptic('light'); setControlsCollapsed(!controlsCollapsed); }}
-        className={`absolute z-20 bg-card/95 backdrop-blur-xl rounded-full p-2 border border-border shadow-lg transition-all duration-300 hover:bg-card ${
+        className={`absolute z-20 bg-card/95 backdrop-blur-xl rounded-full p-1.5 sm:p-2 border border-border shadow-lg transition-all duration-300 hover:bg-card ${
           mapLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
         }`}
         style={{
-          bottom: isMobile ? '0.5rem' : 'var(--map-ui-inset-bottom)',
+          bottom: isMobile ? 'calc(0.5rem + env(safe-area-inset-bottom, 0px))' : 'var(--map-ui-inset-bottom)',
           right: controlsCollapsed 
             ? (isMobile ? '0.5rem' : 'var(--map-ui-inset-right)') 
             : isMobile 
-              ? 'calc(180px + 1rem)' 
+              ? 'calc(160px + 1rem)' 
               : 'calc(var(--map-ui-inset-right) + var(--map-control-max-width) + 0.5rem)',
         }}
         aria-label={controlsCollapsed ? "Show map controls" : "Hide map controls"}
       >
         {controlsCollapsed ? (
-          <PanelRightOpen className="w-4 h-4 text-foreground" />
+          <PanelRightOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-foreground" />
         ) : (
-          <PanelRightClose className="w-4 h-4 text-foreground" />
+          <PanelRightClose className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-foreground" />
         )}
       </button>
 
@@ -1677,15 +1677,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         <div 
           className="absolute z-10 space-y-2 animate-pulse"
           style={{
-            bottom: isMobile ? '0.5rem' : 'var(--map-ui-inset-bottom)',
+            bottom: isMobile ? 'calc(0.5rem + env(safe-area-inset-bottom, 0px))' : 'var(--map-ui-inset-bottom)',
             right: isMobile ? '0.5rem' : 'var(--map-ui-inset-right)',
-            width: isMobile ? '180px' : 'var(--map-control-max-width)',
+            width: isMobile ? '160px' : 'var(--map-control-max-width)',
           }}
         >
           {/* Heat button skeleton */}
-          <div className="h-7 sm:h-8 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" />
+          <div className="h-7 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" />
           {/* Paths button skeleton */}
-          <div className="h-7 sm:h-8 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" style={{ animationDelay: '150ms' }} />
+          <div className="h-7 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" style={{ animationDelay: '150ms' }} />
         </div>
       )}
 
@@ -1699,10 +1699,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               : 'opacity-0 pointer-events-none'
         }`}
         style={{
-          bottom: isMobile ? '0.5rem' : 'var(--map-ui-inset-bottom)',
+          bottom: isMobile ? 'calc(0.5rem + env(safe-area-inset-bottom, 0px))' : 'var(--map-ui-inset-bottom)',
           right: isMobile ? '0.5rem' : 'var(--map-ui-inset-right)',
-          maxWidth: isMobile ? 'calc(100vw - 1rem)' : 'var(--map-control-max-width)',
-          width: isMobile ? '180px' : '100%',
+          maxWidth: isMobile ? 'calc(100vw - 3.5rem)' : 'var(--map-control-max-width)',
+          width: isMobile ? '160px' : 'auto',
         }}
       >
         <Button

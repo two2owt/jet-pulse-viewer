@@ -19,9 +19,16 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50 safe-area-bottom">
-      <div className="max-w-7xl mx-auto px-fluid-xs py-fluid-xs">
-        <div className="flex items-center justify-around gap-fluid-xs">
+    <nav 
+      className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50"
+      style={{
+        paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.25rem)',
+        paddingLeft: 'env(safe-area-inset-left, 0px)',
+        paddingRight: 'env(safe-area-inset-right, 0px)',
+      }}
+    >
+      <div className="max-w-7xl mx-auto px-2 sm:px-3 py-1.5 sm:py-2">
+        <div className="flex items-center justify-around gap-1">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;
@@ -30,18 +37,18 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`relative flex flex-col items-center justify-center gap-fluid-xs px-fluid-sm py-fluid-xs rounded-xl sm:rounded-2xl transition-all duration-300 min-w-[3.5rem] ${
+                className={`relative flex flex-col items-center justify-center gap-0.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl transition-all duration-300 min-w-[3rem] sm:min-w-[3.5rem] ${
                   isActive
                     ? "bg-gradient-primary shadow-glow text-primary-foreground scale-105"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 }`}
               >
                 <Icon 
-                  className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300" 
+                  className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300" 
                   strokeWidth={isActive ? 2.5 : 2}
                 />
                 
-                <span className={`text-fluid-xs font-semibold transition-all duration-300 whitespace-nowrap ${
+                <span className={`text-[10px] sm:text-xs font-semibold transition-all duration-300 whitespace-nowrap ${
                   isActive ? "opacity-100" : "opacity-70"
                 }`}>
                   {item.label}
