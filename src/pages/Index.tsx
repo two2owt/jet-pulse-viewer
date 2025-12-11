@@ -9,6 +9,8 @@ import { Header } from "@/components/Header";
 import { IntroScreen } from "@/components/IntroScreen";
 import { glideHaptic, soarHaptic } from "@/lib/haptics";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
+import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Lazy load heavy components
 const MapboxHeatmap = lazy(() => import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap })));
@@ -76,6 +78,14 @@ const Index = () => {
   const { justInstalled, clearJustInstalled } = usePWAInstall();
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const jetCardRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+  
+  // Swipe to dismiss for JetCard on mobile
+  const { handlers: swipeHandlers, style: swipeStyle } = useSwipeToDismiss({
+    onDismiss: () => setSelectedVenue(null),
+    threshold: 80,
+    direction: 'down'
+  });
 
   // Use real venues when available, fallback to Charlotte venues
   const venues = realVenues && realVenues.length > 0 ? realVenues : charlotteVenues;
@@ -403,7 +413,15 @@ const Index = () => {
               <div 
                 ref={jetCardRef} 
                 className="absolute bottom-[calc(1rem+var(--safe-area-inset-bottom))] left-[calc(1rem+var(--safe-area-inset-left))] right-[calc(1rem+var(--safe-area-inset-right))] sm:left-[calc(1.5rem+var(--safe-area-inset-left))] sm:right-[calc(1.5rem+var(--safe-area-inset-right))] md:left-[calc(2rem+var(--safe-area-inset-left))] md:right-[calc(2rem+var(--safe-area-inset-right))] lg:left-[calc(3rem+var(--safe-area-inset-left))] lg:right-[calc(3rem+var(--safe-area-inset-right))] z-[60] animate-fade-in animate-scale-in max-w-2xl mx-auto"
+                style={isMobile ? swipeStyle : undefined}
+                {...(isMobile ? swipeHandlers : {})}
               >
+                {/* Swipe indicator for mobile */}
+                {isMobile && (
+                  <div className="flex justify-center pb-2">
+                    <div className="w-10 h-1 bg-muted-foreground/40 rounded-full" />
+                  </div>
+                )}
                 <JetCard 
                   venue={selectedVenue} 
                   onGetDirections={handleGetDirections}
