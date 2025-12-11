@@ -329,9 +329,9 @@ const Index = () => {
       {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
       
       <div 
-        className="min-h-screen bg-background"
+        className={`bg-background ${activeTab === 'map' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}
         style={{
-          paddingBottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: activeTab === 'map' ? '0' : 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
         }}
       >
         {/* Header */}
