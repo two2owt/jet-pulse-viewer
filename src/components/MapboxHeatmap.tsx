@@ -87,6 +87,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   
   // Controls visibility state
   const [controlsCollapsed, setControlsCollapsed] = useState(false);
+  const [legendCollapsed, setLegendCollapsed] = useState(true); // Legend collapsed by default on mobile
   
   // User location state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -2231,76 +2232,98 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
       )}
 
-      {/* Enhanced Legend - Bottom left, responsive for all devices */}
+      {/* Enhanced Legend - Bottom left, responsive for all devices, collapsible on mobile */}
       <div 
-        className={`${isMobile ? 'fixed' : 'absolute'} bg-card/95 backdrop-blur-xl px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-3 rounded-xl border border-border z-30 shadow-lg transition-all ease-out ${
+        className={`${isMobile ? 'fixed' : 'absolute'} bg-card/95 backdrop-blur-xl rounded-xl border border-border z-30 shadow-lg transition-all ease-out ${
           mapLoaded && (isMobile ? !selectedVenue : !controlsCollapsed) 
             ? 'opacity-100 translate-x-0 scale-100 duration-500 delay-200' 
             : 'opacity-0 -translate-x-full scale-95 duration-200 delay-0 pointer-events-none'
-        }`}
+        } ${isMobile ? 'px-2 py-1.5' : 'px-3 py-2 md:px-4 md:py-3'}`}
         style={{
           bottom: isMobile ? 'var(--map-fixed-bottom)' : 'var(--map-ui-inset-bottom)',
           left: 'var(--map-ui-inset-left)',
           maxWidth: 'var(--map-control-max-width)',
         }}
+        onClick={isMobile ? () => { triggerHaptic('light'); setLegendCollapsed(!legendCollapsed); } : undefined}
       >
-        {showMovementPaths ? (
-          <>
-            <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-foreground mb-1.5 sm:mb-2">User Flow Paths</p>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
-              <div className="w-20 sm:w-24 md:w-32 h-3.5 sm:h-4 md:h-5 rounded-md shadow-inner" style={{
-                background: 'linear-gradient(to right, rgb(100, 200, 255), rgb(0, 255, 255), rgb(255, 200, 0), rgb(255, 100, 0), rgb(255, 0, 100))',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
-              }} />
-              <div className="flex justify-between w-full text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium">
-                <span>Less Traffic</span>
-                <span>High Traffic</span>
-              </div>
+        {/* Mobile collapsed view - just shows indicator dots */}
+        {isMobile && legendCollapsed ? (
+          <div className="flex items-center gap-2 cursor-pointer">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-hot rounded-full" />
+              <div className="w-2 h-2 bg-warm rounded-full" />
+              <div className="w-2 h-2 bg-cool rounded-full" />
             </div>
-          </>
-        ) : showDensityLayer ? (
-          <>
-            <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-              <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-foreground">
-                {timelapseMode ? 'Time-lapse' : 'User Density Heatmap'}
-              </p>
-              {timelapseMode && timelapse.isPlaying && (
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-                  <span className="text-[9px] sm:text-[10px] text-primary font-medium">{timelapse.formatHour(timelapse.currentHour)}</span>
-                </div>
-              )}
-            </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
-              <div className="w-20 sm:w-24 md:w-32 h-3.5 sm:h-4 md:h-5 rounded-md shadow-inner" style={{
-                background: 'linear-gradient(to right, rgba(65, 105, 225, 0.8), rgb(0, 255, 127), rgb(255, 255, 0), rgb(255, 165, 0), rgb(255, 0, 0), rgb(139, 0, 0))',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
-              }} />
-              <div className="flex justify-between w-full text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium">
-                <span>Low</span>
-                <span>Medium</span>
-                <span>High</span>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="flex flex-col gap-1 sm:gap-0">
-            <p className="text-[9px] sm:text-xs md:text-sm font-semibold text-muted-foreground mb-1 sm:mb-1.5 md:mb-2">Activity</p>
-            <div className="flex flex-col gap-1 sm:flex-row sm:gap-2 md:gap-3">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-hot rounded-full shadow-sm" />
-                <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Hot</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-warm rounded-full shadow-sm" />
-                <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Warm</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-cool rounded-full shadow-sm" />
-                <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Cool</span>
-              </div>
-            </div>
+            <ChevronUp className="w-3 h-3 text-muted-foreground" />
           </div>
+        ) : (
+          <>
+            {/* Collapse indicator for mobile */}
+            {isMobile && (
+              <div className="flex justify-center mb-1 cursor-pointer">
+                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+              </div>
+            )}
+            
+            {showMovementPaths ? (
+              <>
+                <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-foreground mb-1.5 sm:mb-2">User Flow Paths</p>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
+                  <div className="w-20 sm:w-24 md:w-32 h-3.5 sm:h-4 md:h-5 rounded-md shadow-inner" style={{
+                    background: 'linear-gradient(to right, rgb(100, 200, 255), rgb(0, 255, 255), rgb(255, 200, 0), rgb(255, 100, 0), rgb(255, 0, 100))',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }} />
+                  <div className="flex justify-between w-full text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium">
+                    <span>Less Traffic</span>
+                    <span>High Traffic</span>
+                  </div>
+                </div>
+              </>
+            ) : showDensityLayer ? (
+              <>
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                  <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-foreground">
+                    {timelapseMode ? 'Time-lapse' : 'User Density Heatmap'}
+                  </p>
+                  {timelapseMode && timelapse.isPlaying && (
+                    <div className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                      <span className="text-[9px] sm:text-[10px] text-primary font-medium">{timelapse.formatHour(timelapse.currentHour)}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
+                  <div className="w-20 sm:w-24 md:w-32 h-3.5 sm:h-4 md:h-5 rounded-md shadow-inner" style={{
+                    background: 'linear-gradient(to right, rgba(65, 105, 225, 0.8), rgb(0, 255, 127), rgb(255, 255, 0), rgb(255, 165, 0), rgb(255, 0, 0), rgb(139, 0, 0))',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }} />
+                  <div className="flex justify-between w-full text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium">
+                    <span>Low</span>
+                    <span>Medium</span>
+                    <span>High</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col gap-1 sm:gap-0">
+                <p className="text-[9px] sm:text-xs md:text-sm font-semibold text-muted-foreground mb-1 sm:mb-1.5 md:mb-2">Activity</p>
+                <div className="flex flex-col gap-1 sm:flex-row sm:gap-2 md:gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-hot rounded-full shadow-sm" />
+                    <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Hot</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-warm rounded-full shadow-sm" />
+                    <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Warm</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-cool rounded-full shadow-sm" />
+                    <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Cool</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
