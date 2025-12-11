@@ -5,7 +5,6 @@ import { Input } from "./ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { SearchResults } from "./SearchResults";
-import { ThemeToggle } from "./ThemeToggle";
 import { SyncStatusIndicator } from "./SyncStatusIndicator";
 import type { Venue } from "./MapboxHeatmap";
 import type { Database } from "@/integrations/supabase/types";
@@ -104,16 +103,16 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
             </h1>
           </div>
           
-          {/* Search Bar */}
-          <div className="flex-1 min-w-0 max-w-2xl relative">
-            <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          {/* Search Bar - Minimized width */}
+          <div className="flex-1 min-w-0 max-w-[140px] sm:max-w-[180px] md:max-w-[240px] relative">
+            <Search className="absolute left-2 sm:left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               placeholder="Search..."
               value={searchQuery}
               onChange={handleSearchChange}
               onFocus={() => searchQuery.trim() && setShowResults(true)}
-              className="w-full pl-8 sm:pl-10 pr-2 sm:pr-3 h-9 sm:h-10 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-sm text-foreground placeholder:text-muted-foreground"
+              className="w-full pl-7 sm:pl-8 pr-2 h-8 sm:h-9 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-xs sm:text-sm text-foreground placeholder:text-muted-foreground"
               maxLength={100}
             />
             
@@ -127,27 +126,26 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
             />
           </div>
 
-          {/* Right Actions */}
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-            <div className="hidden sm:block">
-              <SyncStatusIndicator
-                isLoading={isLoading}
-                lastUpdated={lastUpdated}
-                onRefresh={onRefresh}
-                showTimestamp={true}
-              />
-            </div>
-            <ThemeToggle />
-            <Avatar 
-              className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all flex-shrink-0"
-              onClick={() => navigate('/settings')}
-            >
-              <AvatarImage src={avatarUrl || ""} />
-              <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-[10px] sm:text-xs">
-                {displayName.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+          {/* Sync Status - Now visible on all screens */}
+          <div className="flex-shrink-0">
+            <SyncStatusIndicator
+              isLoading={isLoading}
+              lastUpdated={lastUpdated}
+              onRefresh={onRefresh}
+              showTimestamp={false}
+            />
           </div>
+
+          {/* Avatar */}
+          <Avatar 
+            className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all flex-shrink-0"
+            onClick={() => navigate('/settings')}
+          >
+            <AvatarImage src={avatarUrl || ""} />
+            <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-[10px] sm:text-xs">
+              {displayName.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
         </div>
       </div>
     </header>
