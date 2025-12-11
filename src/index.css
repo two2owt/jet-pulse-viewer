@@ -1068,4 +1068,69 @@ All colors MUST be HSL.
       background-position: -200% 0;
     }
   }
+
+  /* Flight path airplane animation */
+  .flight-path-airplane {
+    animation: airplane-gentle-bob 1.2s ease-in-out infinite;
+  }
+
+  @keyframes airplane-gentle-bob {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-2px) rotate(-2deg);
+    }
+    75% {
+      transform: translateY(1px) rotate(1deg);
+    }
+  }
+
+  /* Contrail trail behind the airplane */
+  .flight-contrail-trail {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.2) 30%,
+      hsl(var(--primary) / 0.5) 60%,
+      hsl(var(--primary-foreground) / 0.8) 100%
+    );
+    animation: contrail-stream 0.8s ease-out infinite;
+    border-radius: 2px;
+  }
+
+  @keyframes contrail-stream {
+    0% {
+      opacity: 0.8;
+      transform: scaleX(0.3) translateX(0);
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 0;
+      transform: scaleX(1) translateX(-100%);
+    }
+  }
+
+  /* Cloud waypoint pulse */
+  .flight-cloud-waypoint {
+    animation: cloud-waypoint-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes cloud-waypoint-pulse {
+    0%, 100% {
+      opacity: 0.2;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.4;
+      transform: scale(1.1);
+    }
+  }
 }
