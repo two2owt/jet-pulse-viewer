@@ -50,10 +50,9 @@ interface MapboxHeatmapProps {
 }
 
 const getActivityColor = (activity: number) => {
-  if (activity >= 80) return "hsl(0, 85%, 55%)"; // hot red
-  if (activity >= 60) return "hsl(45, 100%, 55%)"; // warm yellow
-  // Always show blue for any activity level (no gray for low activity)
-  return "hsl(210, 100%, 55%)"; // cool blue
+  if (activity >= 80) return "hsl(0, 85%, 55%)"; // hot red - matches --hot
+  if (activity >= 60) return "hsl(45, 100%, 55%)"; // warm yellow - matches --warm
+  return "hsl(210, 100%, 55%)"; // cool blue - matches --cool
 };
 
 export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, isLoadingVenues = false, selectedVenue }: MapboxHeatmapProps) => {
@@ -2251,9 +2250,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           <div className="flex items-center gap-2 cursor-pointer">
             <span className="text-[9px] font-medium text-muted-foreground">Legend</span>
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-hot rounded-full shadow-sm" />
-              <div className="w-2 h-2 bg-warm rounded-full shadow-sm" />
-              <div className="w-2 h-2 bg-cool rounded-full shadow-sm" />
+              <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: 'hsl(0, 85%, 55%)' }} />
+              <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: 'hsl(45, 100%, 55%)' }} />
+              <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: 'hsl(210, 100%, 55%)' }} />
             </div>
             <ChevronUp className="w-3 h-3 text-muted-foreground" />
           </div>
@@ -2310,15 +2309,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 <p className="text-[9px] sm:text-xs md:text-sm font-semibold text-muted-foreground mb-1 sm:mb-1.5 md:mb-2">Activity</p>
                 <div className="flex flex-col gap-1 sm:flex-row sm:gap-2 md:gap-3">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-hot rounded-full shadow-sm" />
+                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full shadow-sm" style={{ backgroundColor: 'hsl(0, 85%, 55%)' }} />
                     <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Hot</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-warm rounded-full shadow-sm" />
+                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full shadow-sm" style={{ backgroundColor: 'hsl(45, 100%, 55%)' }} />
                     <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Warm</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-cool rounded-full shadow-sm" />
+                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full shadow-sm" style={{ backgroundColor: 'hsl(210, 100%, 55%)' }} />
                     <span className="text-[9px] sm:text-[10px] md:text-xs text-foreground">Cool</span>
                   </div>
                 </div>
