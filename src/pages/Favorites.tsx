@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 import { EmptyState } from "@/components/EmptyState";
-import { Button } from "@/components/ui/button";
+import { VirtualGrid } from "@/components/ui/virtual-list";
 
 interface Deal {
   id: string;
@@ -151,11 +151,14 @@ export default function Favorites() {
             onAction={() => navigate("/?tab=explore")}
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {deals.map((deal) => (
-              <DealCard key={deal.id} deal={deal} />
-            ))}
-          </div>
+          <VirtualGrid
+            items={deals}
+            estimateSize={280}
+            className="min-h-[60vh]"
+            columns={{ mobile: 1, tablet: 2, desktop: 3 }}
+            getItemKey={(deal) => deal.id}
+            renderItem={(deal) => <DealCard deal={deal} />}
+          />
         )}
         </div>
       </div>
