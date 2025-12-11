@@ -1697,6 +1697,51 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             <Route className="w-4 h-4 mr-2" />
             {showMovementPaths ? "Paths On" : "Paths Off"}
           </Button>
+
+          {/* Mobile Filter Controls - Show when Heat layer is active */}
+          {showDensityLayer && (
+            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2 animate-fade-in">
+              <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
+                <SelectTrigger className="h-8 text-[10px] bg-background/80">
+                  <SelectValue placeholder="Time" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="this_week">This Week</SelectItem>
+                  <SelectItem value="this_hour">This Hour</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={hourFilter?.toString() || "all"} onValueChange={(v) => setHourFilter(v === "all" ? undefined : parseInt(v))}>
+                <SelectTrigger className="h-8 text-[10px] bg-background/80">
+                  <SelectValue placeholder="Hour" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Hours</SelectItem>
+                  {Array.from({ length: 24 }, (_, i) => (
+                    <SelectItem key={i} value={i.toString()}>{i}:00</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={dayFilter?.toString() || "all"} onValueChange={(v) => setDayFilter(v === "all" ? undefined : parseInt(v))}>
+                <SelectTrigger className="h-8 text-[10px] bg-background/80">
+                  <SelectValue placeholder="Day" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Days</SelectItem>
+                  <SelectItem value="0">Sun</SelectItem>
+                  <SelectItem value="1">Mon</SelectItem>
+                  <SelectItem value="2">Tue</SelectItem>
+                  <SelectItem value="3">Wed</SelectItem>
+                  <SelectItem value="4">Thu</SelectItem>
+                  <SelectItem value="5">Fri</SelectItem>
+                  <SelectItem value="6">Sat</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       )}
 
