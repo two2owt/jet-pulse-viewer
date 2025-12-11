@@ -1,16 +1,15 @@
 import { Download, X, Share, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
-import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
+import { useMultiDirectionSwipe } from "@/hooks/useMultiDirectionSwipe";
 import jetLogo from "@/assets/jet-logo.png";
 
 export const PWAInstallPrompt = () => {
   const { isInstallable, isInstalled, isIOS, showPrompt, installApp, dismissPrompt } = usePWAInstall();
   
-  const { handlers, style } = useSwipeToDismiss({
+  const { handlers, style } = useMultiDirectionSwipe({
     onDismiss: dismissPrompt,
-    threshold: 80,
-    direction: 'down'
+    threshold: 80
   });
 
   if (!showPrompt || !isInstallable || isInstalled) {
