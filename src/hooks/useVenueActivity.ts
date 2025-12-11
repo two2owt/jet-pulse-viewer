@@ -142,7 +142,10 @@ const fetchPopularVenuesFromGooglePlaces = async (): Promise<Venue[]> => {
       openingHours: v.openingHours || [],
     }));
     
-    console.log(`Fetched ${venues.length} Charlotte venues`);
+    console.log(`Fetched ${venues.length} Charlotte venues:`);
+    venues.forEach((v, i) => {
+      console.log(`  ${i + 1}. ${v.name}: lat=${v.lat}, lng=${v.lng} | ${v.address || 'No address'}`);
+    });
     return venues;
   } catch (error) {
     console.error('Error in fetchPopularVenuesFromGooglePlaces:', error);

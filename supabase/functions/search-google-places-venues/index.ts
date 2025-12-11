@@ -179,7 +179,9 @@ serve(async (req) => {
               activity: venue.activity,
             });
 
-            console.log(`Found via API: ${place.name} at ${details.formatted_address}`);
+            console.log(`Found via API: ${place.name}`);
+            console.log(`  Coordinates: lat=${details.geometry?.location?.lat || venue.lat}, lng=${details.geometry?.location?.lng || venue.lng}`);
+            console.log(`  Address: ${details.formatted_address || venue.address}`);
           } else {
             // Use fallback data
             venues.push({
