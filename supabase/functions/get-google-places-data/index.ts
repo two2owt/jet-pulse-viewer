@@ -11,11 +11,30 @@ serve(async (req) => {
   }
 
   try {
-    const { placeId, fields = ['rating', 'user_ratings_total', 'reviews', 'opening_hours', 'current_opening_hours'] } = await req.json();
+    const body = await req.json();
+    const { placeId, fields = ['rating', 'user_ratings_total', 'reviews', 'opening_hours', 'current_opening_hours'] } = body;
     
-    if (!placeId) {
-      throw new Error('placeId is required');
+    // Validate placeId - must be a non-empty string with max length
+    if (!placeId || typeof placeId !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'placeId is required and must be a string' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+    
+    // Validate placeId format and length (Google Place IDs are typically 27-50 chars)
+    if (placeId.length < 10 || placeId.length > 200) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid placeId format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Validate fields array
+    const allowedFields = ['rating', 'user_ratings_total', 'reviews', 'opening_hours', 'current_opening_hours', 'formatted_address', 'formatted_phone_number', 'website', 'geometry'];
+    const validatedFields = Array.isArray(fields) 
+      ? fields.filter(f => typeof f === 'string' && allowedFields.includes(f))
+      : ['rating', 'user_ratings_total', 'reviews', 'opening_hours', 'current_opening_hours'];
 
     const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
     if (!apiKey) {
@@ -25,8 +44,9 @@ serve(async (req) => {
     console.log(`Fetching Google Places data for place ID: ${placeId}`);
 
     // Use Google Places API (New) - Place Details
-    const fieldsParam = fields.join(',');
-    const url = `https://places.googleapis.com/v1/places/${placeId}?fields=${fieldsParam}&key=${apiKey}`;
+    const fieldsParam = validatedFields.join(',');
+    const encodedPlaceId = encodeURIComponent(placeId);
+    const url = `https://places.googleapis.com/v1/places/${encodedPlaceId}?fields=${fieldsParam}&key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'GET',

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,6 +10,30 @@ const corsHeaders = {
 // Valid deal_type values in the consumer app database
 const VALID_DEAL_TYPES = ['event', 'special', 'offer'] as const;
 type ValidDealType = typeof VALID_DEAL_TYPES[number];
+
+// Zod schema for webhook payload validation
+const MerchantDealSchema = z.object({
+  id: z.string().uuid(),
+  merchant_id: z.string().max(200).optional(),
+  venue_id: z.string().min(1).max(500),
+  venue_name: z.string().min(1).max(500),
+  venue_address: z.string().max(1000).optional(),
+  title: z.string().min(1).max(500),
+  description: z.string().min(1).max(5000),
+  deal_type: z.string().min(1).max(100),
+  starts_at: z.string().datetime({ offset: true }).or(z.string().regex(/^\d{4}-\d{2}-\d{2}/)),
+  expires_at: z.string().datetime({ offset: true }).or(z.string().regex(/^\d{4}-\d{2}-\d{2}/)),
+  active_days: z.array(z.number().int().min(0).max(6)).optional(),
+  active: z.boolean(),
+  image_url: z.string().url().max(2000).optional().nullable(),
+  website_url: z.string().url().max(2000).optional().nullable(),
+  neighborhood_id: z.string().uuid().optional().nullable(),
+});
+
+const WebhookPayloadSchema = z.object({
+  action: z.enum(['create', 'update', 'delete']),
+  deal: MerchantDealSchema,
+});
 
 // Map incoming deal_type values to valid ones
 function mapDealType(incomingType: string): ValidDealType {
@@ -39,28 +64,8 @@ function mapDealType(incomingType: string): ValidDealType {
   return mappings[normalized] || 'offer'; // Default to 'offer' if unknown
 }
 
-interface MerchantDeal {
-  id: string;
-  merchant_id: string;
-  venue_id: string;
-  venue_name: string;
-  venue_address?: string;
-  title: string;
-  description: string;
-  deal_type: string;
-  starts_at: string;
-  expires_at: string;
-  active_days?: number[];
-  active: boolean;
-  image_url?: string;
-  website_url?: string;
-  neighborhood_id?: string;
-}
-
-interface WebhookPayload {
-  action: 'create' | 'update' | 'delete';
-  deal: MerchantDeal;
-}
+type MerchantDeal = z.infer<typeof MerchantDealSchema>;
+type WebhookPayload = z.infer<typeof WebhookPayloadSchema>;
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -86,7 +91,22 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const payload: WebhookPayload = await req.json();
+    const rawPayload = await req.json();
+    
+    // Validate webhook payload with zod
+    const parseResult = WebhookPayloadSchema.safeParse(rawPayload);
+    if (!parseResult.success) {
+      console.error('Invalid webhook payload:', parseResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid payload format', 
+          details: parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const payload = parseResult.data;
     console.log(`Processing ${payload.action} for deal:`, payload.deal.id);
 
     const { action, deal } = payload;
