@@ -24,8 +24,8 @@ export const ThemeToggle = () => {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" className="w-9 h-9">
-        <Sun className="h-4 w-4" />
+      <Button variant="ghost" size="icon" className="w-10 h-10 min-w-[44px] min-h-[44px]">
+        <Sun className="h-5 w-5" />
       </Button>
     );
   }
@@ -37,13 +37,13 @@ export const ThemeToggle = () => {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="w-9 h-9"
+      className="w-10 h-10 min-w-[44px] min-h-[44px]"
       title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
       {isDark ? (
-        <Sun className="h-4 w-4 transition-all" />
+        <Sun className="h-5 w-5 transition-all" />
       ) : (
-        <Moon className="h-4 w-4 transition-all" />
+        <Moon className="h-5 w-5 transition-all" />
       )}
       <span className="sr-only">Toggle theme</span>
     </Button>
