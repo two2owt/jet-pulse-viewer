@@ -139,7 +139,7 @@ serve(async (req) => {
       try {
         const venues = [];
         
-        for (const venue of CHARLOTTE_TOP_VENUES.slice(0, 5)) {
+        for (const venue of CHARLOTTE_TOP_VENUES) {
           // Use Text Search to find the specific venue for live data
           const searchUrl = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
           searchUrl.searchParams.append('query', `${venue.name} Charlotte NC`);
@@ -189,15 +189,6 @@ serve(async (req) => {
             });
             console.log(`Using fallback for: ${venue.name}`);
           }
-        }
-
-        // Add remaining venues from fallback
-        for (const venue of CHARLOTTE_TOP_VENUES.slice(5)) {
-          venues.push({
-            ...venue,
-            isOpen: null,
-            openingHours: [],
-          });
         }
 
         if (venues.length > 0) {
