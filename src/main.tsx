@@ -7,10 +7,14 @@ import AdminDashboard from "./pages/AdminDashboard";
 import "./index.css";
 import { initSentry } from "@/lib/sentry";
 import { analytics } from "@/lib/analytics";
+import { initPrefetching } from "@/lib/prefetch";
 
 // Initialize error monitoring and analytics
 initSentry();
 analytics.init();
+
+// Prefetch heavy chunks during idle time
+initPrefetching();
 
 // Create QueryClient
 const queryClient = new QueryClient();
