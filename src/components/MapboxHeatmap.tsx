@@ -87,7 +87,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   
   // Controls visibility state
   const [controlsCollapsed, setControlsCollapsed] = useState(false);
-  const [legendCollapsed, setLegendCollapsed] = useState(true); // Legend collapsed by default on mobile
+  const [legendCollapsed, setLegendCollapsed] = useState(false); // Legend expanded by default on mobile
   
   // User location state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -2249,11 +2249,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         {/* Mobile collapsed view - just shows indicator dots */}
         {isMobile && legendCollapsed ? (
           <div className="flex items-center gap-2 cursor-pointer">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 bg-hot rounded-full shadow-sm" />
-              <div className="w-2 h-2 bg-warm rounded-full shadow-sm" />
-              <div className="w-2 h-2 bg-cool rounded-full shadow-sm" />
-            </div>
+            <span className="text-[9px] font-medium text-muted-foreground">Legend</span>
             <ChevronUp className="w-3 h-3 text-muted-foreground" />
           </div>
         ) : (

@@ -181,9 +181,9 @@ All colors MUST be HSL.
     --input: 0 0% 92%;
     --ring: 24 100% 50%;
 
-    --hot: 24 100% 50%;
-    --warm: 14 100% 52%;
-    --cool: 0 0% 55%;
+    --hot: 0 85% 50%;
+    --warm: 45 100% 50%;
+    --cool: 210 100% 50%;
     --cold: 0 0% 70%;
 
     --gradient-hot: linear-gradient(135deg, hsl(24 100% 50%), hsl(320 80% 55%));
