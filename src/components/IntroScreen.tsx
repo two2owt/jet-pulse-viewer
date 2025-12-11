@@ -34,9 +34,8 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
       <div className="relative flex items-center justify-center">
         {/* Neumorphism container */}
         <div
-          className="relative rounded-[3rem] p-16 animate-pulse-glow"
+          className="relative rounded-[3rem] p-16 animate-pulse-glow bg-background"
           style={{
-            background: "var(--background)",
             boxShadow: `
               20px 20px 60px hsl(var(--background) / 0.8),
               -20px -20px 60px hsl(var(--foreground) / 0.05),
@@ -47,9 +46,8 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
         >
           {/* Logo container with inner neumorphism */}
           <div
-            className="rounded-[2.5rem] p-12 animate-scale-in"
+            className="rounded-[2.5rem] p-12 animate-scale-in bg-background"
             style={{
-              background: "var(--background)",
               boxShadow: `
                 inset 10px 10px 20px hsl(var(--background) / 0.8),
                 inset -10px -10px 20px hsl(var(--foreground) / 0.05)

@@ -377,12 +377,13 @@ const Auth = () => {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4 relative"
+      className="min-h-screen min-h-[100dvh] flex items-center justify-center p-4 relative bg-background"
       style={{
         backgroundImage: `url(${authBackground})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
+        backgroundColor: 'hsl(0 0% 6%)', // Fallback dark background
       }}
     >
       {/* Animated matte black/grey gradient overlay */}
