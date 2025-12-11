@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import cssnano from "cssnano";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -28,6 +29,21 @@ export default defineConfig(({ mode }) => ({
     target: 'es2020',
     // Increase chunk size warning limit
     chunkSizeWarningLimit: 600,
+  },
+  css: {
+    postcss: {
+      plugins: [
+        cssnano({
+          preset: ['default', {
+            discardComments: { removeAll: true },
+            normalizeWhitespace: true,
+            colormin: true,
+            reduceIdents: false,
+            mergeRules: true,
+          }],
+        }),
+      ],
+    },
   },
   plugins: [
     react(),
