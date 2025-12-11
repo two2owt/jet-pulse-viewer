@@ -1318,28 +1318,60 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       // Attach popup to marker
       marker.setPopup(popup);
 
-      // Handle click on the marker element - bounce animation + open venue card
+      // Handle click on the marker element - loading animation + open venue card
       el.addEventListener("click", (e) => {
         e.stopPropagation();
         
         // Haptic feedback for venue selection
         triggerHaptic('medium');
         
-        // Bounce animation
-        pinEl.style.animation = "bounce 0.6s ease-out";
-        setTimeout(() => {
-          // Restore appropriate pulsating animation after bounce (only for high activity)
-          if (venue.activity >= 80) {
-            pinEl.style.animation = "venue-pulse-intense 1.5s ease-in-out infinite";
-          } else if (venue.activity >= 60) {
-            pinEl.style.animation = "venue-pulse-moderate 2s ease-in-out infinite";
-          } else {
-            pinEl.style.animation = "";
-          }
-        }, 600);
+        // Add loading state to marker
+        el.classList.add('venue-marker-loading');
+        pinEl.style.animation = "venue-marker-pulse-loading 0.8s ease-in-out infinite";
+        
+        // Create loading ring overlay
+        const loadingRing = document.createElement('div');
+        loadingRing.className = 'venue-marker-loading-ring';
+        loadingRing.style.cssText = `
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: ${markerSize * 1.4}px;
+          height: ${markerSize * 1.4}px;
+          margin-top: -${markerSize * 0.7}px;
+          margin-left: -${markerSize * 0.7}px;
+          border: 2px solid transparent;
+          border-top-color: ${color};
+          border-right-color: ${color};
+          border-radius: 50%;
+          animation: venue-loading-spin 0.8s linear infinite;
+          pointer-events: none;
+          z-index: 10;
+        `;
+        el.appendChild(loadingRing);
         
         // Open venue card
         onVenueSelect(venue);
+        
+        // Remove loading state after a brief delay (simulating data load)
+        setTimeout(() => {
+          el.classList.remove('venue-marker-loading');
+          loadingRing.remove();
+          
+          // Bounce animation after loading
+          pinEl.style.animation = "bounce 0.5s ease-out";
+          
+          setTimeout(() => {
+            // Restore appropriate pulsating animation after bounce
+            if (venue.activity >= 80) {
+              pinEl.style.animation = "venue-pulse-intense 1.5s ease-in-out infinite";
+            } else if (venue.activity >= 60) {
+              pinEl.style.animation = "venue-pulse-moderate 2s ease-in-out infinite";
+            } else {
+              pinEl.style.animation = "";
+            }
+          }, 500);
+        }, 400);
         
         // Show popup
         popup.addTo(mapInstance);
