@@ -1,10 +1,17 @@
 import { Download, X, Share, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import jetLogo from "@/assets/jet-logo.png";
 
 export const PWAInstallPrompt = () => {
   const { isInstallable, isInstalled, isIOS, showPrompt, installApp, dismissPrompt } = usePWAInstall();
+  
+  const { handlers, style } = useSwipeToDismiss({
+    onDismiss: dismissPrompt,
+    threshold: 80,
+    direction: 'down'
+  });
 
   if (!showPrompt || !isInstallable || isInstalled) {
     return null;
@@ -12,7 +19,15 @@ export const PWAInstallPrompt = () => {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 p-4 pb-[calc(var(--safe-area-inset-bottom,0px)+1rem)] animate-in slide-in-from-bottom-4 duration-500">
-      <div className="max-w-md mx-auto bg-card/98 backdrop-blur-2xl border border-border/60 rounded-2xl shadow-2xl overflow-hidden">
+      <div 
+        className="max-w-md mx-auto bg-card/98 backdrop-blur-2xl border border-border/60 rounded-2xl shadow-2xl overflow-hidden cursor-grab active:cursor-grabbing"
+        {...handlers}
+        style={style}
+      >
+        {/* Swipe indicator */}
+        <div className="flex justify-center pt-2 pb-1">
+          <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
+        </div>
         {/* Header with gradient accent */}
         <div className="h-1 bg-gradient-to-r from-primary via-accent to-primary" />
         
