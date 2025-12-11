@@ -38,6 +38,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { NotificationSkeleton } from "@/components/skeletons/NotificationSkeleton";
 import { MapSkeleton } from "@/components/skeletons/MapSkeleton";
+import { JetCardSkeleton } from "@/components/skeletons/JetCardSkeleton";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -66,6 +67,7 @@ const Index = () => {
   });
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("map");
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const [isVenueLoading, setIsVenueLoading] = useState(false);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const [deepLinkedDeal, setDeepLinkedDeal] = useState<any>(null);
@@ -219,11 +221,22 @@ const Index = () => {
   };
 
   const handleVenueSelect = async (venue: Venue | string) => {
+    // Show loading state immediately
+    setIsVenueLoading(true);
+    
     // Handle both Venue object and venue name string
     if (typeof venue === 'string') {
       // Find the venue by name in real venues or mock venues
       const foundVenue = venues.find(v => v.name === venue);
       if (foundVenue) {
+        // Set venue immediately with basic info, then fetch additional data
+        const basicVenue = {
+          ...foundVenue,
+          imageUrl: getVenueImage(foundVenue.name) || foundVenue.imageUrl,
+        };
+        setSelectedVenue(basicVenue);
+        setActiveTab('map'); // Switch to map tab
+        
         // Fetch address from deals table
         const { data: dealData } = await supabase
           .from('deals')
@@ -232,13 +245,13 @@ const Index = () => {
           .limit(1)
           .maybeSingle();
         
-        const venueWithImage = {
-          ...foundVenue,
-          imageUrl: getVenueImage(foundVenue.name) || foundVenue.imageUrl,
+        // Update with complete data
+        setSelectedVenue({
+          ...basicVenue,
           address: dealData?.venue_address || undefined
-        };
-        setSelectedVenue(venueWithImage);
-        setActiveTab('map'); // Switch to map tab
+        });
+        setIsVenueLoading(false);
+        
         toast.success(`Selected ${foundVenue.name}`, {
           description: `${foundVenue.activity}% active in ${foundVenue.neighborhood}`
         });
@@ -250,8 +263,17 @@ const Index = () => {
             block: 'start' 
           });
         }, 100);
+      } else {
+        setIsVenueLoading(false);
       }
     } else {
+      // Set venue immediately with basic info
+      const basicVenue = {
+        ...venue,
+        imageUrl: getVenueImage(venue.name) || venue.imageUrl,
+      };
+      setSelectedVenue(basicVenue);
+      
       // Fetch address from deals table for venue object
       const { data: dealData } = await supabase
         .from('deals')
@@ -260,13 +282,13 @@ const Index = () => {
         .limit(1)
         .maybeSingle();
       
-      // Original venue object handling
-      const venueWithImage = {
-        ...venue,
-        imageUrl: getVenueImage(venue.name) || venue.imageUrl,
+      // Update with complete data
+      setSelectedVenue({
+        ...basicVenue,
         address: dealData?.venue_address || venue.address
-      };
-      setSelectedVenue(venueWithImage);
+      });
+      setIsVenueLoading(false);
+      
       toast.success(`Selected ${venue.name}`, {
         description: `${venue.activity}% active in ${venue.neighborhood}`
       });
@@ -423,11 +445,15 @@ const Index = () => {
                     <div className="w-10 h-1 bg-muted-foreground/40 rounded-full" />
                   </div>
                 )}
-                <JetCard 
-                  venue={selectedVenue} 
-                  onGetDirections={handleGetDirections}
-                  onClose={() => setSelectedVenue(null)}
-                />
+                {isVenueLoading ? (
+                  <JetCardSkeleton />
+                ) : (
+                  <JetCard 
+                    venue={selectedVenue} 
+                    onGetDirections={handleGetDirections}
+                    onClose={() => setSelectedVenue(null)}
+                  />
+                )}
               </div>
             )}
 
