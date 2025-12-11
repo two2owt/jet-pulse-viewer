@@ -1652,15 +1652,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Controls Toggle Button - Always visible */}
       <button
         onClick={() => { triggerHaptic('light'); setControlsCollapsed(!controlsCollapsed); }}
-        className={`absolute z-20 bg-card/95 backdrop-blur-xl rounded-full p-2.5 border border-border shadow-lg transition-all duration-300 hover:bg-card active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation ${
+        className={`absolute z-30 bg-card backdrop-blur-xl rounded-full p-2.5 border border-border shadow-lg transition-all duration-300 hover:bg-card/90 active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation ${
           mapLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
         }`}
         style={{
-          bottom: isMobile ? 'calc(0.5rem + env(safe-area-inset-bottom, 0px))' : 'var(--map-ui-inset-bottom)',
+          bottom: isMobile ? '0.75rem' : 'var(--map-ui-inset-bottom)',
           right: controlsCollapsed 
             ? (isMobile ? '0.5rem' : 'var(--map-ui-inset-right)') 
             : isMobile 
-              ? 'calc(160px + 1rem)' 
+              ? 'calc(140px + 1rem)' 
               : 'calc(var(--map-ui-inset-right) + var(--map-control-max-width) + 0.5rem)',
         }}
         aria-label={controlsCollapsed ? "Show map controls" : "Hide map controls"}
@@ -1675,23 +1675,23 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Controls Loading Skeleton - Shows while map is initializing */}
       {!mapLoaded && !controlsCollapsed && (
         <div 
-          className="absolute z-10 space-y-2 animate-pulse"
+          className="absolute z-30 space-y-2 animate-pulse"
           style={{
-            bottom: isMobile ? 'calc(0.5rem + env(safe-area-inset-bottom, 0px))' : 'var(--map-ui-inset-bottom)',
+            bottom: isMobile ? '0.75rem' : 'var(--map-ui-inset-bottom)',
             right: isMobile ? '0.5rem' : 'var(--map-ui-inset-right)',
-            width: isMobile ? '160px' : 'var(--map-control-max-width)',
+            width: isMobile ? '140px' : 'var(--map-control-max-width)',
           }}
         >
           {/* Heat button skeleton */}
-          <div className="h-7 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" />
+          <div className="h-11 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" />
           {/* Paths button skeleton */}
-          <div className="h-7 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" style={{ animationDelay: '150ms' }} />
+          <div className="h-11 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" style={{ animationDelay: '150ms' }} />
         </div>
       )}
 
       {/* Density Layer Controls - Bottom right, responsive for all devices */}
       <div 
-        className={`absolute z-10 space-y-2 transition-all duration-300 ease-out ${
+        className={`absolute z-30 space-y-2 transition-all duration-300 ease-out ${
           controlsCollapsed 
             ? 'opacity-0 translate-x-full pointer-events-none' 
             : mapLoaded 
@@ -1699,10 +1699,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               : 'opacity-0 pointer-events-none'
         }`}
         style={{
-          bottom: isMobile ? 'calc(0.5rem + env(safe-area-inset-bottom, 0px))' : 'var(--map-ui-inset-bottom)',
+          bottom: isMobile ? '0.75rem' : 'var(--map-ui-inset-bottom)',
           right: isMobile ? '0.5rem' : 'var(--map-ui-inset-right)',
-          maxWidth: isMobile ? 'calc(100vw - 3.5rem)' : 'var(--map-control-max-width)',
-          width: isMobile ? '160px' : 'auto',
+          maxWidth: isMobile ? '140px' : 'var(--map-control-max-width)',
+          width: isMobile ? '140px' : 'auto',
         }}
       >
         <Button
@@ -1719,9 +1719,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           }}
           variant={showDensityLayer ? "default" : "secondary"}
           size="sm"
-          className="bg-card/95 backdrop-blur-xl border border-border text-xs shadow-lg w-full animate-fade-in min-h-[44px] touch-manipulation"
+          className={`backdrop-blur-xl border shadow-lg w-full animate-fade-in min-h-[44px] touch-manipulation ${
+            isMobile 
+              ? 'bg-card border-border text-foreground text-[11px] font-semibold' 
+              : 'bg-card/95 border-border text-xs'
+          }`}
         >
-          <Layers className="w-4 h-4 mr-1.5" />
+          <Layers className="w-4 h-4 mr-1.5 flex-shrink-0" />
           <span>{showDensityLayer ? "Hide" : "Show"} Heat</span>
         </Button>
 
@@ -1946,9 +1950,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           onClick={() => { triggerHaptic('medium'); setShowMovementPaths(!showMovementPaths); }}
           variant={showMovementPaths ? "default" : "secondary"}
           size="sm"
-          className="bg-card/95 backdrop-blur-xl border border-border text-xs shadow-lg w-full animate-fade-in min-h-[44px] touch-manipulation"
+          className={`backdrop-blur-xl border shadow-lg w-full animate-fade-in min-h-[44px] touch-manipulation ${
+            isMobile 
+              ? 'bg-card border-border text-foreground text-[11px] font-semibold' 
+              : 'bg-card/95 border-border text-xs'
+          }`}
         >
-          <Route className="w-4 h-4 mr-1.5" />
+          <Route className="w-4 h-4 mr-1.5 flex-shrink-0" />
           <span>{showMovementPaths ? "Hide" : "Show"} Paths</span>
         </Button>
 
