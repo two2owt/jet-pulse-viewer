@@ -108,37 +108,59 @@ const calculateActivityScore = (data: VenueActivityData, nearbyUserCount: number
 };
 
 /**
- * Fetch the top 10 most popular venues in Charlotte from Google Places
+ * Fetch the top 10 most popular venues in Charlotte
  */
 const fetchPopularVenuesFromGooglePlaces = async (): Promise<Venue[]> => {
   try {
-    console.log('Fetching top 10 Charlotte venues from Google Places...');
+    console.log('Fetching top 10 Charlotte venues...');
     
-    // Charlotte coordinates (primary test city)
+    // Charlotte coordinates
     const charlotteLocation = { lat: 35.2271, lng: -80.8431 };
     
     const { data, error } = await supabase.functions.invoke('search-google-places-venues', {
-      body: { 
-        location: charlotteLocation,
-        radius: 10000, // 10km radius to cover Charlotte metro
-        categories: ['night_club', 'bar', 'restaurant', 'cafe']
-      }
+      body: { location: charlotteLocation }
     });
 
     if (error) {
-      console.error('Error fetching venues from Google Places:', error);
+      console.error('Error fetching venues:', error);
       return [];
     }
 
-    // Ensure we only return top 10 venues with full address data
-    const venues = (data.venues || []).slice(0, 10);
-    console.log(`Fetched ${venues.length} top Charlotte venues with addresses`);
+    // Map the response to our Venue interface
+    const venues: Venue[] = (data.venues || []).slice(0, 10).map((v: any) => ({
+      id: v.id,
+      name: v.name,
+      lat: v.lat,
+      lng: v.lng,
+      activity: v.activity || 50,
+      category: v.category || 'Venue',
+      neighborhood: getNeighborhoodFromCoords(v.lat, v.lng),
+      address: v.address,
+      googleRating: v.googleRating,
+      googleTotalRatings: v.googleTotalRatings,
+      isOpen: v.isOpen,
+      openingHours: v.openingHours || [],
+    }));
     
+    console.log(`Fetched ${venues.length} Charlotte venues`);
     return venues;
   } catch (error) {
     console.error('Error in fetchPopularVenuesFromGooglePlaces:', error);
     return [];
   }
+};
+
+/**
+ * Determine neighborhood from coordinates
+ */
+const getNeighborhoodFromCoords = (lat: number, lng: number): string => {
+  // Charlotte neighborhoods approximate boundaries
+  if (lat >= 35.245) return 'NoDa';
+  if (lat >= 35.230 && lng <= -80.820) return 'Camp North End';
+  if (lat >= 35.220 && lat < 35.235) return 'Uptown';
+  if (lat >= 35.200 && lat < 35.220 && lng >= -80.820) return 'Plaza Midwood';
+  if (lat < 35.220 && lng <= -80.840) return 'South End';
+  return 'Charlotte';
 };
 
 /**
