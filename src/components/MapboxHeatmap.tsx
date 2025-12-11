@@ -1195,32 +1195,39 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         .addTo(mapInstance);
 
       // Create popup for the venue with enhanced information
+      const addressHTML = venue.address 
+        ? `<p style="margin: 2px 0 6px 0; font-size: 10px; color: rgba(255, 255, 255, 0.6); line-height: 1.3;">${venue.address}</p>`
+        : '';
+        
       const googleRatingHTML = venue.googleRating 
         ? `<div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
              <span style="color: #FFD700; font-size: 12px;">★</span>
              <span style="font-size: 11px; font-weight: 600; color: white;">${venue.googleRating.toFixed(1)}</span>
-             <span style="font-size: 10px; color: rgba(255, 255, 255, 0.6);">(${venue.googleTotalRatings} reviews)</span>
+             <span style="font-size: 10px; color: rgba(255, 255, 255, 0.6);">(${venue.googleTotalRatings?.toLocaleString() || 0} reviews)</span>
            </div>`
         : '';
       
-      const isOpenHTML = venue.isOpen !== undefined
-        ? `<div style="margin-top: 4px;">
-             <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${venue.isOpen ? '#22c55e' : '#ef4444'}; margin-right: 4px;"></span>
-             <span style="font-size: 10px; font-weight: 600; color: ${venue.isOpen ? '#22c55e' : '#ef4444'};">${venue.isOpen ? 'OPEN NOW' : 'CLOSED'}</span>
+      const isOpenHTML = venue.isOpen !== null && venue.isOpen !== undefined
+        ? `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+             <span style="display: inline-flex; align-items: center; gap: 5px;">
+               <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${venue.isOpen ? '#22c55e' : '#ef4444'}; box-shadow: 0 0 6px ${venue.isOpen ? '#22c55e' : '#ef4444'};"></span>
+               <span style="font-size: 11px; font-weight: 600; color: ${venue.isOpen ? '#22c55e' : '#ef4444'};">${venue.isOpen ? 'Open Now' : 'Closed'}</span>
+             </span>
            </div>`
         : '';
 
       const popup = new mapboxgl.Popup({
         offset: 25,
-        closeButton: false,
+        closeButton: true,
         closeOnClick: true,
-        maxWidth: '220px',
+        maxWidth: '260px',
         className: 'venue-popup'
       }).setHTML(`
-        <div style="padding: 8px;">
+        <div style="padding: 10px;">
           <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 600; color: white;">${venue.name}</h4>
-          <p style="margin: 0 0 4px 0; font-size: 11px; color: rgba(255, 255, 255, 0.7);">${venue.category} • ${venue.neighborhood}</p>
-          <div style="display: flex; align-items: center; gap: 4px;">
+          <p style="margin: 0 0 4px 0; font-size: 11px; color: rgba(255, 255, 255, 0.7);">${venue.category}</p>
+          ${addressHTML}
+          <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
             <div style="width: 8px; height: 8px; border-radius: 50%; background: ${color};"></div>
             <span style="font-size: 11px; font-weight: 600; color: white;">${venue.activity}% Active</span>
           </div>
