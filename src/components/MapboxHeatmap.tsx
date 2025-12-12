@@ -198,10 +198,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           bearing: 0,
           antialias: false, // Disable antialiasing for faster initial render
           attributionControl: false,
-          cooperativeGestures: isMobile,
+          cooperativeGestures: false, // Allow single-finger panning on mobile
           touchZoomRotate: true,
-          touchPitch: !isMobile,
-          dragRotate: !isMobile,
+          touchPitch: true, // Allow pitch control with touch
+          dragRotate: !isMobile, // Disable rotation on mobile to avoid conflicts
+          dragPan: true, // Explicitly enable single-finger panning
           projection: 'globe' as any,
           // Performance optimizations
           fadeDuration: 0, // No fade for fastest initial render
