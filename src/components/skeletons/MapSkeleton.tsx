@@ -4,8 +4,8 @@ import { MapPin } from "lucide-react";
 export const MapSkeleton = () => {
   return (
     <div className="relative w-full h-full bg-background overflow-hidden">
-      {/* Map placeholder with gradient shimmer */}
-      <div className="absolute inset-0 bg-gradient-to-br from-card via-muted/50 to-card animate-pulse" />
+      {/* Map placeholder with subtle shimmer */}
+      <div className="absolute inset-0 bg-gradient-to-br from-card via-muted/30 to-card animate-shimmer" />
       
       {/* Subtle grid pattern overlay */}
       <div 
@@ -27,7 +27,7 @@ export const MapSkeleton = () => {
           left: 'var(--map-ui-inset-left, 1rem)',
         }}
       >
-        <Skeleton className="h-8 sm:h-9 w-36 sm:w-44 rounded-lg" />
+        <Skeleton className="h-8 sm:h-9 w-36 sm:w-44 rounded-lg" delay={0} />
       </div>
       
       {/* Navigation controls skeleton (top-right) */}
@@ -38,33 +38,33 @@ export const MapSkeleton = () => {
           right: 'var(--map-ui-inset-right, 1rem)',
         }}
       >
-        <Skeleton className="h-8 w-8 rounded-md" />
-        <Skeleton className="h-8 w-8 rounded-md" />
-        <Skeleton className="h-8 w-8 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-md" delay={100} />
+        <Skeleton className="h-8 w-8 rounded-md" delay={150} />
+        <Skeleton className="h-8 w-8 rounded-md" delay={200} />
       </div>
       
-      {/* Mock venue markers with staggered animation */}
-      <div className="absolute top-[20%] left-[25%] animate-pulse" style={{ animationDelay: '0ms' }}>
+      {/* Mock venue markers with staggered fade-in */}
+      <div className="absolute top-[20%] left-[25%] animate-fade-in" style={{ animationDelay: '300ms' }}>
         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center backdrop-blur-sm border border-primary/30">
           <MapPin className="w-5 h-5 text-primary/50" />
         </div>
       </div>
-      <div className="absolute top-[35%] left-[55%] animate-pulse" style={{ animationDelay: '150ms' }}>
+      <div className="absolute top-[35%] left-[55%] animate-fade-in" style={{ animationDelay: '450ms' }}>
         <div className="w-12 h-12 rounded-full bg-warm/20 flex items-center justify-center backdrop-blur-sm border border-warm/30">
           <MapPin className="w-6 h-6 text-warm/50" />
         </div>
       </div>
-      <div className="absolute top-[55%] left-[35%] animate-pulse" style={{ animationDelay: '300ms' }}>
+      <div className="absolute top-[55%] left-[35%] animate-fade-in" style={{ animationDelay: '600ms' }}>
         <div className="w-9 h-9 rounded-full bg-cool/20 flex items-center justify-center backdrop-blur-sm border border-cool/30">
           <MapPin className="w-4 h-4 text-cool/50" />
         </div>
       </div>
-      <div className="absolute top-[45%] left-[70%] animate-pulse" style={{ animationDelay: '450ms' }}>
+      <div className="absolute top-[45%] left-[70%] animate-fade-in" style={{ animationDelay: '750ms' }}>
         <div className="w-11 h-11 rounded-full bg-hot/20 flex items-center justify-center backdrop-blur-sm border border-hot/30">
           <MapPin className="w-5 h-5 text-hot/50" />
         </div>
       </div>
-      <div className="absolute top-[65%] left-[60%] animate-pulse" style={{ animationDelay: '600ms' }}>
+      <div className="absolute top-[65%] left-[60%] animate-fade-in" style={{ animationDelay: '900ms' }}>
         <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center backdrop-blur-sm border border-primary/30">
           <MapPin className="w-4 h-4 text-primary/50" />
         </div>
@@ -93,18 +93,18 @@ export const MapSkeleton = () => {
         }}
       >
         <div className="bg-card/80 backdrop-blur-sm rounded-lg p-2 border border-border/50">
-          <Skeleton className="h-3 w-16 mb-2" />
+          <Skeleton className="h-3 w-16 mb-2" delay={250} />
           <div className="flex items-center gap-2">
-            <Skeleton className="h-3 w-3 rounded-full" />
-            <Skeleton className="h-2 w-8" />
+            <Skeleton className="h-3 w-3 rounded-full" delay={300} />
+            <Skeleton className="h-2 w-8" delay={325} />
           </div>
           <div className="flex items-center gap-2 mt-1">
-            <Skeleton className="h-3 w-3 rounded-full" />
-            <Skeleton className="h-2 w-10" />
+            <Skeleton className="h-3 w-3 rounded-full" delay={350} />
+            <Skeleton className="h-2 w-10" delay={375} />
           </div>
           <div className="flex items-center gap-2 mt-1">
-            <Skeleton className="h-3 w-3 rounded-full" />
-            <Skeleton className="h-2 w-6" />
+            <Skeleton className="h-3 w-3 rounded-full" delay={400} />
+            <Skeleton className="h-2 w-6" delay={425} />
           </div>
         </div>
       </div>
