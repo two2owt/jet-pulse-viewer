@@ -85,9 +85,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [pathTimeFilter, setPathTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   const [minPathFrequency, setMinPathFrequency] = useState(2);
   
-  // Controls visibility state
-  const [controlsCollapsed, setControlsCollapsed] = useState(false);
-  const [legendCollapsed, setLegendCollapsed] = useState(false); // Legend expanded by default on mobile
+  // Controls visibility state - collapsed by default
+  const [controlsCollapsed, setControlsCollapsed] = useState(true);
+  const [legendCollapsed, setLegendCollapsed] = useState(true);
   
   // User location state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
