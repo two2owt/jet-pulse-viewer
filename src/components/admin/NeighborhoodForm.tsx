@@ -89,14 +89,14 @@ export const NeighborhoodForm = ({ neighborhood, onClose, onSuccess }: Neighborh
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{neighborhood ? 'Edit Neighborhood' : 'Create Neighborhood'}</CardTitle>
+    <Card className="mx-1 sm:mx-0">
+      <CardHeader className="pb-3 sm:pb-6 px-4 sm:px-6">
+        <CardTitle className="text-lg sm:text-xl">{neighborhood ? 'Edit Neighborhood' : 'Create Neighborhood'}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Name</Label>
+      <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="name" className="text-sm">Name</Label>
             <Input
               id="name"
               value={formData.name}
@@ -106,8 +106,8 @@ export const NeighborhoodForm = ({ neighborhood, onClose, onSuccess }: Neighborh
             />
           </div>
 
-          <div>
-            <Label htmlFor="slug">Slug</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="slug" className="text-sm">Slug</Label>
             <Input
               id="slug"
               value={formData.slug}
@@ -118,19 +118,20 @@ export const NeighborhoodForm = ({ neighborhood, onClose, onSuccess }: Neighborh
             />
           </div>
 
-          <div>
-            <Label htmlFor="description">Description</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="description" className="text-sm">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               maxLength={1000}
+              className="min-h-[80px] sm:min-h-[100px]"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="center_lat">Center Latitude</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="center_lat" className="text-sm">Center Latitude</Label>
               <Input
                 id="center_lat"
                 type="number"
@@ -141,8 +142,8 @@ export const NeighborhoodForm = ({ neighborhood, onClose, onSuccess }: Neighborh
               />
             </div>
 
-            <div>
-              <Label htmlFor="center_lng">Center Longitude</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="center_lng" className="text-sm">Center Longitude</Label>
               <Input
                 id="center_lng"
                 type="number"
@@ -154,20 +155,20 @@ export const NeighborhoodForm = ({ neighborhood, onClose, onSuccess }: Neighborh
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 py-1">
             <Switch
               id="active"
               checked={formData.active}
               onCheckedChange={(checked) => setFormData({ ...formData, active: checked })}
             />
-            <Label htmlFor="active">Active</Label>
+            <Label htmlFor="active" className="text-sm">Active</Label>
           </div>
 
-          <div className="flex gap-2 pt-4">
-            <Button type="submit" disabled={saveMutation.isPending}>
+          <div className="flex flex-col sm:flex-row gap-2 pt-3 sm:pt-4">
+            <Button type="submit" disabled={saveMutation.isPending} className="w-full sm:w-auto">
               {saveMutation.isPending ? 'Saving...' : 'Save'}
             </Button>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">
               Cancel
             </Button>
           </div>
