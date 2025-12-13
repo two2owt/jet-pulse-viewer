@@ -1611,7 +1611,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               className="bg-card/95 backdrop-blur-xl border border-border text-[9px] sm:text-[10px] md:text-xs shadow-lg h-7 sm:h-8 md:h-9 px-2 sm:px-2.5 md:px-3 transition-all duration-200"
             >
               <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-0.5 sm:mr-1" />
-              <span>Map Style</span>
+              <span>Style</span>
+              <span className="ml-1 px-1 py-0.5 bg-primary/20 text-primary rounded text-[7px] sm:text-[8px] font-medium uppercase">
+                {mapStyle}
+              </span>
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-1.5 sm:mt-2 overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
