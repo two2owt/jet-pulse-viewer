@@ -202,7 +202,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           touchZoomRotate: true,
           touchPitch: true, // Allow pitch control with touch
           dragRotate: !isMobile, // Disable rotation on mobile to avoid conflicts
-          dragPan: true, // Explicitly enable single-finger panning
+          dragPan: {
+            linearity: 0.3, // Smooth deceleration curve
+            easing: (t: number) => 1 - Math.pow(1 - t, 3), // Ease-out cubic for natural feel
+            maxSpeed: 1400, // Max pan speed in pixels/second
+            deceleration: 2500, // Deceleration rate for momentum
+          },
           projection: 'globe' as any,
           // Performance optimizations
           fadeDuration: 0, // No fade for fastest initial render
