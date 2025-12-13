@@ -20,9 +20,10 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-[9999]"
+      className="fixed left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-[9999]"
       style={{
-        paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.5rem)',
+        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 3.5rem)',
+        paddingBottom: '0.5rem',
         paddingLeft: 'env(safe-area-inset-left, 0px)',
         paddingRight: 'env(safe-area-inset-right, 0px)',
       }}
