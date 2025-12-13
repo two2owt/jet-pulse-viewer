@@ -1718,6 +1718,69 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             {showMovementPaths ? "Paths On" : "Paths Off"}
           </Button>
 
+          {/* Mobile Map Style Control */}
+          <Collapsible defaultOpen={false}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full h-11 text-xs font-semibold rounded-xl shadow-lg bg-card/95 backdrop-blur-xl text-foreground border-border transition-all duration-200 active:scale-95 touch-manipulation"
+              >
+                <Layers className="w-4 h-4 mr-2" />
+                <span>Style</span>
+                <span className="ml-2 px-1.5 py-0.5 bg-primary/20 text-primary rounded text-[9px] font-medium uppercase">
+                  {mapStyle}
+                </span>
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2 overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+              <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2">
+                <div className="grid grid-cols-2 gap-1.5">
+                  <Button
+                    onClick={() => { triggerHaptic('light'); setMapStyle('dark'); }}
+                    variant={mapStyle === 'dark' ? "default" : "outline"}
+                    size="sm"
+                    className="h-8 text-[10px]"
+                  >
+                    Dark
+                  </Button>
+                  <Button
+                    onClick={() => { triggerHaptic('light'); setMapStyle('light'); }}
+                    variant={mapStyle === 'light' ? "default" : "outline"}
+                    size="sm"
+                    className="h-8 text-[10px]"
+                  >
+                    Light
+                  </Button>
+                  <Button
+                    onClick={() => { triggerHaptic('light'); setMapStyle('satellite'); }}
+                    variant={mapStyle === 'satellite' ? "default" : "outline"}
+                    size="sm"
+                    className="h-8 text-[10px]"
+                  >
+                    Satellite
+                  </Button>
+                  <Button
+                    onClick={() => { triggerHaptic('light'); setMapStyle('streets'); }}
+                    variant={mapStyle === 'streets' ? "default" : "outline"}
+                    size="sm"
+                    className="h-8 text-[10px]"
+                  >
+                    Streets
+                  </Button>
+                </div>
+                <Button
+                  onClick={() => { triggerHaptic('medium'); setShow3DTerrain(!show3DTerrain); }}
+                  variant={show3DTerrain ? "default" : "outline"}
+                  size="sm"
+                  className="w-full h-8 text-[10px]"
+                >
+                  {show3DTerrain ? "Disable" : "Enable"} 3D
+                </Button>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
           {/* Mobile Filter Controls - Show when Heat layer is active */}
           <div 
             className={`overflow-hidden transition-all duration-300 ease-out ${
