@@ -1603,7 +1603,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           maxWidth: isMobile ? 'calc(50vw - 1rem)' : 'var(--map-control-max-width)',
         }}
       >
-        <Collapsible defaultOpen={true}>
+        <Collapsible defaultOpen={false}>
           <CollapsibleTrigger asChild>
             <Button
               variant="secondary"
