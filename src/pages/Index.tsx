@@ -512,22 +512,6 @@ const Index = () => {
         )}
       </main>
 
-      {/* Bottom Navigation */}
-      <BottomNav 
-        activeTab={activeTab} 
-        onTabChange={(tab) => {
-          // For map, explore, and notifications, stay on Index page but update tab
-          if (tab === "map" || tab === "explore" || tab === "notifications") {
-            setActiveTab(tab);
-            // Don't navigate, just update the tab state
-          } else {
-            // For favorites and social, the useEffect will handle navigation
-            setActiveTab(tab);
-          }
-        }}
-        notificationCount={notifications.filter(n => !n.read).length}
-      />
-
       {/* Directions Dialog */}
       <Dialog open={showDirectionsDialog} onOpenChange={setShowDirectionsDialog}>
         <DialogContent className="sm:max-w-md mx-4 sm:mx-0">
@@ -595,6 +579,19 @@ const Index = () => {
         }}
       />
     </div>
+
+    {/* Bottom Navigation - Outside overflow-hidden container for proper mobile visibility */}
+    <BottomNav 
+      activeTab={activeTab} 
+      onTabChange={(tab) => {
+        if (tab === "map" || tab === "explore" || tab === "notifications") {
+          setActiveTab(tab);
+        } else {
+          setActiveTab(tab);
+        }
+      }}
+      notificationCount={notifications.filter(n => !n.read).length}
+    />
     </>
   );
 };
