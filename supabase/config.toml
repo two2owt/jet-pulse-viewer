@@ -4,7 +4,7 @@ project_id = "zbrscuoqmkdbmdimdnqu"
 verify_jwt = true
 
 [functions.get-location-density]
-verify_jwt = false
+verify_jwt = true
 
 [functions.get-google-places-data]
 verify_jwt = true
@@ -25,7 +25,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.get-movement-paths]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-push-notification]
 verify_jwt = true
