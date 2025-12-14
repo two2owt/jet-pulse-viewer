@@ -42,6 +42,7 @@ import { JetCardSkeleton } from "@/components/skeletons/JetCardSkeleton";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { MobileDebugOverlay } from "@/components/MobileDebugOverlay";
 
 // Top 10 most popular venues in Charlotte, NC metropolitan area with real addresses
 const charlotteVenues: Venue[] = [
@@ -592,6 +593,9 @@ const Index = () => {
       }}
       notificationCount={notifications.filter(n => !n.read).length}
     />
+    
+    {/* Mobile Debug Overlay - only visible in development */}
+    <MobileDebugOverlay />
     </>
   );
 };
