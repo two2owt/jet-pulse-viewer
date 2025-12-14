@@ -6,6 +6,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { analytics } from "@/lib/analytics";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PageLoadingWrapper, getPageTypeFromRoute } from "@/components/PageLoadingWrapper";
 
@@ -58,6 +59,7 @@ const App = () => (
         <Sonner />
         <PageTracker />
         <PWAInstallPrompt />
+        <PWAUpdatePrompt />
         <Suspense fallback={<RouteAwareLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />

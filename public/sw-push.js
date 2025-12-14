@@ -137,3 +137,11 @@ self.addEventListener('install', function(event) {
   console.log('[SW] Service worker installed');
   self.skipWaiting();
 });
+
+// Listen for SKIP_WAITING message from app for controlled updates
+self.addEventListener('message', function(event) {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Skip waiting message received');
+    self.skipWaiting();
+  }
+});
