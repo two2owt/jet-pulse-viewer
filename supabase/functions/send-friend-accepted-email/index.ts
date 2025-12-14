@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
     `;
 
     const { error: emailError } = await resend.emails.send({
-      from: 'JET <onboarding@resend.dev>',
+      from: 'JET <noreply@jet-around.com>',
       to: [recipientEmail],
       subject: `${escapedName} accepted your friend request on JET!`,
       html,
