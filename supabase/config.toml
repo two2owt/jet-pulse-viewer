@@ -75,3 +75,7 @@ verify_jwt = false
 
 [functions.process-welcome-series]
 verify_jwt = false
+
+# Merchant push notifications - uses webhook secret verification
+[functions.merchant-send-notification]
+verify_jwt = false
