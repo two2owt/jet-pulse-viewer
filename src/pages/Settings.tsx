@@ -13,6 +13,7 @@ import { z } from "zod";
 import { useTheme } from "next-themes";
 import { ReportIssueDialog } from "@/components/ReportIssueDialog";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useWebPushNotifications } from "@/hooks/useWebPushNotifications";
 import { Footer } from "@/components/Footer";
 import PreferencesEditor from "@/components/settings/PreferencesEditor";
 import PrivacySettings from "@/components/settings/PrivacySettings";
@@ -39,6 +40,14 @@ const Settings = () => {
   const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
   const { isRegistered: isPushRegistered, isNative, initializePushNotifications, unregister: unregisterPush } = usePushNotifications();
+  const { 
+    isSupported: isWebPushSupported, 
+    isSubscribed: isWebPushSubscribed, 
+    isLoading: isWebPushLoading, 
+    permission: webPushPermission,
+    subscribe: subscribeWebPush, 
+    unsubscribe: unsubscribeWebPush 
+  } = useWebPushNotifications();
   const { isAdmin } = useIsAdmin();
   const showSubscriptionSection = isMonetizationEnabled() || isAdmin;
 
@@ -373,13 +382,14 @@ const Settings = () => {
           <Separator />
 
           <div className="space-y-3 sm:space-y-4">
+            {/* In-App Notifications */}
             <div className="flex items-center justify-between gap-3">
               <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
                 <label htmlFor="notifications" className="text-xs sm:text-sm font-medium text-foreground block">
-                  App Notifications
+                  In-App Notifications
                 </label>
                 <p className="text-[10px] sm:text-xs text-muted-foreground">
-                  Show in-app notifications about deals and events
+                  Show notifications about deals and events within the app
                 </p>
               </div>
               <Switch
@@ -392,24 +402,96 @@ const Settings = () => {
 
             <Separator className="my-2" />
 
-            {/* Only show native push notifications on iOS/Android */}
-            {isNative && (
-              <div className="flex items-center justify-between gap-3">
-                <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
-                  <label htmlFor="push-notifications" className="text-xs sm:text-sm font-medium text-foreground flex items-center gap-1.5">
-                    <Smartphone className="w-3.5 h-3.5" />
-                    Native Push Notifications
-                  </label>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">
-                    Receive notifications even when the app is closed
-                  </p>
+            {/* Web Push Notifications - Show on web browsers */}
+            {isWebPushSupported && !isNative && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
+                    <label htmlFor="web-push-notifications" className="text-xs sm:text-sm font-medium text-foreground flex items-center gap-1.5">
+                      <Bell className="w-3.5 h-3.5" />
+                      Push Notifications
+                    </label>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                      Receive deal alerts even when you're not using the app
+                    </p>
+                  </div>
+                  <Switch
+                    id="web-push-notifications"
+                    checked={isWebPushSubscribed}
+                    onCheckedChange={async (enabled) => {
+                      if (enabled) {
+                        await subscribeWebPush();
+                      } else {
+                        await unsubscribeWebPush();
+                      }
+                    }}
+                    disabled={isWebPushLoading}
+                    className="flex-shrink-0"
+                  />
                 </div>
-                <Switch
-                  id="push-notifications"
-                  checked={pushNotificationsEnabled}
-                  onCheckedChange={handlePushNotificationToggle}
-                  className="flex-shrink-0"
-                />
+
+                {/* Permission status indicator */}
+                {webPushPermission === 'denied' && (
+                  <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                    <p className="text-[10px] sm:text-xs text-destructive">
+                      Push notifications are blocked. Please enable them in your browser settings to receive deal alerts.
+                    </p>
+                  </div>
+                )}
+
+                {isWebPushSubscribed && (
+                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                      <p className="text-[10px] sm:text-xs text-primary font-medium">
+                        Push notifications active - You'll receive deal alerts in real-time
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Native Push Notifications - Only on iOS/Android */}
+            {isNative && (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
+                    <label htmlFor="push-notifications" className="text-xs sm:text-sm font-medium text-foreground flex items-center gap-1.5">
+                      <Smartphone className="w-3.5 h-3.5" />
+                      Native Push Notifications
+                    </label>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                      Receive notifications even when the app is closed
+                    </p>
+                  </div>
+                  <Switch
+                    id="push-notifications"
+                    checked={pushNotificationsEnabled}
+                    onCheckedChange={handlePushNotificationToggle}
+                    className="flex-shrink-0"
+                  />
+                </div>
+
+                {pushNotificationsEnabled && (
+                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                      <p className="text-[10px] sm:text-xs text-primary font-medium">
+                        Native push notifications active
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Browser not supported message */}
+            {!isWebPushSupported && !isNative && (
+              <div className="p-3 rounded-lg bg-muted border border-border">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
+                  Push notifications are not supported in this browser. Try using Chrome, Firefox, or Edge for the best experience.
+                </p>
               </div>
             )}
           </div>
