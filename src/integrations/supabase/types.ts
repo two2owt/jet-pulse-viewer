@@ -222,6 +222,9 @@ export type Database = {
           tiktok_url: string | null
           twitter_url: string | null
           updated_at: string
+          welcome_email_1_sent: boolean | null
+          welcome_email_2_sent: boolean | null
+          welcome_email_3_sent: boolean | null
         }
         Insert: {
           avatar_url?: string | null
@@ -246,6 +249,9 @@ export type Database = {
           tiktok_url?: string | null
           twitter_url?: string | null
           updated_at?: string
+          welcome_email_1_sent?: boolean | null
+          welcome_email_2_sent?: boolean | null
+          welcome_email_3_sent?: boolean | null
         }
         Update: {
           avatar_url?: string | null
@@ -270,6 +276,9 @@ export type Database = {
           tiktok_url?: string | null
           twitter_url?: string | null
           updated_at?: string
+          welcome_email_1_sent?: boolean | null
+          welcome_email_2_sent?: boolean | null
+          welcome_email_3_sent?: boolean | null
         }
         Relationships: []
       }

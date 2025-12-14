@@ -62,3 +62,16 @@ verify_jwt = true
 # JET Bridge webhook - uses custom secret verification
 [functions.sync-merchant-deals]
 verify_jwt = false
+
+# Welcome email series
+[functions.send-welcome-email]
+verify_jwt = false
+
+[functions.send-feature-highlights-email]
+verify_jwt = false
+
+[functions.send-engagement-email]
+verify_jwt = false
+
+[functions.process-welcome-series]
+verify_jwt = false
