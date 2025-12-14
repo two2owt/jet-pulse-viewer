@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import webpush from "https://esm.sh/web-push@3.6.7";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,15 +7,12 @@ const corsHeaders = {
 };
 
 interface MerchantNotificationPayload {
-  // For manual broadcast
   title: string;
   body: string;
   deal_id?: string;
   venue_id?: string;
   venue_name?: string;
   neighborhood_id?: string;
-  
-  // For auto-trigger on deal creation
   action?: 'deal_created' | 'deal_updated' | 'broadcast';
   deal_data?: {
     id: string;
@@ -36,48 +32,97 @@ interface PushSubscription {
   auth_key: string;
 }
 
-async function sendVapidPush(
+// Base64 URL encoding helper
+function base64UrlEncode(data: Uint8Array): string {
+  const base64 = btoa(String.fromCharCode(...data));
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+// Create JWT for VAPID
+async function createVapidJwt(audience: string, subject: string, privateKeyBase64: string): Promise<string> {
+  const header = { typ: "JWT", alg: "ES256" };
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    aud: audience,
+    exp: now + 12 * 60 * 60, // 12 hours
+    sub: subject,
+  };
+
+  const headerB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(header)));
+  const payloadB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(payload)));
+  const unsignedToken = `${headerB64}.${payloadB64}`;
+
+  // Decode private key
+  const privateKeyRaw = Uint8Array.from(atob(privateKeyBase64.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+  
+  // Import the private key
+  const privateKey = await crypto.subtle.importKey(
+    "raw",
+    privateKeyRaw,
+    { name: "ECDSA", namedCurve: "P-256" },
+    false,
+    ["sign"]
+  );
+
+  // Sign the token
+  const signature = await crypto.subtle.sign(
+    { name: "ECDSA", hash: "SHA-256" },
+    privateKey,
+    new TextEncoder().encode(unsignedToken)
+  );
+
+  const signatureB64 = base64UrlEncode(new Uint8Array(signature));
+  return `${unsignedToken}.${signatureB64}`;
+}
+
+async function sendWebPush(
   subscription: PushSubscription,
   payload: { title: string; body: string; data: Record<string, unknown> },
   vapidPublicKey: string,
   vapidPrivateKey: string
 ): Promise<{ success: boolean; invalidSubscription: boolean }> {
-  const pushSubscription = {
-    endpoint: subscription.endpoint,
-    keys: {
-      p256dh: subscription.p256dh_key,
-      auth: subscription.auth_key,
-    },
-  };
-
-  const notificationPayload = JSON.stringify({
-    title: payload.title,
-    body: payload.body,
-    icon: "/pwa-192x192.png",
-    badge: "/pwa-192x192.png",
-    tag: `jet-merchant-${Date.now()}`,
-    data: payload.data,
-  });
-
   try {
-    webpush.setVapidDetails(
-      "mailto:support@jet-around.com",
-      vapidPublicKey,
-      vapidPrivateKey
-    );
+    const endpointUrl = new URL(subscription.endpoint);
+    const audience = `${endpointUrl.protocol}//${endpointUrl.host}`;
+    
+    // Create VAPID JWT
+    const jwt = await createVapidJwt(audience, "mailto:support@jet-around.com", vapidPrivateKey);
+    
+    const notificationPayload = JSON.stringify({
+      title: payload.title,
+      body: payload.body,
+      icon: "/pwa-192x192.png",
+      badge: "/pwa-192x192.png",
+      tag: `jet-merchant-${Date.now()}`,
+      data: payload.data,
+    });
 
-    await webpush.sendNotification(pushSubscription, notificationPayload);
-    console.log(`Push sent to user: ${subscription.user_id}`);
-    return { success: true, invalidSubscription: false };
-  } catch (error: unknown) {
-    const err = error as { statusCode?: number; message?: string };
-    console.error(`Push error for ${subscription.user_id}:`, err.message || err);
+    const response = await fetch(subscription.endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/octet-stream",
+        "Content-Encoding": "aes128gcm",
+        "TTL": "86400",
+        "Authorization": `vapid t=${jwt}, k=${vapidPublicKey}`,
+      },
+      body: notificationPayload,
+    });
+
+    if (response.ok || response.status === 201) {
+      console.log(`Push sent to user: ${subscription.user_id}`);
+      return { success: true, invalidSubscription: false };
+    }
+
+    console.error(`Push failed for ${subscription.user_id}: ${response.status} ${response.statusText}`);
     
     // Subscription is invalid/expired
-    if (err.statusCode === 404 || err.statusCode === 410) {
+    if (response.status === 404 || response.status === 410) {
       return { success: false, invalidSubscription: true };
     }
     
+    return { success: false, invalidSubscription: false };
+  } catch (error) {
+    console.error(`Push error for ${subscription.user_id}:`, error);
     return { success: false, invalidSubscription: false };
   }
 }
@@ -196,7 +241,7 @@ serve(async (req) => {
 
     // Send notifications
     for (const sub of subscriptions) {
-      const result = await sendVapidPush(
+      const result = await sendWebPush(
         sub,
         {
           title: notificationTitle,
