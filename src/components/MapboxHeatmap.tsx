@@ -46,6 +46,7 @@ interface MapboxHeatmapProps {
   mapboxToken: string;
   selectedCity: City;
   onCityChange: (city: City) => void;
+  onDetectedCityChange?: (city: City | null, isUsingCurrentLocation: boolean) => void;
   isLoadingVenues?: boolean;
   selectedVenue?: Venue | null;
 }
@@ -56,7 +57,7 @@ const getActivityColor = (activity: number) => {
   return "hsl(210, 100%, 55%)"; // cool blue - matches --cool
 };
 
-export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, isLoadingVenues = false, selectedVenue }: MapboxHeatmapProps) => {
+export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, onDetectedCityChange, isLoadingVenues = false, selectedVenue }: MapboxHeatmapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -108,7 +109,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   // Time-lapse hook
   const timelapse = useHeatmapTimelapse(dayFilter);
 
-  // Handle map resize on viewport changes - optimized for all mobile devices
+  // Notify parent when detected city or location mode changes
+  useEffect(() => {
+    onDetectedCityChange?.(detectedCity, isUsingCurrentLocation);
+  }, [detectedCity, isUsingCurrentLocation, onDetectedCityChange]);
   useEffect(() => {
     let resizeTimeout: ReturnType<typeof setTimeout>;
     

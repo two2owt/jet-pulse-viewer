@@ -69,6 +69,7 @@ const Index = () => {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [isVenueLoading, setIsVenueLoading] = useState(false);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
+  const [displayedCityName, setDisplayedCityName] = useState<string>("Locating...");
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const [deepLinkedDeal, setDeepLinkedDeal] = useState<any>(null);
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
@@ -215,10 +216,19 @@ const Index = () => {
 
   const handleCityChange = (city: City) => {
     setSelectedCity(city);
+    setDisplayedCityName(`${city.name}, ${city.state}`);
     toast.success(`Switched to ${city.name}, ${city.state}`, {
       description: "Finding deals in your area"
     });
   };
+
+  const handleDetectedCityChange = useCallback((city: City | null, isUsingCurrentLocation: boolean) => {
+    if (isUsingCurrentLocation && city) {
+      setDisplayedCityName(`${city.name}, ${city.state}`);
+    } else if (!isUsingCurrentLocation) {
+      setDisplayedCityName(`${selectedCity.name}, ${selectedCity.state}`);
+    }
+  }, [selectedCity]);
 
   const handleVenueSelect = async (venue: Venue | string) => {
     // Show loading state immediately
@@ -377,7 +387,7 @@ const Index = () => {
             refreshDeals();
             refreshVenues();
           }}
-          cityName={`${selectedCity.name}, ${selectedCity.state}`}
+          cityName={displayedCityName}
         />
 
       {/* Main Content */}
@@ -424,6 +434,7 @@ const Index = () => {
                   mapboxToken={mapboxToken}
                   selectedCity={selectedCity}
                   onCityChange={handleCityChange}
+                  onDetectedCityChange={handleDetectedCityChange}
                   isLoadingVenues={venuesLoading}
                   selectedVenue={selectedVenue}
                 />
