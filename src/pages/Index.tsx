@@ -371,9 +371,9 @@ const Index = () => {
       {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
       
       <div 
-        className="bg-background min-h-[100dvh]"
+        className="bg-background min-h-[100dvh] flex flex-col"
         style={{
-          paddingBottom: activeTab === 'map' ? '0' : 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
         }}
       >
         {/* Header */}
@@ -391,12 +391,11 @@ const Index = () => {
         />
 
       {/* Main Content */}
-      <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 py-3 sm:py-4'}`}>
+      <main className={`flex-1 max-w-7xl mx-auto w-full ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 py-3 sm:py-4'}`}>
         {activeTab === "map" && (
           <div 
-            className="relative w-full"
+            className="relative w-full h-full"
             style={{ 
-              height: 'calc(100dvh - 7rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
               minHeight: '400px',
             }}
           >
