@@ -373,7 +373,7 @@ const Index = () => {
             <div className="h-full w-full animate-fade-in">
               {mapboxLoading && (
                 <div className="h-full w-full">
-                  <MapSkeleton />
+                  <MapSkeleton phase="token" />
                 </div>
               )}
               {mapboxError && (
@@ -387,7 +387,7 @@ const Index = () => {
               {!mapboxLoading && !mapboxError && mapboxToken && (
               <Suspense fallback={
                 <div className="h-full w-full">
-                  <MapSkeleton />
+                  <MapSkeleton phase="loading" />
                 </div>
               }>
                 <MapboxHeatmap 

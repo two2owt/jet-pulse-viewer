@@ -1483,10 +1483,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         minHeight: isMobile ? '100dvh' : '500px',
       }}
     >
-      {/* Map Loading Skeleton */}
+      {/* Map Loading Skeleton with phase indicator */}
       {mapInitializing && (
         <div className="absolute inset-0 z-50">
-          <MapSkeleton />
+          <MapSkeleton phase="initializing" />
         </div>
       )}
       
