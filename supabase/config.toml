@@ -3,8 +3,9 @@ project_id = "zbrscuoqmkdbmdimdnqu"
 [functions.get-mapbox-token]
 verify_jwt = true
 
+# Public map visualization endpoints - aggregated, anonymized data
 [functions.get-location-density]
-verify_jwt = true
+verify_jwt = false
 
 [functions.get-google-places-data]
 verify_jwt = true
@@ -25,7 +26,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.get-movement-paths]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-push-notification]
 verify_jwt = true
