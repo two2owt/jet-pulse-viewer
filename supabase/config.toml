@@ -4,7 +4,7 @@ project_id = "zbrscuoqmkdbmdimdnqu"
 verify_jwt = true
 
 [functions.get-location-density]
-verify_jwt = true
+verify_jwt = false
 
 [functions.get-google-places-data]
 verify_jwt = true
@@ -25,7 +25,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.get-movement-paths]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-push-notification]
 verify_jwt = true
@@ -61,21 +61,4 @@ verify_jwt = true
 
 # JET Bridge webhook - uses custom secret verification
 [functions.sync-merchant-deals]
-verify_jwt = false
-
-# Welcome email series
-[functions.send-welcome-email]
-verify_jwt = false
-
-[functions.send-feature-highlights-email]
-verify_jwt = false
-
-[functions.send-engagement-email]
-verify_jwt = false
-
-[functions.process-welcome-series]
-verify_jwt = false
-
-# Merchant push notifications - uses webhook secret verification
-[functions.merchant-send-notification]
 verify_jwt = false

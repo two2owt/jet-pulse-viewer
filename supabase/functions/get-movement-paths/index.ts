@@ -120,33 +120,6 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Verify authentication
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Verify the user's JWT token
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    { global: { headers: { Authorization: authHeader } } }
-  );
-
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-  if (authError || !user) {
-    console.error('Auth error:', authError?.message);
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  console.log(`Authenticated user ${user.id} requesting movement paths data`);
-
   // Check rate limit
   const clientIp = getRateLimitKey(req);
   const userAgent = req.headers.get('user-agent');
@@ -166,8 +139,7 @@ Deno.serve(async (req) => {
     // Log security event
     await logSecurityEvent('rate_limit_exceeded', clientIp, userAgent, rateLimit.count, {
       violations_count: rateLimit.violations,
-      reset_in_seconds: Math.ceil(rateLimit.resetIn / 1000),
-      user_id: user.id
+      reset_in_seconds: Math.ceil(rateLimit.resetIn / 1000)
     });
     
     return new Response(
@@ -184,8 +156,7 @@ Deno.serve(async (req) => {
     await logSecurityEvent('suspicious_pattern', clientIp, userAgent, rateLimit.count, {
       pattern: 'high_request_frequency',
       threshold_percentage: Math.round((rateLimit.count / RATE_LIMIT_MAX_REQUESTS) * 100),
-      remaining_requests: rateLimit.remaining,
-      user_id: user.id
+      remaining_requests: rateLimit.remaining
     });
   }
   
@@ -193,14 +164,13 @@ Deno.serve(async (req) => {
   if (rateLimit.violations >= 3 && rateLimit.count === 1) {
     await logSecurityEvent('repeated_violator', clientIp, userAgent, rateLimit.count, {
       total_violations: rateLimit.violations,
-      pattern: 'persistent_abuse',
-      user_id: user.id
+      pattern: 'persistent_abuse'
     });
   }
 
   try {
     // Use service role client to aggregate ALL users' location data
-    // This is now safe as the function requires authentication
+    // This is safe as the function only returns aggregated path data, not individual locations
     const serviceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -365,7 +335,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error in get-movement-paths function:', error);
     return new Response(
-      JSON.stringify({ error: 'An error occurred processing your request' }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       {
         headers: { ...rateLimitHeaders, 'Content-Type': 'application/json' },
         status: 500,

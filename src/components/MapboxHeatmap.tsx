@@ -46,7 +46,6 @@ interface MapboxHeatmapProps {
   mapboxToken: string;
   selectedCity: City;
   onCityChange: (city: City) => void;
-  onDetectedCityChange?: (city: City | null, isUsingCurrentLocation: boolean) => void;
   isLoadingVenues?: boolean;
   selectedVenue?: Venue | null;
 }
@@ -57,7 +56,7 @@ const getActivityColor = (activity: number) => {
   return "hsl(210, 100%, 55%)"; // cool blue - matches --cool
 };
 
-export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, onDetectedCityChange, isLoadingVenues = false, selectedVenue }: MapboxHeatmapProps) => {
+export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, isLoadingVenues = false, selectedVenue }: MapboxHeatmapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -86,9 +85,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [pathTimeFilter, setPathTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   const [minPathFrequency, setMinPathFrequency] = useState(2);
   
-  // Controls visibility state - collapsed by default
-  const [controlsCollapsed, setControlsCollapsed] = useState(true);
-  const [legendCollapsed, setLegendCollapsed] = useState(true);
+  // Controls visibility state
+  const [controlsCollapsed, setControlsCollapsed] = useState(false);
+  const [legendCollapsed, setLegendCollapsed] = useState(false); // Legend expanded by default on mobile
   
   // User location state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -109,10 +108,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   // Time-lapse hook
   const timelapse = useHeatmapTimelapse(dayFilter);
 
-  // Notify parent when detected city or location mode changes
-  useEffect(() => {
-    onDetectedCityChange?.(detectedCity, isUsingCurrentLocation);
-  }, [detectedCity, isUsingCurrentLocation, onDetectedCityChange]);
+  // Handle map resize on viewport changes - optimized for all mobile devices
   useEffect(() => {
     let resizeTimeout: ReturnType<typeof setTimeout>;
     
@@ -202,16 +198,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           bearing: 0,
           antialias: false, // Disable antialiasing for faster initial render
           attributionControl: false,
-          cooperativeGestures: false, // Allow single-finger panning on mobile
+          cooperativeGestures: isMobile,
           touchZoomRotate: true,
-          touchPitch: true, // Allow pitch control with touch
-          dragRotate: !isMobile, // Disable rotation on mobile to avoid conflicts
-          dragPan: {
-            linearity: 0.3, // Smooth deceleration curve
-            easing: (t: number) => 1 - Math.pow(1 - t, 3), // Ease-out cubic for natural feel
-            maxSpeed: 1400, // Max pan speed in pixels/second
-            deceleration: 2500, // Deceleration rate for momentum
-          },
+          touchPitch: !isMobile,
+          dragRotate: !isMobile,
           projection: 'globe' as any,
           // Performance optimizations
           fadeDuration: 0, // No fade for fastest initial render
@@ -1328,60 +1318,28 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       // Attach popup to marker
       marker.setPopup(popup);
 
-      // Handle click on the marker element - loading animation + open venue card
+      // Handle click on the marker element - bounce animation + open venue card
       el.addEventListener("click", (e) => {
         e.stopPropagation();
         
         // Haptic feedback for venue selection
         triggerHaptic('medium');
         
-        // Add loading state to marker
-        el.classList.add('venue-marker-loading');
-        pinEl.style.animation = "venue-marker-pulse-loading 0.8s ease-in-out infinite";
-        
-        // Create loading ring overlay
-        const loadingRing = document.createElement('div');
-        loadingRing.className = 'venue-marker-loading-ring';
-        loadingRing.style.cssText = `
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: ${markerSize * 1.4}px;
-          height: ${markerSize * 1.4}px;
-          margin-top: -${markerSize * 0.7}px;
-          margin-left: -${markerSize * 0.7}px;
-          border: 2px solid transparent;
-          border-top-color: ${color};
-          border-right-color: ${color};
-          border-radius: 50%;
-          animation: venue-loading-spin 0.8s linear infinite;
-          pointer-events: none;
-          z-index: 10;
-        `;
-        el.appendChild(loadingRing);
+        // Bounce animation
+        pinEl.style.animation = "bounce 0.6s ease-out";
+        setTimeout(() => {
+          // Restore appropriate pulsating animation after bounce (only for high activity)
+          if (venue.activity >= 80) {
+            pinEl.style.animation = "venue-pulse-intense 1.5s ease-in-out infinite";
+          } else if (venue.activity >= 60) {
+            pinEl.style.animation = "venue-pulse-moderate 2s ease-in-out infinite";
+          } else {
+            pinEl.style.animation = "";
+          }
+        }, 600);
         
         // Open venue card
         onVenueSelect(venue);
-        
-        // Remove loading state after a brief delay (simulating data load)
-        setTimeout(() => {
-          el.classList.remove('venue-marker-loading');
-          loadingRing.remove();
-          
-          // Bounce animation after loading
-          pinEl.style.animation = "bounce 0.5s ease-out";
-          
-          setTimeout(() => {
-            // Restore appropriate pulsating animation after bounce
-            if (venue.activity >= 80) {
-              pinEl.style.animation = "venue-pulse-intense 1.5s ease-in-out infinite";
-            } else if (venue.activity >= 60) {
-              pinEl.style.animation = "venue-pulse-moderate 2s ease-in-out infinite";
-            } else {
-              pinEl.style.animation = "";
-            }
-          }, 500);
-        }, 400);
         
         // Show popup
         popup.addTo(mapInstance);
@@ -1607,7 +1565,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           maxWidth: isMobile ? 'calc(50vw - 1rem)' : 'var(--map-control-max-width)',
         }}
       >
-        <Collapsible defaultOpen={false}>
+        <Collapsible defaultOpen={true}>
           <CollapsibleTrigger asChild>
             <Button
               variant="secondary"
@@ -1615,10 +1573,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               className="bg-card/95 backdrop-blur-xl border border-border text-[9px] sm:text-[10px] md:text-xs shadow-lg h-7 sm:h-8 md:h-9 px-2 sm:px-2.5 md:px-3 transition-all duration-200"
             >
               <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-0.5 sm:mr-1" />
-              <span>Style</span>
-              <span className="ml-1 px-1 py-0.5 bg-primary/20 text-primary rounded text-[7px] sm:text-[8px] font-medium uppercase">
-                {mapStyle}
-              </span>
+              <span>Map Style</span>
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-1.5 sm:mt-2 overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">

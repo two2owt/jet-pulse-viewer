@@ -235,11 +235,11 @@ export const SyncStatusIndicator = ({
               <div className="absolute inset-x-2 sm:inset-x-3 top-1/2 -translate-y-1/2 h-0.5 bg-muted-foreground/10 rounded-full" />
               
               {/* Landed airplane (parked on right side) with destination */}
-              <div className="absolute right-1.5 sm:right-2 md:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 sm:gap-2">
+              <div className="absolute right-1.5 sm:right-2 md:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-1.5">
                 {/* Arrived at destination text */}
-                <div className="flex flex-col items-end mr-1 sm:mr-1.5 arrival-destination">
-                  <span className="text-[7px] sm:text-[8px] text-muted-foreground/70 leading-tight tracking-wide">Arrived at:</span>
-                  <span className="text-[9px] sm:text-[11px] md:text-xs font-semibold text-emerald-500 leading-tight truncate max-w-[60px] sm:max-w-[80px] md:max-w-[110px] arrival-city-name tracking-tight">{cityName}</span>
+                <div className="flex flex-col items-end mr-0.5 sm:mr-1 arrival-destination">
+                  <span className="text-[7px] sm:text-[8px] text-muted-foreground/70 leading-tight">Arrived at:</span>
+                  <span className="text-[8px] sm:text-[10px] md:text-[11px] font-semibold text-emerald-500 leading-tight truncate max-w-[50px] sm:max-w-[70px] md:max-w-[100px] arrival-city-name">{cityName}</span>
                 </div>
                 <div className="relative landed-airplane">
                   <Plane className="w-3 h-3 sm:w-4 sm:h-4 text-primary/80 fill-primary/80 rotate-[-10deg]" />

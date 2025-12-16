@@ -73,19 +73,19 @@ export const NeighborhoodManagement = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
-        <div className="space-y-0.5 sm:space-y-1">
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Neighborhoods</h2>
-          <p className="text-sm sm:text-base text-muted-foreground">Manage platform neighborhoods</p>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Neighborhoods</h2>
+          <p className="text-muted-foreground">Manage platform neighborhoods</p>
         </div>
-        <Button onClick={() => setIsCreating(true)} className="w-full sm:w-auto">
+        <Button onClick={() => setIsCreating(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Create Neighborhood
         </Button>
       </div>
 
-      <div className="grid gap-3 sm:gap-4">
+      <div className="grid gap-4">
         {neighborhoods?.map((neighborhood) => (
           <Card key={neighborhood.id}>
             <CardHeader>

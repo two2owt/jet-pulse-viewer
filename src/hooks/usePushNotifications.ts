@@ -11,14 +11,14 @@ export const usePushNotifications = () => {
   const [isNative, setIsNative] = useState(false);
 
   useEffect(() => {
-    // Check if running on native platform (iOS/Android)
+    // Only initialize on native platforms (iOS/Android)
     const nativePlatform = Capacitor.isNativePlatform();
     setIsNative(nativePlatform);
     
-    // Only auto-initialize on native platforms
-    // Web push is handled by useWebPushNotifications hook
     if (nativePlatform) {
       initializePushNotifications();
+    } else {
+      console.log('Push notifications only available on native iOS/Android apps');
     }
   }, []);
 

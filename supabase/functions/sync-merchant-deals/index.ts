@@ -145,37 +145,6 @@ serve(async (req) => {
         }
 
         console.log('Deal created successfully:', data.id);
-
-        // Auto-trigger push notification for new deal
-        try {
-          const notificationResponse = await fetch(
-            `${supabaseUrl}/functions/v1/merchant-send-notification`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-webhook-secret': expectedSecret || '',
-              },
-              body: JSON.stringify({
-                action: 'deal_created',
-                deal_data: {
-                  id: data.id,
-                  title: data.title,
-                  description: data.description,
-                  venue_name: data.venue_name,
-                  venue_id: data.venue_id,
-                  neighborhood_id: data.neighborhood_id,
-                },
-              }),
-            }
-          );
-          const notifResult = await notificationResponse.json();
-          console.log('Push notification result:', notifResult);
-        } catch (notifError) {
-          console.error('Failed to send push notification:', notifError);
-          // Don't fail the webhook if notification fails
-        }
-
         return new Response(
           JSON.stringify({ success: true, deal: data }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

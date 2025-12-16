@@ -38,7 +38,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { NotificationSkeleton } from "@/components/skeletons/NotificationSkeleton";
 import { MapSkeleton } from "@/components/skeletons/MapSkeleton";
-import { JetCardSkeleton } from "@/components/skeletons/JetCardSkeleton";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -67,9 +66,7 @@ const Index = () => {
   });
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("map");
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
-  const [isVenueLoading, setIsVenueLoading] = useState(false);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
-  const [displayedCityName, setDisplayedCityName] = useState<string>("Locating...");
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const [deepLinkedDeal, setDeepLinkedDeal] = useState<any>(null);
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
@@ -216,37 +213,17 @@ const Index = () => {
 
   const handleCityChange = (city: City) => {
     setSelectedCity(city);
-    setDisplayedCityName(`${city.name}, ${city.state}`);
     toast.success(`Switched to ${city.name}, ${city.state}`, {
       description: "Finding deals in your area"
     });
   };
 
-  const handleDetectedCityChange = useCallback((city: City | null, isUsingCurrentLocation: boolean) => {
-    if (isUsingCurrentLocation && city) {
-      setDisplayedCityName(`${city.name}, ${city.state}`);
-    } else if (!isUsingCurrentLocation) {
-      setDisplayedCityName(`${selectedCity.name}, ${selectedCity.state}`);
-    }
-  }, [selectedCity]);
-
   const handleVenueSelect = async (venue: Venue | string) => {
-    // Show loading state immediately
-    setIsVenueLoading(true);
-    
     // Handle both Venue object and venue name string
     if (typeof venue === 'string') {
       // Find the venue by name in real venues or mock venues
       const foundVenue = venues.find(v => v.name === venue);
       if (foundVenue) {
-        // Set venue immediately with basic info, then fetch additional data
-        const basicVenue = {
-          ...foundVenue,
-          imageUrl: getVenueImage(foundVenue.name) || foundVenue.imageUrl,
-        };
-        setSelectedVenue(basicVenue);
-        setActiveTab('map'); // Switch to map tab
-        
         // Fetch address from deals table
         const { data: dealData } = await supabase
           .from('deals')
@@ -255,13 +232,13 @@ const Index = () => {
           .limit(1)
           .maybeSingle();
         
-        // Update with complete data
-        setSelectedVenue({
-          ...basicVenue,
+        const venueWithImage = {
+          ...foundVenue,
+          imageUrl: getVenueImage(foundVenue.name) || foundVenue.imageUrl,
           address: dealData?.venue_address || undefined
-        });
-        setIsVenueLoading(false);
-        
+        };
+        setSelectedVenue(venueWithImage);
+        setActiveTab('map'); // Switch to map tab
         toast.success(`Selected ${foundVenue.name}`, {
           description: `${foundVenue.activity}% active in ${foundVenue.neighborhood}`
         });
@@ -273,17 +250,8 @@ const Index = () => {
             block: 'start' 
           });
         }, 100);
-      } else {
-        setIsVenueLoading(false);
       }
     } else {
-      // Set venue immediately with basic info
-      const basicVenue = {
-        ...venue,
-        imageUrl: getVenueImage(venue.name) || venue.imageUrl,
-      };
-      setSelectedVenue(basicVenue);
-      
       // Fetch address from deals table for venue object
       const { data: dealData } = await supabase
         .from('deals')
@@ -292,13 +260,13 @@ const Index = () => {
         .limit(1)
         .maybeSingle();
       
-      // Update with complete data
-      setSelectedVenue({
-        ...basicVenue,
+      // Original venue object handling
+      const venueWithImage = {
+        ...venue,
+        imageUrl: getVenueImage(venue.name) || venue.imageUrl,
         address: dealData?.venue_address || venue.address
-      });
-      setIsVenueLoading(false);
-      
+      };
+      setSelectedVenue(venueWithImage);
       toast.success(`Selected ${venue.name}`, {
         description: `${venue.activity}% active in ${venue.neighborhood}`
       });
@@ -371,9 +339,9 @@ const Index = () => {
       {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
       
       <div 
-        className="bg-background min-h-[100dvh] flex flex-col"
+        className={`bg-background ${activeTab === 'map' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}
         style={{
-          paddingBottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: activeTab === 'map' ? '0' : 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
         }}
       >
         {/* Header */}
@@ -387,15 +355,16 @@ const Index = () => {
             refreshDeals();
             refreshVenues();
           }}
-          cityName={displayedCityName}
+          cityName={`${selectedCity.name}, ${selectedCity.state}`}
         />
 
       {/* Main Content */}
-      <main className={`flex-1 max-w-7xl mx-auto w-full ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 py-3 sm:py-4'}`}>
+      <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 py-3 sm:py-4'}`}>
         {activeTab === "map" && (
           <div 
-            className="relative w-full h-full"
+            className="relative w-full"
             style={{ 
+              height: 'calc(100dvh - 7rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
               minHeight: '400px',
             }}
           >
@@ -433,7 +402,6 @@ const Index = () => {
                   mapboxToken={mapboxToken}
                   selectedCity={selectedCity}
                   onCityChange={handleCityChange}
-                  onDetectedCityChange={handleDetectedCityChange}
                   isLoadingVenues={venuesLoading}
                   selectedVenue={selectedVenue}
                 />
@@ -455,15 +423,11 @@ const Index = () => {
                     <div className="w-10 h-1 bg-muted-foreground/40 rounded-full" />
                   </div>
                 )}
-                {isVenueLoading ? (
-                  <JetCardSkeleton />
-                ) : (
-                  <JetCard 
-                    venue={selectedVenue} 
-                    onGetDirections={handleGetDirections}
-                    onClose={() => setSelectedVenue(null)}
-                  />
-                )}
+                <JetCard 
+                  venue={selectedVenue} 
+                  onGetDirections={handleGetDirections}
+                  onClose={() => setSelectedVenue(null)}
+                />
               </div>
             )}
 
@@ -521,6 +485,22 @@ const Index = () => {
           </div>
         )}
       </main>
+
+      {/* Bottom Navigation */}
+      <BottomNav 
+        activeTab={activeTab} 
+        onTabChange={(tab) => {
+          // For map, explore, and notifications, stay on Index page but update tab
+          if (tab === "map" || tab === "explore" || tab === "notifications") {
+            setActiveTab(tab);
+            // Don't navigate, just update the tab state
+          } else {
+            // For favorites and social, the useEffect will handle navigation
+            setActiveTab(tab);
+          }
+        }}
+        notificationCount={notifications.filter(n => !n.read).length}
+      />
 
       {/* Directions Dialog */}
       <Dialog open={showDirectionsDialog} onOpenChange={setShowDirectionsDialog}>
@@ -589,19 +569,6 @@ const Index = () => {
         }}
       />
     </div>
-
-    {/* Bottom Navigation - Outside overflow-hidden container for proper mobile visibility */}
-    <BottomNav 
-      activeTab={activeTab} 
-      onTabChange={(tab) => {
-        if (tab === "map" || tab === "explore" || tab === "notifications") {
-          setActiveTab(tab);
-        } else {
-          setActiveTab(tab);
-        }
-      }}
-      notificationCount={notifications.filter(n => !n.read).length}
-    />
     </>
   );
 };

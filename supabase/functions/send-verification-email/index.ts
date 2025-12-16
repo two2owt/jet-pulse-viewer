@@ -85,9 +85,10 @@ Deno.serve(async (req) => {
       })
     );
 
-    // Using verified custom domain for production email deliverability
+    // TODO: Replace 'noreply@yourdomain.com' with your verified Resend domain
+    // e.g., 'JET <noreply@jet-app.com>' after verifying your domain at resend.com/domains
     const { error } = await resend.emails.send({
-      from: 'JET <noreply@jet-around.com>',
+      from: 'JET <onboarding@resend.dev>', // Change to your verified domain
       to: [user.email],
       subject: 'Verify your JET account',
       html,

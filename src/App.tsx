@@ -3,12 +3,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, useLocation } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { analytics } from "@/lib/analytics";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { PageLoadingWrapper, getPageTypeFromRoute } from "@/components/PageLoadingWrapper";
 
 // Lazy load pages for better performance with webpack magic comments for prefetching
 const Index = lazy(() => import(/* webpackPrefetch: true */ "./pages/Index"));
@@ -24,22 +23,11 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const VerificationSuccess = lazy(() => import("./pages/VerificationSuccess"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Route-aware loading fallback component
-const RouteAwareLoader = () => {
-  const location = useLocation();
-  const pageType = getPageTypeFromRoute(location.pathname + location.search);
-  
-  // Auth and legal pages don't need header/bottom nav
-  const hideNav = ["/auth", "/privacy-policy", "/terms-of-service", "/onboarding", "/verification-success"].includes(location.pathname);
-  
-  return (
-    <PageLoadingWrapper 
-      pageType={pageType} 
-      showHeader={!hideNav}
-      showBottomNav={!hideNav}
-    />
-  );
-};
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-background">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 const PageTracker = () => {
   const location = useLocation();
@@ -59,8 +47,7 @@ const App = () => (
         <Sonner />
         <PageTracker />
         <PWAInstallPrompt />
-        <PWAUpdatePrompt />
-        <Suspense fallback={<RouteAwareLoader />}>
+        <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
