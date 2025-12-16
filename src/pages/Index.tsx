@@ -402,7 +402,14 @@ const Index = () => {
 
             {/* Mapbox Heatmap - Edge to edge */}
             <div className="h-full w-full animate-fade-in">
-              {mapboxLoading && <MapSkeleton />}
+              {mapboxLoading && (
+                <div className="h-full flex items-center justify-center bg-card">
+                  <div className="text-center space-y-3 sm:space-y-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-xs sm:text-sm text-muted-foreground">Loading map...</p>
+                  </div>
+                </div>
+              )}
               {mapboxError && (
                 <div className="h-full flex items-center justify-center bg-card animate-fade-in">
                   <div className="text-center space-y-1.5 sm:space-y-2">
@@ -412,7 +419,14 @@ const Index = () => {
                 </div>
               )}
               {!mapboxLoading && !mapboxError && mapboxToken && (
-              <Suspense fallback={<MapSkeleton />}>
+              <Suspense fallback={
+                <div className="h-full flex items-center justify-center bg-card">
+                  <div className="text-center space-y-3 sm:space-y-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-xs sm:text-sm text-muted-foreground">Loading map...</p>
+                  </div>
+                </div>
+              }>
                 <MapboxHeatmap 
                   onVenueSelect={handleVenueSelect} 
                   venues={venues} 
