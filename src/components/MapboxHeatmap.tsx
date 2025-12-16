@@ -56,6 +56,42 @@ const getActivityColor = (activity: number) => {
   return "hsl(210, 100%, 55%)"; // cool blue - matches --cool
 };
 
+// Platform detection for optimized settings
+const getPlatformSettings = (isMobile: boolean) => {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isAndroid = /Android/.test(navigator.userAgent);
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+  const isLowPowerMode = 'connection' in navigator && (navigator as any).connection?.saveData;
+  const hasReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
+  return {
+    // Reduce pitch on mobile for better performance
+    pitch: isMobile ? (isLowPowerMode ? 0 : 30) : 50,
+    // Disable antialiasing on mobile for performance
+    antialias: !isMobile && !isLowPowerMode,
+    // Fade duration - instant on mobile/low power
+    fadeDuration: (isMobile || isLowPowerMode || hasReducedMotion) ? 0 : 100,
+    // Tile cache - smaller on mobile
+    maxTileCacheSize: isMobile ? 30 : 100,
+    // Cooperative gestures on mobile (two-finger pan)
+    cooperativeGestures: isMobile,
+    // Touch controls
+    touchZoomRotate: true,
+    touchPitch: !isMobile,
+    dragRotate: !isMobile,
+    // Animation durations
+    flyToDuration: hasReducedMotion ? 0 : (isMobile ? 1000 : 1500),
+    // Marker animation
+    markerAnimation: !hasReducedMotion && !isLowPowerMode,
+    // Platform flags
+    isIOS,
+    isAndroid,
+    isPWA,
+    isLowPowerMode,
+    hasReducedMotion,
+  };
+};
+
 export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, isLoadingVenues = false, selectedVenue }: MapboxHeatmapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -68,6 +104,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const flowAnimationRef = useRef<number | null>(null);
   const isMobile = useIsMobile();
   const initStartTime = useRef<number>(0);
+  const platformSettings = useRef(getPlatformSettings(isMobile));
   
   // Density heatmap state
   const [showDensityLayer, setShowDensityLayer] = useState(false);
@@ -188,26 +225,30 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         mapboxgl.accessToken = mapboxToken;
         console.log('MapboxHeatmap: Initializing map for', selectedCity.name);
 
-        // Initialize map centered on selected city with performance optimizations
+        const settings = platformSettings.current;
+        
+        // Initialize map centered on selected city with platform-specific optimizations
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: `mapbox://styles/mapbox/${mapStyle}-v11`,
           center: [selectedCity.lng, selectedCity.lat],
           zoom: selectedCity.zoom,
-          pitch: isMobile ? 30 : 50,
+          pitch: settings.pitch,
           bearing: 0,
-          antialias: false, // Disable antialiasing for faster initial render
+          antialias: settings.antialias,
           attributionControl: false,
-          cooperativeGestures: isMobile,
-          touchZoomRotate: true,
-          touchPitch: !isMobile,
-          dragRotate: !isMobile,
+          cooperativeGestures: settings.cooperativeGestures,
+          touchZoomRotate: settings.touchZoomRotate,
+          touchPitch: settings.touchPitch,
+          dragRotate: settings.dragRotate,
           projection: 'globe' as any,
           // Performance optimizations
-          fadeDuration: 0, // No fade for fastest initial render
-          refreshExpiredTiles: false, // Don't refresh tiles automatically
-          maxTileCacheSize: 50, // Limit tile cache for memory efficiency
-          trackResize: false, // We handle resize manually
+          fadeDuration: settings.fadeDuration,
+          refreshExpiredTiles: false,
+          maxTileCacheSize: settings.maxTileCacheSize,
+          trackResize: false,
+          // Additional mobile optimizations
+          renderWorldCopies: !isMobile,
         });
 
         // Add attribution control in a better position
