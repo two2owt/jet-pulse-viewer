@@ -1380,31 +1380,33 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         width: ${markerSize}px;
         height: ${markerHeight}px;
         position: relative;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
         transition: transform 0.2s ease;
       `;
 
-      // Create animated gradient ring (behind teardrop)
+      // Create animated gradient ring (behind teardrop) - centered
       const ringEl = document.createElement('div');
+      const ringSize = markerSize + 6;
       ringEl.style.cssText = `
         position: absolute;
-        top: -3px;
-        left: -3px;
-        width: ${markerSize + 6}px;
-        height: ${markerSize + 6}px;
+        top: ${(markerSize - ringSize) / 2}px;
+        left: ${(markerSize - ringSize) / 2}px;
+        width: ${ringSize}px;
+        height: ${ringSize}px;
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
+        transform-origin: center center;
         background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent, var(--primary))));
         opacity: ${pulseOpacity};
         animation: markerRingPulse ${pulseSpeed} ease-in-out infinite;
       `;
 
-      // Create glassmorphic teardrop shape
+      // Create glassmorphic teardrop shape - centered
       const teardropEl = document.createElement('div');
       const isDarkTheme = document.documentElement.classList.contains('dark');
       teardropEl.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
         width: ${markerSize}px;
         height: ${markerSize}px;
         background: ${isDarkTheme 
@@ -1414,10 +1416,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         -webkit-backdrop-filter: blur(8px);
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
+        transform-origin: center center;
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
         border: 2px solid transparent;
         background-clip: padding-box;
         box-shadow: 
@@ -1426,7 +1428,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'};
       `;
       
-      // Add gradient border using pseudo-element approach via wrapper
+      // Add gradient border - centered and aligned with teardrop
       const borderWrapper = document.createElement('div');
       borderWrapper.style.cssText = `
         position: absolute;
@@ -1436,6 +1438,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         height: ${markerSize}px;
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
+        transform-origin: center center;
         padding: 2px;
         background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent, var(--primary))));
         -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
