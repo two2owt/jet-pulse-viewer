@@ -12,17 +12,17 @@ import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// Lazy load heavy components - reduced delay for faster visual content
+// Lazy load heavy components - defer Mapbox until after initial paint
 const MapboxHeatmap = lazy(() => 
   new Promise<{ default: typeof import("@/components/MapboxHeatmap").MapboxHeatmap }>(resolve => {
     const load = () => {
       import("@/components/MapboxHeatmap").then(m => resolve({ default: m.MapboxHeatmap }));
     };
-    // Start loading after first paint but don't wait too long
+    // Wait for user to be on map tab and idle before loading heavy Mapbox
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(load, { timeout: 1000 });
+      requestIdleCallback(load, { timeout: 2000 });
     } else {
-      setTimeout(load, 100);
+      setTimeout(load, 500);
     }
   })
 );
@@ -73,9 +73,10 @@ const charlotteVenues: Venue[] = [
 const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  // Skip intro for returning users - check synchronously to avoid flash
   const [showIntro, setShowIntro] = useState(() => {
-    // Check if user has seen intro before
     const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+    // If they've seen it, don't show - prioritize content
     return !hasSeenIntro;
   });
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("map");
@@ -372,26 +373,22 @@ const Index = () => {
         {/* Offline Banner */}
         <OfflineBanner />
 
-      {/* Main Content */}
+      {/* Main Content - Reserve height immediately to prevent CLS */}
       <main 
         className={`${activeTab === 'map' ? 'w-full flex-1' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex-1'}`}
         style={{ 
-          minHeight: activeTab === 'map' ? 'calc(100dvh - 7rem)' : 'auto',
+          minHeight: activeTab === 'map' ? 'calc(100dvh - 7rem)' : '400px',
           height: activeTab === 'map' ? 'calc(100dvh - 7rem)' : 'auto',
-          contain: 'strict',
-          transform: 'translateZ(0)',
-          willChange: 'contents',
+          contain: 'layout style',
         }}
       >
         {activeTab === "map" && (
           <div 
-            className="relative w-full h-full"
+            className="relative w-full"
             style={{ 
-              height: '100%',
+              height: 'calc(100dvh - 7rem)',
               minHeight: '400px',
-              contain: 'strict',
-              transform: 'translateZ(0)',
-              willChange: 'contents',
+              contain: 'layout style',
             }}
           >
 
