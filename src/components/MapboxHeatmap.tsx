@@ -357,8 +357,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           el.style.display = 'flex';
           el.style.alignItems = 'center';
           el.style.justifyContent = 'center';
-          el.style.transition = 'transform 0.3s ease';
           el.style.position = 'relative';
+          // Note: No CSS transition on transform - Mapbox handles marker positioning
+          // and transitions would cause visual lag during map pan/zoom
           
           // Glassmorphic container
           const glassContainer = document.createElement('div');
