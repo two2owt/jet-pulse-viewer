@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-// Use optimized WebP format
-import jetLogo from "@/assets/jet-logo.webp";
+// Use optimized WebP format - smaller version for display, larger for high-DPI
+import jetLogo from "@/assets/jet-logo-256.webp";
+import jetLogoLarge from "@/assets/jet-logo.webp";
 import { Button } from "./ui/button";
 import { SkipForward } from "lucide-react";
 
@@ -57,6 +58,8 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
           >
             <img
               src={jetLogo}
+              srcSet={`${jetLogo} 256w, ${jetLogoLarge} 1024w`}
+              sizes="128px"
               alt="JET Logo"
               className="w-32 h-32 object-contain animate-fade-in"
               width="128"
