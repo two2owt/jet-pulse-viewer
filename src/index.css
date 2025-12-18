@@ -1593,6 +1593,17 @@ All colors MUST be HSL.
   }
 
   /* Orb entrance animation - scale up and fade in (no translate to preserve GPS anchor) */
+  /* Marker fade in animation - simple opacity transition */
+  @keyframes markerFadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  /* Orb entrance animation - kept for skeleton loading states */
   @keyframes orbFloatIn {
     0% {
       opacity: 0;
