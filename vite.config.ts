@@ -92,6 +92,21 @@ export default defineConfig(({ mode }) => ({
         // Clean old caches
         cleanupOutdatedCaches: true,
         runtimeCaching: [
+          // Cache static JS/CSS assets with long TTL
+          {
+            urlPattern: /^https:\/\/jet-around\.lovable\.app\/assets\/.*\.(js|css)$/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "static-assets-cache",
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year (immutable hashed assets)
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
           // Cache page navigations with network-first
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
@@ -103,6 +118,21 @@ export default defineConfig(({ mode }) => ({
                 maxAgeSeconds: 60 * 60 * 24, // 1 day
               },
               networkTimeoutSeconds: 3,
+            },
+          },
+          // Cache Supabase API calls with stale-while-revalidate
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "supabase-api-cache",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 5, // 5 minutes
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
             },
           },
           // Cache Mapbox tiles and API
@@ -187,6 +217,21 @@ export default defineConfig(({ mode }) => ({
               cacheName: "supabase-storage-cache",
               expiration: {
                 maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          // Cache Mixpanel scripts
+          {
+            urlPattern: /^https:\/\/cdn\.mxpnl\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "mixpanel-cache",
+              expiration: {
+                maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
               },
               cacheableResponse: {
