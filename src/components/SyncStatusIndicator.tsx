@@ -239,7 +239,7 @@ export const SyncStatusIndicator = ({
                 {/* Arrived at destination text */}
                 <div className="flex flex-col items-end mr-0.5 sm:mr-1 arrival-destination">
                   <span className="text-[7px] sm:text-[8px] text-muted-foreground/70 leading-tight">Arrived at:</span>
-                  <span className="text-[8px] sm:text-[10px] md:text-[11px] font-semibold text-emerald-500 leading-tight truncate max-w-[50px] sm:max-w-[70px] md:max-w-[100px] arrival-city-name">{cityName}</span>
+                  <span className="text-[8px] sm:text-[10px] md:text-[11px] font-semibold text-emerald-500 leading-tight whitespace-nowrap arrival-city-name">{cityName}</span>
                 </div>
                 <div className="relative landed-airplane">
                   <Plane className="w-3 h-3 sm:w-4 sm:h-4 text-primary/80 fill-primary/80 rotate-[-10deg]" />
