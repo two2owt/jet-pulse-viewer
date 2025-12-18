@@ -477,7 +477,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           if (!userMarker.current && map.current) {
             userMarker.current = new mapboxgl.Marker({
               element: createUserMarker(),
-              anchor: 'center'
+              anchor: 'bottom'
             })
               .setLngLat([longitude, latitude])
               .addTo(map.current);
