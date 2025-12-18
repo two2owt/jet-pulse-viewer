@@ -40,7 +40,7 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
                 className={`relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] touch-manipulation ${
                   isActive
                     ? "bg-gradient-primary shadow-glow text-primary-foreground scale-105"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 active:bg-secondary/70"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 active:bg-secondary/70 active:text-foreground"
                 }`}
               >
                 <Icon 
