@@ -1575,4 +1575,35 @@ All colors MUST be HSL.
       transform: translateY(0);
     }
   }
+
+  /* Glassmorphic orb pulse animation for venue markers */
+  @keyframes orbPulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scale(1.4);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1.8);
+      opacity: 0;
+    }
+  }
+
+  /* Orb entrance animation */
+  @keyframes orbAppear {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.15);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
 }
