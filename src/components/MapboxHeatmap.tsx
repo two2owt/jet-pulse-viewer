@@ -1667,10 +1667,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Collapsible>
       </div>
 
-      {/* Mobile Controls - Slide style like desktop */}
+      {/* Mobile Controls - Positioned to align with legend, expand upward */}
       {isMobile && (
         <div 
-          className={`fixed z-50 flex flex-col gap-2 transition-all ease-out ${
+          className={`fixed z-50 flex flex-col-reverse gap-2 transition-all ease-out ${
             mapLoaded && !selectedVenue 
               ? 'opacity-100 translate-x-0 scale-100 duration-500 delay-150' 
               : 'opacity-0 translate-x-full scale-95 duration-200 delay-0 pointer-events-none'
@@ -1679,6 +1679,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             bottom: 'var(--map-fixed-bottom)',
             right: 'var(--map-ui-inset-right)',
             width: 'var(--map-control-max-width)',
+            maxHeight: 'calc(100vh - 200px)',
           }}
         >
           <Button
@@ -1718,11 +1719,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             {showMovementPaths ? "Paths On" : "Paths Off"}
           </Button>
 
-          {/* Mobile Filter Controls - Show when Heat layer is active */}
+          {/* Mobile Filter Controls - Show when Heat layer is active, expand upward with max height */}
           <div 
-            className={`overflow-hidden transition-all duration-300 ease-out ${
+            className={`overflow-hidden overflow-y-auto transition-all duration-300 ease-out ${
               showDensityLayer 
-                ? 'max-h-[500px] opacity-100' 
+                ? 'max-h-[280px] opacity-100' 
                 : 'max-h-0 opacity-0'
             }`}
           >
@@ -1749,7 +1750,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               <div 
                 className={`overflow-hidden transition-all duration-300 ease-out ${
                   timelapseMode 
-                    ? 'max-h-[300px] opacity-100' 
+                    ? 'max-h-[200px] opacity-100' 
                     : 'max-h-0 opacity-0'
                 }`}
               >
@@ -1878,11 +1879,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             </div>
           </div>
 
-          {/* Mobile Path Filter Controls - Show when Paths layer is active */}
+          {/* Mobile Path Filter Controls - Show when Paths layer is active, expand upward with max height */}
           <div 
-            className={`overflow-hidden transition-all duration-300 ease-out ${
+            className={`overflow-hidden overflow-y-auto transition-all duration-300 ease-out ${
               showMovementPaths 
-                ? 'max-h-[300px] opacity-100' 
+                ? 'max-h-[220px] opacity-100' 
                 : 'max-h-0 opacity-0'
             }`}
           >
