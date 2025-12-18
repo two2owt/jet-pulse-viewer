@@ -36,8 +36,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { NotificationSkeleton } from "@/components/skeletons/NotificationSkeleton";
+import { NotificationSkeleton, NotificationListSkeleton } from "@/components/skeletons/NotificationSkeleton";
 import { MapSkeleton } from "@/components/skeletons/MapSkeleton";
+import { ExploreTabSkeleton } from "@/components/skeletons/ExploreTabSkeleton";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -444,11 +445,7 @@ const Index = () => {
             </div>
             
             {notificationsLoading ? (
-              <>
-                <NotificationSkeleton />
-                <NotificationSkeleton />
-                <NotificationSkeleton />
-              </>
+              <NotificationListSkeleton count={5} />
             ) : notifications.length === 0 ? (
               <div className="text-center py-8 sm:py-10 md:py-12 text-muted-foreground">
                 <p className="text-sm sm:text-base">No notifications yet</p>
@@ -474,14 +471,7 @@ const Index = () => {
 
         {activeTab === "explore" && (
           <div className="px-fluid-md py-fluid-md">
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-96">
-                <div className="text-center space-y-3">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                  <p className="text-sm text-muted-foreground">Loading explore...</p>
-                </div>
-              </div>
-            }>
+            <Suspense fallback={<ExploreTabSkeleton />}>
               <ExploreTab onVenueSelect={handleVenueSelect} />
             </Suspense>
           </div>
