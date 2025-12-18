@@ -362,12 +362,15 @@ All colors MUST be HSL.
     transform: translateZ(0);
   }
   
-  /* Prevent pseudo-element animations from causing layout shifts */
+  /* Prevent pseudo-element animations from causing layout shifts in app-wrapper only */
   .app-wrapper::before,
   .app-wrapper::after {
     contain: strict;
     position: absolute;
     pointer-events: none;
+    /* Ensure they don't contribute to layout */
+    width: 0;
+    height: 0;
   }
 
   /* Main content area - consistent across all pages */

@@ -25,8 +25,11 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
         paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.25rem)',
         paddingLeft: 'env(safe-area-inset-left, 0px)',
         paddingRight: 'env(safe-area-inset-right, 0px)',
-        minHeight: '56px',
-        contain: 'layout style',
+        // Fixed height prevents CLS
+        height: 'calc(56px + max(env(safe-area-inset-bottom, 0px), 0.25rem))',
+        minHeight: 'calc(56px + max(env(safe-area-inset-bottom, 0px), 0.25rem))',
+        contain: 'strict',
+        transform: 'translateZ(0)',
       }}
     >
       <div className="max-w-7xl mx-auto px-1 sm:px-2">
