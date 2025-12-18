@@ -112,7 +112,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   const [hourFilter, setHourFilter] = useState<number | undefined>();
   const [dayFilter, setDayFilter] = useState<number | undefined>();
-  const [mapStyle, setMapStyle] = useState<'standard' | 'standard-satellite'>('standard');
+  const [mapStyle, setMapStyle] = useState<'light-mono' | 'dark-mono' | 'satellite'>('dark-mono');
   const [lightPreset, setLightPreset] = useState<'dawn' | 'day' | 'dusk' | 'night'>('night');
   const [show3DTerrain, setShow3DTerrain] = useState(false);
   
@@ -241,7 +241,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         // Using Mapbox Standard Style for enhanced 3D buildings, dynamic lighting, and performance
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
-          style: 'mapbox://styles/mapbox/standard',
+          style: 'mapbox://styles/mapbox/dark-v11',
           center: [selectedCity.lng, selectedCity.lat],
           zoom: selectedCity.zoom,
           pitch: settings.pitch,
@@ -558,11 +558,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     
-    const styleUrl = mapStyle === 'standard-satellite' 
-      ? 'mapbox://styles/mapbox/standard-satellite'
-      : 'mapbox://styles/mapbox/standard';
+    const styleUrls: Record<string, string> = {
+      'light-mono': 'mapbox://styles/mapbox/light-v11',
+      'dark-mono': 'mapbox://styles/mapbox/dark-v11',
+      'satellite': 'mapbox://styles/mapbox/satellite-streets-v12'
+    };
     
-    map.current.setStyle(styleUrl);
+    map.current.setStyle(styleUrls[mapStyle]);
   }, [mapStyle, mapLoaded]);
 
   // Handle dynamic lighting preset changes with smooth animated transitions
@@ -1895,67 +1897,32 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-1.5 sm:mt-2 overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
             <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-1.5 sm:p-2 shadow-lg space-y-1.5 sm:space-y-2">
-              {/* Map Style Toggle */}
-              <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
+              {/* Monochrome Map Style Toggle */}
+              <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
                 <Button
-                  onClick={() => { triggerHaptic('light'); setMapStyle('standard'); }}
-                  variant={mapStyle === 'standard' ? "default" : "outline"}
+                  onClick={() => { triggerHaptic('light'); setMapStyle('light-mono'); }}
+                  variant={mapStyle === 'light-mono' ? "default" : "outline"}
                   size="sm"
                   className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
                 >
-                  Standard
+                  Light
                 </Button>
                 <Button
-                  onClick={() => { triggerHaptic('light'); setMapStyle('standard-satellite'); }}
-                  variant={mapStyle === 'standard-satellite' ? "default" : "outline"}
+                  onClick={() => { triggerHaptic('light'); setMapStyle('dark-mono'); }}
+                  variant={mapStyle === 'dark-mono' ? "default" : "outline"}
+                  size="sm"
+                  className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
+                >
+                  Dark
+                </Button>
+                <Button
+                  onClick={() => { triggerHaptic('light'); setMapStyle('satellite'); }}
+                  variant={mapStyle === 'satellite' ? "default" : "outline"}
                   size="sm"
                   className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
                 >
                   Satellite
                 </Button>
-              </div>
-              
-              {/* Dynamic Lighting Presets */}
-              <div className="pt-1 border-t border-border/30">
-                <div className="text-[8px] sm:text-[9px] text-muted-foreground mb-1">Lighting</div>
-                <div className="grid grid-cols-4 gap-1">
-                  <Button
-                    onClick={() => { triggerHaptic('light'); setLightPreset('dawn'); }}
-                    variant={lightPreset === 'dawn' ? "default" : "outline"}
-                    size="sm"
-                    className="h-5 sm:h-6 text-[8px] sm:text-[9px] px-1"
-                    title="Dawn"
-                  >
-                    🌅
-                  </Button>
-                  <Button
-                    onClick={() => { triggerHaptic('light'); setLightPreset('day'); }}
-                    variant={lightPreset === 'day' ? "default" : "outline"}
-                    size="sm"
-                    className="h-5 sm:h-6 text-[8px] sm:text-[9px] px-1"
-                    title="Day"
-                  >
-                    ☀️
-                  </Button>
-                  <Button
-                    onClick={() => { triggerHaptic('light'); setLightPreset('dusk'); }}
-                    variant={lightPreset === 'dusk' ? "default" : "outline"}
-                    size="sm"
-                    className="h-5 sm:h-6 text-[8px] sm:text-[9px] px-1"
-                    title="Dusk"
-                  >
-                    🌆
-                  </Button>
-                  <Button
-                    onClick={() => { triggerHaptic('light'); setLightPreset('night'); }}
-                    variant={lightPreset === 'night' ? "default" : "outline"}
-                    size="sm"
-                    className="h-5 sm:h-6 text-[8px] sm:text-[9px] px-1"
-                    title="Night"
-                  >
-                    🌙
-                  </Button>
-                </div>
               </div>
               
               <Button
