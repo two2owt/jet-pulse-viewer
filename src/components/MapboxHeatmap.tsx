@@ -1370,6 +1370,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         animation: markerFadeIn 0.4s ease-out ${staggerDelay}ms forwards;
       `;
 
+      // Determine pulse animation speed based on activity level
+      const pulseSpeed = venue.activity >= 80 ? '1.5s' : venue.activity >= 60 ? '2.5s' : '4s';
+      const pulseOpacity = venue.activity >= 80 ? '0.8' : venue.activity >= 60 ? '0.5' : '0.3';
+      
       // Create teardrop pin container
       const pinEl = document.createElement('div');
       pinEl.style.cssText = `
@@ -1382,75 +1386,115 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         transition: transform 0.2s ease;
       `;
 
-      // Create teardrop shape using CSS
+      // Create animated gradient ring (behind teardrop)
+      const ringEl = document.createElement('div');
+      ringEl.style.cssText = `
+        position: absolute;
+        top: -3px;
+        left: -3px;
+        width: ${markerSize + 6}px;
+        height: ${markerSize + 6}px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent, var(--primary))));
+        opacity: ${pulseOpacity};
+        animation: markerRingPulse ${pulseSpeed} ease-in-out infinite;
+      `;
+
+      // Create glassmorphic teardrop shape
       const teardropEl = document.createElement('div');
+      const isDarkTheme = document.documentElement.classList.contains('dark');
       teardropEl.style.cssText = `
         width: ${markerSize}px;
         height: ${markerSize}px;
-        background: linear-gradient(
-          180deg, 
-          ${color} 0%, 
-          ${color}dd 60%,
-          ${color}aa 100%
-        );
+        background: ${isDarkTheme 
+          ? 'rgba(30, 30, 35, 0.85)' 
+          : 'rgba(255, 255, 255, 0.9)'};
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
-        border: 2px solid rgba(255, 255, 255, 0.4);
+        border: 2px solid transparent;
+        background-clip: padding-box;
         box-shadow: 
-          0 3px 10px rgba(0, 0, 0, 0.3),
-          0 0 8px ${color}60,
-          inset 0 2px 4px rgba(255, 255, 255, 0.3);
+          0 4px 16px rgba(0, 0, 0, 0.25),
+          0 2px 8px rgba(0, 0, 0, 0.15),
+          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'};
+      `;
+      
+      // Add gradient border using pseudo-element approach via wrapper
+      const borderWrapper = document.createElement('div');
+      borderWrapper.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: ${markerSize}px;
+        height: ${markerSize}px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        padding: 2px;
+        background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent, var(--primary))));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
       `;
 
-      // Create inner circle for icon
-      const innerCircle = document.createElement('div');
-      const innerSize = markerSize * 0.5;
-      innerCircle.style.cssText = `
-        width: ${innerSize}px;
-        height: ${innerSize}px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.95);
+      // Create inner content holder (rotated back to normal)
+      const innerContent = document.createElement('div');
+      innerContent.style.cssText = `
+        transform: rotate(45deg);
         display: flex;
         align-items: center;
         justify-content: center;
-        transform: rotate(45deg);
+        width: 100%;
+        height: 100%;
       `;
 
-      // Add simple dot indicator
-      innerCircle.innerHTML = `
+      // Add activity dot indicator
+      const dotSize = markerSize * 0.35;
+      innerContent.innerHTML = `
         <div style="
-          width: ${innerSize * 0.5}px;
-          height: ${innerSize * 0.5}px;
+          width: ${dotSize}px;
+          height: ${dotSize}px;
           border-radius: 50%;
-          background: ${color};
+          background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent, var(--primary))));
+          box-shadow: 0 0 ${venue.activity >= 60 ? '8px' : '4px'} hsl(var(--primary) / 0.5);
         "></div>
       `;
 
-      teardropEl.appendChild(innerCircle);
+      teardropEl.appendChild(innerContent);
+      pinEl.appendChild(ringEl);
       pinEl.appendChild(teardropEl);
+      pinEl.appendChild(borderWrapper);
       el.appendChild(pinEl);
 
-      // Hover effects - only visual enhancement, no position change
+      // Hover effects - elegant scale and glow enhancement
       el.addEventListener("mouseenter", () => {
         el.style.zIndex = "100";
+        pinEl.style.transform = "scale(1.1)";
         teardropEl.style.boxShadow = `
-          0 4px 14px rgba(0, 0, 0, 0.4),
-          0 0 12px ${color}80,
-          inset 0 2px 4px rgba(255, 255, 255, 0.4)
+          0 6px 24px rgba(0, 0, 0, 0.35),
+          0 3px 12px rgba(0, 0, 0, 0.2),
+          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.9)'}
         `;
+        ringEl.style.opacity = '1';
       });
 
       el.addEventListener("mouseleave", () => {
         el.style.zIndex = "";
+        pinEl.style.transform = "scale(1)";
         teardropEl.style.boxShadow = `
-          0 3px 10px rgba(0, 0, 0, 0.3),
-          0 0 8px ${color}60,
-          inset 0 2px 4px rgba(255, 255, 255, 0.3)
+          0 4px 16px rgba(0, 0, 0, 0.25),
+          0 2px 8px rgba(0, 0, 0, 0.15),
+          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'}
         `;
+        ringEl.style.opacity = pulseOpacity;
       });
 
       // Create marker with bottom anchor for teardrop (pin point at GPS location)
