@@ -1334,121 +1334,139 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       const activitySizeFactor = venue.activity >= 80 ? 1.3 : venue.activity >= 60 ? 1.15 : 1;
       const markerSize = baseSize * proximityFactor * activitySizeFactor;
 
-      // Create custom marker element using Mapbox native anchor (no CSS overlay positioning)
-      // The element is structured so the pin tip is at the bottom-center
+      // Create glassmorphic orb marker element
       const el = document.createElement("div");
       el.className = "venue-marker";
       el.style.cssText = `
         display: flex;
-        flex-direction: column;
         align-items: center;
+        justify-content: center;
         cursor: pointer;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         will-change: transform;
       `;
 
-      // Create pin element - rotated square becomes a pin pointing down
-      const pinEl = document.createElement('div');
-      pinEl.style.cssText = `
+      // Create glassmorphic orb container
+      const orbEl = document.createElement('div');
+      orbEl.style.cssText = `
         width: ${markerSize}px;
         height: ${markerSize}px;
-        background: linear-gradient(145deg, ${color}, ${color}dd);
-        border: 2px solid rgba(255, 255, 255, 0.9);
-        border-radius: 50% 50% 50% 0;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg, 
+          rgba(255, 255, 255, 0.25) 0%, 
+          rgba(255, 255, 255, 0.05) 50%,
+          rgba(0, 0, 0, 0.1) 100%
+        );
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1.5px solid rgba(255, 255, 255, 0.3);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 
-          0 4px 16px ${color}80,
-          0 2px 8px rgba(0, 0, 0, 0.4),
-          inset 0 2px 4px rgba(255, 255, 255, 0.3);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-        filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
-        transform: rotate(-45deg);
-        transform-origin: center center;
+        position: relative;
+        overflow: visible;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
       `;
 
-      // Add activity indicator ring for high activity venues
+      // Add inner glow based on activity level
+      const glowIntensity = venue.activity >= 80 ? 0.8 : venue.activity >= 60 ? 0.5 : 0.3;
+      const glowSize = venue.activity >= 80 ? 20 : venue.activity >= 60 ? 14 : 8;
+      orbEl.style.boxShadow = `
+        0 0 ${glowSize}px ${color}${Math.round(glowIntensity * 100).toString(16).padStart(2, '0')},
+        0 4px 20px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.4),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.15)
+      `;
+
+      // Add pulsing glow ring for high activity
       if (venue.activity >= 80) {
-        pinEl.style.animation = "venue-pulse-intense 1.5s ease-in-out infinite";
-        pinEl.style.boxShadow = `
-          0 4px 20px ${color}90,
-          0 2px 8px rgba(0, 0, 0, 0.4),
-          0 0 0 3px ${color}40,
-          inset 0 2px 4px rgba(255, 255, 255, 0.3)
+        const pulseRing = document.createElement('div');
+        pulseRing.style.cssText = `
+          position: absolute;
+          inset: -4px;
+          border-radius: 50%;
+          border: 2px solid ${color};
+          opacity: 0;
+          animation: orbPulse 2s ease-out infinite;
         `;
+        orbEl.appendChild(pulseRing);
       } else if (venue.activity >= 60) {
-        pinEl.style.animation = "venue-pulse-moderate 2s ease-in-out infinite";
-        pinEl.style.boxShadow = `
-          0 4px 18px ${color}80,
-          0 2px 8px rgba(0, 0, 0, 0.4),
-          0 0 0 2px ${color}30,
-          inset 0 2px 4px rgba(255, 255, 255, 0.3)
+        const pulseRing = document.createElement('div');
+        pulseRing.style.cssText = `
+          position: absolute;
+          inset: -3px;
+          border-radius: 50%;
+          border: 1.5px solid ${color};
+          opacity: 0;
+          animation: orbPulse 2.5s ease-out infinite;
         `;
+        orbEl.appendChild(pulseRing);
       }
 
-      // Create inner content container (rotated back to normal)
-      const innerEl = document.createElement('div');
-      innerEl.style.cssText = `
-        width: 100%;
-        height: 100%;
+      // Create inner colored core
+      const coreEl = document.createElement('div');
+      const coreSize = markerSize * 0.55;
+      coreEl.style.cssText = `
+        width: ${coreSize}px;
+        height: ${coreSize}px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle at 30% 30%,
+          ${color}ff 0%,
+          ${color}dd 40%,
+          ${color}aa 100%
+        );
+        box-shadow: 
+          0 2px 8px ${color}60,
+          inset 0 2px 4px rgba(255, 255, 255, 0.4),
+          inset 0 -2px 4px rgba(0, 0, 0, 0.2);
         display: flex;
         align-items: center;
         justify-content: center;
-        transform: rotate(45deg);
+        transition: all 0.3s ease;
       `;
 
-      // Add pin icon
-      innerEl.innerHTML = `
-        <svg width="${markerSize * 0.5}" height="${markerSize * 0.5}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.4s ease-out; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+      // Add category icon
+      coreEl.innerHTML = `
+        <svg width="${coreSize * 0.55}" height="${coreSize * 0.55}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
       `;
 
-      pinEl.appendChild(innerEl);
-      el.appendChild(pinEl);
+      orbEl.appendChild(coreEl);
+      el.appendChild(orbEl);
 
-      // Enhanced hover effects
+      // Enhanced hover effects - orb expands and glows brighter
       el.addEventListener("mouseenter", () => {
-        pinEl.style.transform = "rotate(-45deg) scale(1.15)";
-        pinEl.style.boxShadow = `
-          0 6px 24px ${color}90,
-          0 3px 12px rgba(0, 0, 0, 0.5),
-          0 0 0 4px ${color}50,
-          inset 0 2px 4px rgba(255, 255, 255, 0.4)
+        el.style.transform = "scale(1.2)";
+        el.style.zIndex = "100";
+        orbEl.style.boxShadow = `
+          0 0 ${glowSize * 1.8}px ${color}cc,
+          0 8px 32px rgba(0, 0, 0, 0.4),
+          inset 0 1px 2px rgba(255, 255, 255, 0.5),
+          inset 0 -2px 6px rgba(0, 0, 0, 0.2)
         `;
+        coreEl.style.transform = "scale(1.1)";
       });
 
       el.addEventListener("mouseleave", () => {
-        pinEl.style.transform = "rotate(-45deg)";
-        if (venue.activity >= 80) {
-          pinEl.style.boxShadow = `
-            0 4px 20px ${color}90,
-            0 2px 8px rgba(0, 0, 0, 0.4),
-            0 0 0 3px ${color}40,
-            inset 0 2px 4px rgba(255, 255, 255, 0.3)
-          `;
-        } else if (venue.activity >= 60) {
-          pinEl.style.boxShadow = `
-            0 4px 18px ${color}80,
-            0 2px 8px rgba(0, 0, 0, 0.4),
-            0 0 0 2px ${color}30,
-            inset 0 2px 4px rgba(255, 255, 255, 0.3)
-          `;
-        } else {
-          pinEl.style.boxShadow = `
-            0 4px 16px ${color}80,
-            0 2px 8px rgba(0, 0, 0, 0.4),
-            inset 0 2px 4px rgba(255, 255, 255, 0.3)
-          `;
-        }
+        el.style.transform = "scale(1)";
+        el.style.zIndex = "";
+        orbEl.style.boxShadow = `
+          0 0 ${glowSize}px ${color}${Math.round(glowIntensity * 100).toString(16).padStart(2, '0')},
+          0 4px 20px rgba(0, 0, 0, 0.3),
+          inset 0 1px 2px rgba(255, 255, 255, 0.4),
+          inset 0 -2px 6px rgba(0, 0, 0, 0.15)
+        `;
+        coreEl.style.transform = "scale(1)";
       });
 
-      // Create marker with bottom anchor so pin tip points to exact coordinate
+      // Create marker with center anchor for circular glassmorphic orbs
       const marker = new mapboxgl.Marker({
         element: el,
-        anchor: 'bottom'
+        anchor: 'center'
       })
         .setLngLat([venue.lng, venue.lat])
         .addTo(mapInstance);
@@ -1505,17 +1523,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         // Haptic feedback for venue selection
         triggerHaptic('medium');
         
-        // Bounce animation
-        pinEl.style.animation = "bounce 0.6s ease-out";
+        // Bounce animation on the orb
+        orbEl.style.animation = "bounce 0.6s ease-out";
         setTimeout(() => {
-          // Restore appropriate pulsating animation after bounce (only for high activity)
-          if (venue.activity >= 80) {
-            pinEl.style.animation = "venue-pulse-intense 1.5s ease-in-out infinite";
-          } else if (venue.activity >= 60) {
-            pinEl.style.animation = "venue-pulse-moderate 2s ease-in-out infinite";
-          } else {
-            pinEl.style.animation = "";
-          }
+          // Restore pulse animation after bounce for high activity venues
+          orbEl.style.animation = "";
         }, 600);
         
         // Open venue card
@@ -1535,6 +1547,114 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   useEffect(() => {
     updateMarkers();
   }, [venues, mapLoaded, isLoadingVenues, selectedCity]);
+
+  // Add heatmap blend layer for clustering visualization at low zoom levels
+  useEffect(() => {
+    if (!map.current || !mapLoaded || venues.length === 0) return;
+
+    const mapInstance = map.current;
+    const sourceId = 'venue-heatmap-source';
+    const heatmapLayerId = 'venue-heatmap-layer';
+
+    // Remove existing layers and source if they exist
+    if (mapInstance.getLayer(heatmapLayerId)) {
+      mapInstance.removeLayer(heatmapLayerId);
+    }
+    if (mapInstance.getSource(sourceId)) {
+      mapInstance.removeSource(sourceId);
+    }
+
+    // Create GeoJSON data from venues with activity as weight
+    const geojsonData: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: venues.map(venue => ({
+        type: 'Feature',
+        properties: {
+          activity: venue.activity,
+          name: venue.name
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: [venue.lng, venue.lat]
+        }
+      }))
+    };
+
+    // Add source
+    mapInstance.addSource(sourceId, {
+      type: 'geojson',
+      data: geojsonData
+    });
+
+    // Add heatmap layer that fades out at higher zoom levels
+    mapInstance.addLayer({
+      id: heatmapLayerId,
+      type: 'heatmap',
+      source: sourceId,
+      maxzoom: 15,
+      paint: {
+        // Weight based on activity level
+        'heatmap-weight': [
+          'interpolate',
+          ['linear'],
+          ['get', 'activity'],
+          0, 0.1,
+          50, 0.5,
+          80, 0.8,
+          100, 1
+        ],
+        // Intensity increases with zoom
+        'heatmap-intensity': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          8, 0.6,
+          12, 1,
+          15, 1.5
+        ],
+        // Color gradient - matches app theme (orange/red primary)
+        'heatmap-color': [
+          'interpolate',
+          ['linear'],
+          ['heatmap-density'],
+          0, 'rgba(0, 0, 0, 0)',
+          0.1, 'rgba(255, 140, 0, 0.15)',
+          0.3, 'rgba(255, 100, 50, 0.3)',
+          0.5, 'rgba(255, 69, 58, 0.45)',
+          0.7, 'rgba(255, 45, 85, 0.6)',
+          0.9, 'rgba(200, 50, 120, 0.75)',
+          1, 'rgba(150, 50, 150, 0.9)'
+        ],
+        // Radius increases at lower zoom, decreases when zoomed in
+        'heatmap-radius': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          8, 30,
+          12, 20,
+          15, 10
+        ],
+        // Fade out opacity as zoom increases (individual markers take over)
+        'heatmap-opacity': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          10, 0.8,
+          13, 0.4,
+          15, 0
+        ]
+      }
+    }, 'waterway-label'); // Insert below labels
+
+    return () => {
+      if (mapInstance.getLayer(heatmapLayerId)) {
+        mapInstance.removeLayer(heatmapLayerId);
+      }
+      if (mapInstance.getSource(sourceId)) {
+        mapInstance.removeSource(sourceId);
+      }
+    };
+  }, [venues, mapLoaded]);
 
   // Add smooth zoom and pan transitions
   useEffect(() => {
@@ -1563,18 +1683,23 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           // Add staggered delay for smoother animation
           const delay = (index % 20) * 10; // Stagger in groups
           setTimeout(() => {
-            const pinEl = el.querySelector('div') as HTMLElement;
-            if (pinEl) {
-              // Update pin size - no need for marginLeft since Mapbox handles anchor positioning
-              pinEl.style.width = `${newBaseSize}px`;
-              pinEl.style.height = `${newBaseSize}px`;
+            const orbEl = el.querySelector('div') as HTMLElement;
+            if (orbEl) {
+              // Update orb size
+              orbEl.style.width = `${newBaseSize}px`;
+              orbEl.style.height = `${newBaseSize}px`;
               
-              const innerEl = pinEl.querySelector('div') as HTMLElement;
-              if (innerEl) {
-                const svg = innerEl.querySelector('svg');
+              // Update core size
+              const coreEl = orbEl.querySelector('div:not([style*="position: absolute"])') as HTMLElement;
+              if (coreEl && !coreEl.style.position?.includes('absolute')) {
+                const coreSize = newBaseSize * 0.55;
+                coreEl.style.width = `${coreSize}px`;
+                coreEl.style.height = `${coreSize}px`;
+                
+                const svg = coreEl.querySelector('svg');
                 if (svg) {
-                  svg.setAttribute('width', `${newBaseSize * 0.5}`);
-                  svg.setAttribute('height', `${newBaseSize * 0.5}`);
+                  svg.setAttribute('width', `${coreSize * 0.55}`);
+                  svg.setAttribute('height', `${coreSize * 0.55}`);
                 }
               }
             }
