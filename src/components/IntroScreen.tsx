@@ -1,8 +1,15 @@
-import { useEffect, useState } from "react";
-// Use optimized 256px WebP format - matches display size exactly
-import jetLogo from "@/assets/jet-logo-256.webp";
+import { useEffect, useState, useMemo } from "react";
+// Time-based logos - dark for night, light for day
+import jetLogoDark from "@/assets/jet-logo-dark.jpg";
+import jetLogoLight from "@/assets/jet-logo-light.jpg";
 import { Button } from "./ui/button";
 import { SkipForward } from "lucide-react";
+
+// Determine if it's daytime based on user's local time (6am - 6pm)
+const isDaytime = (): boolean => {
+  const hour = new Date().getHours();
+  return hour >= 6 && hour < 18;
+};
 
 interface IntroScreenProps {
   onComplete: () => void;
@@ -10,6 +17,10 @@ interface IntroScreenProps {
 
 export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
   const [isVisible, setIsVisible] = useState(true);
+  
+  // Select logo based on time of day
+  const currentLogo = useMemo(() => isDaytime() ? jetLogoLight : jetLogoDark, []);
+  const isDay = useMemo(() => isDaytime(), []);
 
   useEffect(() => {
     // Very short intro - 800ms is enough for branding, prioritize content
@@ -28,36 +39,48 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-200 ${
-        isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-      }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-200 ${
+        isDay ? "bg-white" : "bg-black"
+      } ${isVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
       style={{ contain: 'layout style paint' }}
     >
       <div className="relative flex items-center justify-center">
         {/* Neumorphism container */}
         <div
-          className="relative rounded-[3rem] p-16 animate-pulse-glow bg-background"
+          className={`relative rounded-[3rem] p-16 animate-pulse-glow ${isDay ? "bg-white" : "bg-black"}`}
           style={{
-            boxShadow: `
-              20px 20px 60px hsl(var(--background) / 0.8),
-              -20px -20px 60px hsl(var(--foreground) / 0.05),
-              inset 5px 5px 10px hsl(var(--background) / 0.5),
-              inset -5px -5px 10px hsl(var(--foreground) / 0.03)
-            `,
+            boxShadow: isDay
+              ? `
+                20px 20px 60px rgba(0, 0, 0, 0.1),
+                -20px -20px 60px rgba(255, 255, 255, 0.8),
+                inset 5px 5px 10px rgba(0, 0, 0, 0.05),
+                inset -5px -5px 10px rgba(255, 255, 255, 0.5)
+              `
+              : `
+                20px 20px 60px rgba(0, 0, 0, 0.8),
+                -20px -20px 60px rgba(255, 255, 255, 0.05),
+                inset 5px 5px 10px rgba(0, 0, 0, 0.5),
+                inset -5px -5px 10px rgba(255, 255, 255, 0.03)
+              `,
           }}
         >
           {/* Logo container with inner neumorphism */}
           <div
-            className="rounded-[2.5rem] p-12 animate-scale-in bg-background"
+            className={`rounded-[2.5rem] p-12 animate-scale-in ${isDay ? "bg-white" : "bg-black"}`}
             style={{
-              boxShadow: `
-                inset 10px 10px 20px hsl(var(--background) / 0.8),
-                inset -10px -10px 20px hsl(var(--foreground) / 0.05)
-              `,
+              boxShadow: isDay
+                ? `
+                  inset 10px 10px 20px rgba(0, 0, 0, 0.05),
+                  inset -10px -10px 20px rgba(255, 255, 255, 0.8)
+                `
+                : `
+                  inset 10px 10px 20px rgba(0, 0, 0, 0.8),
+                  inset -10px -10px 20px rgba(255, 255, 255, 0.05)
+                `,
             }}
           >
             <img
-              src={jetLogo}
+              src={currentLogo}
               alt="JET Logo"
               className="w-32 h-32 object-contain"
               width="128"
@@ -83,7 +106,9 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
         onClick={handleSkip}
         variant="ghost"
         size="sm"
-        className="absolute bottom-8 right-8 gap-2 text-muted-foreground hover:text-foreground"
+        className={`absolute bottom-8 right-8 gap-2 ${
+          isDay ? "text-gray-500 hover:text-gray-900" : "text-gray-400 hover:text-white"
+        }`}
       >
         Skip
         <SkipForward className="w-4 h-4" />
