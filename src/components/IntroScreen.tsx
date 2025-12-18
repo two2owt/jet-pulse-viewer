@@ -13,10 +13,11 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
+    // Shorter intro for better Speed Index - 1.5s is enough for branding
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onComplete, 500); // Wait for fade out animation
-    }, 2500);
+      setTimeout(onComplete, 300); // Faster fade out
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
@@ -28,7 +29,7 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-300 ${
         isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
       style={{ contain: 'layout style paint' }}
