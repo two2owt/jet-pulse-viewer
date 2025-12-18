@@ -15,82 +15,73 @@ import { EmptyState } from "@/components/EmptyState";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useConnections } from "@/hooks/useConnections";
-import {
-  User, 
-  Camera, 
-  Edit2, 
-  X, 
-  Save, 
-  Settings, 
-  Heart, 
-  Users, 
-  Shield,
-  LogOut,
-  Loader2,
-  Instagram,
-  Twitter,
-  Facebook,
-  Linkedin,
-  Video
-} from "lucide-react";
+import { User, Camera, Edit2, X, Save, Settings, Heart, Users, Shield, LogOut, Loader2, Instagram, Twitter, Facebook, Linkedin, Video } from "lucide-react";
 import { ProfileSkeleton } from "@/components/skeletons";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 const profileSchema = z.object({
   display_name: z.string().trim().min(1, "Display name is required").max(100, "Display name must be less than 100 characters"),
-  bio: z.string().trim().max(500, "Bio must be less than 500 characters").optional(),
+  bio: z.string().trim().max(500, "Bio must be less than 500 characters").optional()
 });
-
 const socialMediaSchema = z.object({
   instagram_url: z.string().trim().url("Invalid Instagram URL").optional().or(z.literal('')),
   twitter_url: z.string().trim().url("Invalid Twitter/X URL").optional().or(z.literal('')),
   facebook_url: z.string().trim().url("Invalid Facebook URL").optional().or(z.literal('')),
   linkedin_url: z.string().trim().url("Invalid LinkedIn URL").optional().or(z.literal('')),
-  tiktok_url: z.string().trim().url("Invalid TikTok URL").optional().or(z.literal('')),
+  tiktok_url: z.string().trim().url("Invalid TikTok URL").optional().or(z.literal(''))
 });
-
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'] as const;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const avatarFileSchema = z.object({
   type: z.enum(ALLOWED_IMAGE_TYPES, {
-    errorMap: () => ({ message: 'Only JPG, PNG, WEBP, and GIF images are allowed' })
+    errorMap: () => ({
+      message: 'Only JPG, PNG, WEBP, and GIF images are allowed'
+    })
   }),
   size: z.number().max(MAX_FILE_SIZE, 'Image size must be less than 5MB'),
   name: z.string().regex(/\.(jpg|jpeg|png|webp|gif)$/i, 'Invalid file extension')
 });
-
-const GENDER_OPTIONS = [
-  { value: "woman", label: "Woman" },
-  { value: "man", label: "Man" },
-  { value: "non-binary", label: "Non-binary" },
-  { value: "prefer-not-to-say", label: "Prefer not to say" },
-  { value: "other", label: "Other" },
-];
-
-const PRONOUN_OPTIONS = [
-  { value: "she/her", label: "She/Her" },
-  { value: "he/him", label: "He/Him" },
-  { value: "they/them", label: "They/Them" },
-  { value: "she/they", label: "She/They" },
-  { value: "he/they", label: "He/They" },
-  { value: "prefer-not-to-say", label: "Prefer not to say" },
-  { value: "other", label: "Other" },
-];
-
+const GENDER_OPTIONS = [{
+  value: "woman",
+  label: "Woman"
+}, {
+  value: "man",
+  label: "Man"
+}, {
+  value: "non-binary",
+  label: "Non-binary"
+}, {
+  value: "prefer-not-to-say",
+  label: "Prefer not to say"
+}, {
+  value: "other",
+  label: "Other"
+}];
+const PRONOUN_OPTIONS = [{
+  value: "she/her",
+  label: "She/Her"
+}, {
+  value: "he/him",
+  label: "He/Him"
+}, {
+  value: "they/them",
+  label: "They/Them"
+}, {
+  value: "she/they",
+  label: "She/They"
+}, {
+  value: "he/they",
+  label: "He/They"
+}, {
+  value: "prefer-not-to-say",
+  label: "Prefer not to say"
+}, {
+  value: "other",
+  label: "Other"
+}];
 interface Profile {
   id: string;
   display_name: string | null;
@@ -104,10 +95,11 @@ interface Profile {
   linkedin_url: string | null;
   tiktok_url: string | null;
 }
-
 export default function Profile() {
   const navigate = useNavigate();
-  const { isAdmin } = useIsAdmin();
+  const {
+    isAdmin
+  } = useIsAdmin();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
@@ -124,25 +116,32 @@ export default function Profile() {
   const [isUploading, setIsUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("map");
-  
-  const { notifications } = useNotifications();
-  const { favorites } = useFavorites(user?.id);
-  const { connections } = useConnections(user?.id);
-
+  const {
+    notifications
+  } = useNotifications();
+  const {
+    favorites
+  } = useFavorites(user?.id);
+  const {
+    connections
+  } = useConnections(user?.id);
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       setUser(session?.user ?? null);
     });
-
     const {
-      data: { subscription },
+      data: {
+        subscription
+      }
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-
     return () => subscription.unsubscribe();
   }, []);
-
   useEffect(() => {
     if (user) {
       loadProfile();
@@ -150,7 +149,6 @@ export default function Profile() {
       setIsLoading(false);
     }
   }, [user]);
-
   const handleTabChange = (tab: "map" | "explore" | "notifications" | "favorites" | "social") => {
     setActiveTab(tab);
     if (tab === "map") {
@@ -165,17 +163,13 @@ export default function Profile() {
       navigate("/social");
     }
   };
-
   const loadProfile = async () => {
     if (!user) return;
-    
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       if (error) {
         if (error.code === 'PGRST116') {
           await createDefaultProfile();
@@ -183,7 +177,6 @@ export default function Profile() {
         }
         throw error;
       }
-
       if (data) {
         setProfile(data);
         setDisplayName(data.display_name || "");
@@ -203,22 +196,17 @@ export default function Profile() {
       setIsLoading(false);
     }
   };
-
   const createDefaultProfile = async () => {
     if (!user) return;
-    
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert({
-          id: user.id,
-          display_name: user.email?.split('@')[0] || 'User',
-        })
-        .select()
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('profiles').insert({
+        id: user.id,
+        display_name: user.email?.split('@')[0] || 'User'
+      }).select().single();
       if (error) throw error;
-
       setProfile(data);
       setDisplayName(data.display_name || "");
       toast.success('Profile created');
@@ -227,11 +215,9 @@ export default function Profile() {
       toast.error('Failed to create profile');
     }
   };
-
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !profile || !user) return;
-
     try {
       avatarFileSchema.parse({
         type: file.type,
@@ -244,36 +230,35 @@ export default function Profile() {
       }
       return;
     }
-
     setIsUploading(true);
-
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/avatar.${fileExt}`;
-
       if (profile?.avatar_url) {
         const oldPath = profile.avatar_url.split('/').slice(-2).join('/');
         await supabase.storage.from('avatars').remove([oldPath]);
       }
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, { upsert: true });
-
+      const {
+        error: uploadError
+      } = await supabase.storage.from('avatars').upload(fileName, file, {
+        upsert: true
+      });
       if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
-
+      const {
+        data: {
+          publicUrl
+        }
+      } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      const {
+        error: updateError
+      } = await supabase.from('profiles').update({
+        avatar_url: publicUrl
+      }).eq('id', user.id);
       if (updateError) throw updateError;
-
-      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+      setProfile(prev => prev ? {
+        ...prev,
+        avatar_url: publicUrl
+      } : null);
       toast.success('Avatar updated');
     } catch (error) {
       console.error('Error uploading avatar:', error);
@@ -282,75 +267,69 @@ export default function Profile() {
       setIsUploading(false);
     }
   };
-
   const checkDisplayNameUnique = async (name: string): Promise<boolean> => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("display_name", name)
-      .neq("id", user?.id || "")
-      .limit(1);
-    
+    const {
+      data,
+      error
+    } = await supabase.from("profiles").select("id").eq("display_name", name).neq("id", user?.id || "").limit(1);
     if (error) return true;
     return !data || data.length === 0;
   };
-
   const handleSaveProfile = async () => {
     if (!user) return;
-    
     try {
       const validatedData = profileSchema.parse({
         display_name: displayName,
-        bio: bio || undefined,
+        bio: bio || undefined
       });
 
       // Validate gender is required
       if (!gender) {
-        toast.error("Gender required", { description: "Please select your gender" });
+        toast.error("Gender required", {
+          description: "Please select your gender"
+        });
         return;
       }
-
       const validatedSocial = socialMediaSchema.parse({
         instagram_url: instagramUrl || '',
         twitter_url: twitterUrl || '',
         facebook_url: facebookUrl || '',
         linkedin_url: linkedinUrl || '',
-        tiktok_url: tiktokUrl || '',
+        tiktok_url: tiktokUrl || ''
       });
-
       setIsSaving(true);
 
       // Check unique display name
       const isUnique = await checkDisplayNameUnique(validatedData.display_name);
       if (!isUnique) {
-        toast.error("Display name taken", { description: "This display name is already in use. Please choose another." });
+        toast.error("Display name taken", {
+          description: "This display name is already in use. Please choose another."
+        });
         setIsSaving(false);
         return;
       }
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          display_name: validatedData.display_name,
-          bio: validatedData.bio || null,
-          gender: gender,
-          pronouns: pronouns || null,
-          instagram_url: validatedSocial.instagram_url || null,
-          twitter_url: validatedSocial.twitter_url || null,
-          facebook_url: validatedSocial.facebook_url || null,
-          linkedin_url: validatedSocial.linkedin_url || null,
-          tiktok_url: validatedSocial.tiktok_url || null,
-        })
-        .eq('id', user.id);
-
+      const {
+        error
+      } = await supabase.from('profiles').update({
+        display_name: validatedData.display_name,
+        bio: validatedData.bio || null,
+        gender: gender,
+        pronouns: pronouns || null,
+        instagram_url: validatedSocial.instagram_url || null,
+        twitter_url: validatedSocial.twitter_url || null,
+        facebook_url: validatedSocial.facebook_url || null,
+        linkedin_url: validatedSocial.linkedin_url || null,
+        tiktok_url: validatedSocial.tiktok_url || null
+      }).eq('id', user.id);
       if (error) {
         if (error.code === '23505') {
-          toast.error("Display name taken", { description: "This display name is already in use. Please choose another." });
+          toast.error("Display name taken", {
+            description: "This display name is already in use. Please choose another."
+          });
           return;
         }
         throw error;
       }
-
       toast.success('Profile updated');
       setIsEditing(false);
       await loadProfile();
@@ -364,7 +343,6 @@ export default function Profile() {
       setIsSaving(false);
     }
   };
-
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -374,64 +352,30 @@ export default function Profile() {
       toast.error('Failed to sign out');
     }
   };
-
   if (!user) {
-    return (
-      <>
-        <Header 
-          venues={[]}
-          deals={[]}
-          onVenueSelect={() => {}}
-        />
+    return <>
+        <Header venues={[]} deals={[]} onVenueSelect={() => {}} />
         <div className="min-h-screen bg-background pb-20">
           <div className="max-w-7xl mx-auto px-4 py-6">
-            <EmptyState
-              icon={User}
-              title="Sign in to view profile"
-              description="Create an account to access your profile, manage settings, and track your activity"
-              actionLabel="Sign In"
-              onAction={() => navigate("/auth")}
-            />
+            <EmptyState icon={User} title="Sign in to view profile" description="Create an account to access your profile, manage settings, and track your activity" actionLabel="Sign In" onAction={() => navigate("/auth")} />
           </div>
         </div>
-        <BottomNav 
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={0}
-        />
-      </>
-    );
+        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} notificationCount={0} />
+      </>;
   }
-
   if (isLoading) {
-    return (
-      <>
-        <Header 
-          venues={[]}
-          deals={[]}
-          onVenueSelect={() => {}}
-        />
+    return <>
+        <Header venues={[]} deals={[]} onVenueSelect={() => {}} />
         <div className="min-h-screen bg-background pb-20">
           <div className="max-w-4xl mx-auto px-4 py-6">
             <ProfileSkeleton />
           </div>
         </div>
-        <BottomNav 
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={0}
-        />
-      </>
-    );
+        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} notificationCount={0} />
+      </>;
   }
-
-  return (
-    <>
-      <Header 
-        venues={[]}
-        deals={[]}
-        onVenueSelect={() => {}}
-      />
+  return <>
+      <Header venues={[]} deals={[]} onVenueSelect={() => {}} />
       <div className="min-h-screen bg-background pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
           {/* Profile Header */}
@@ -441,16 +385,10 @@ export default function Profile() {
                 <h1 className="text-2xl font-bold text-foreground mb-1">Profile</h1>
                 <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
               </div>
-              {!isEditing && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditing(true)}
-                >
+              {!isEditing && <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
                   <Edit2 className="w-4 h-4 mr-2" />
                   Edit
-                </Button>
-              )}
+                </Button>}
             </div>
 
             {/* Avatar Section */}
@@ -463,28 +401,12 @@ export default function Profile() {
                   </AvatarFallback>
                 </Avatar>
                 
-                {isEditing && (
-                  <>
-                    <label
-                      htmlFor="avatar-upload"
-                      className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors"
-                    >
-                      {isUploading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Camera className="w-4 h-4" />
-                      )}
+                {isEditing && <>
+                    <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors">
+                      {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                     </label>
-                    <input
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarUpload}
-                      disabled={isUploading}
-                      className="hidden"
-                    />
-                  </>
-                )}
+                    <input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarUpload} disabled={isUploading} className="hidden" />
+                  </>}
               </div>
 
               <div className="flex-1 text-center sm:text-left">
@@ -515,33 +437,15 @@ export default function Profile() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="display_name">Display Name *</Label>
-                <Input
-                  id="display_name"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your display name"
-                  maxLength={100}
-                  disabled={!isEditing}
-                />
+                <Input id="display_name" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your display name" maxLength={100} disabled={!isEditing} />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Tell us about yourself..."
-                  maxLength={500}
-                  rows={4}
-                  disabled={!isEditing}
-                  className="resize-none"
-                />
-                {isEditing && (
-                  <p className="text-xs text-muted-foreground text-right">
+                <Textarea id="bio" value={bio} onChange={e => setBio(e.target.value)} placeholder="Tell us about yourself..." maxLength={500} rows={4} disabled={!isEditing} className="resize-none" />
+                {isEditing && <p className="text-xs text-muted-foreground text-right">
                     {bio.length}/500
-                  </p>
-                )}
+                  </p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -552,11 +456,9 @@ export default function Profile() {
                       <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
                     <SelectContent>
-                      {GENDER_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
+                      {GENDER_OPTIONS.map(option => <SelectItem key={option.value} value={option.value}>
                           {option.label}
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -568,18 +470,15 @@ export default function Profile() {
                       <SelectValue placeholder="Select pronouns" />
                     </SelectTrigger>
                     <SelectContent>
-                      {PRONOUN_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
+                      {PRONOUN_OPTIONS.map(option => <SelectItem key={option.value} value={option.value}>
                           {option.label}
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              {isEditing && (
-                <>
+              {isEditing && <>
                   <Separator className="my-6" />
                   
                   <div className="space-y-4">
@@ -588,180 +487,104 @@ export default function Profile() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Instagram className="w-4 h-4 text-muted-foreground" />
-                        <Input
-                          value={instagramUrl}
-                          onChange={(e) => setInstagramUrl(e.target.value)}
-                          placeholder="Instagram profile URL"
-                        />
+                        <Input value={instagramUrl} onChange={e => setInstagramUrl(e.target.value)} placeholder="Instagram profile URL" />
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Twitter className="w-4 h-4 text-muted-foreground" />
-                        <Input
-                          value={twitterUrl}
-                          onChange={(e) => setTwitterUrl(e.target.value)}
-                          placeholder="Twitter/X profile URL"
-                        />
+                        <Input value={twitterUrl} onChange={e => setTwitterUrl(e.target.value)} placeholder="Twitter/X profile URL" />
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Facebook className="w-4 h-4 text-muted-foreground" />
-                        <Input
-                          value={facebookUrl}
-                          onChange={(e) => setFacebookUrl(e.target.value)}
-                          placeholder="Facebook profile URL"
-                        />
+                        <Input value={facebookUrl} onChange={e => setFacebookUrl(e.target.value)} placeholder="Facebook profile URL" />
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Linkedin className="w-4 h-4 text-muted-foreground" />
-                        <Input
-                          value={linkedinUrl}
-                          onChange={(e) => setLinkedinUrl(e.target.value)}
-                          placeholder="LinkedIn profile URL"
-                        />
+                        <Input value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} placeholder="LinkedIn profile URL" />
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Video className="w-4 h-4 text-muted-foreground" />
-                        <Input
-                          value={tiktokUrl}
-                          onChange={(e) => setTiktokUrl(e.target.value)}
-                          placeholder="TikTok profile URL"
-                        />
+                        <Input value={tiktokUrl} onChange={e => setTiktokUrl(e.target.value)} placeholder="TikTok profile URL" />
                       </div>
                     </div>
                   </div>
-                </>
-              )}
+                </>}
 
               {/* Social Links Display */}
-              {!isEditing && (instagramUrl || twitterUrl || facebookUrl || linkedinUrl || tiktokUrl) && (
-                <>
+              {!isEditing && (instagramUrl || twitterUrl || facebookUrl || linkedinUrl || tiktokUrl) && <>
                   <Separator className="my-6" />
                   <div>
                     <Label className="mb-3 block">Social Media</Label>
                     <div className="flex flex-wrap gap-2">
-                      {instagramUrl && (
-                        <a
-                          href={instagramUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 text-white hover:opacity-90 transition-opacity text-sm font-medium"
-                        >
+                      {instagramUrl && <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 text-white hover:opacity-90 transition-opacity text-sm font-medium">
                           <Instagram className="w-4 h-4" />
                           Instagram
-                        </a>
-                      )}
+                        </a>}
                       
-                      {twitterUrl && (
-                        <a
-                          href={twitterUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white hover:opacity-90 transition-opacity text-sm font-medium"
-                        >
+                      {twitterUrl && <a href={twitterUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white hover:opacity-90 transition-opacity text-sm font-medium">
                           <Twitter className="w-4 h-4" />
                           Twitter/X
-                        </a>
-                      )}
+                        </a>}
                       
-                      {facebookUrl && (
-                        <a
-                          href={facebookUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 text-white hover:opacity-90 transition-opacity text-sm font-medium"
-                        >
+                      {facebookUrl && <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 text-white hover:opacity-90 transition-opacity text-sm font-medium">
                           <Facebook className="w-4 h-4" />
                           Facebook
-                        </a>
-                      )}
+                        </a>}
                       
-                      {linkedinUrl && (
-                        <a
-                          href={linkedinUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 text-white hover:opacity-90 transition-opacity text-sm font-medium"
-                        >
+                      {linkedinUrl && <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 text-white hover:opacity-90 transition-opacity text-sm font-medium">
                           <Linkedin className="w-4 h-4" />
                           LinkedIn
-                        </a>
-                      )}
+                        </a>}
                       
-                      {tiktokUrl && (
-                        <a
-                          href={tiktokUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 text-white hover:opacity-90 transition-opacity text-sm font-medium"
-                        >
+                      {tiktokUrl && <a href={tiktokUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 text-white hover:opacity-90 transition-opacity text-sm font-medium">
                           <Video className="w-4 h-4" />
                           TikTok
-                        </a>
-                      )}
+                        </a>}
                     </div>
                   </div>
-                </>
-              )}
+                </>}
 
-              {isEditing && (
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    onClick={handleSaveProfile}
-                    disabled={isSaving || !displayName.trim()}
-                    className="flex-1"
-                  >
-                    {isSaving ? (
-                      <>
+              {isEditing && <div className="flex gap-2 pt-4">
+                  <Button onClick={handleSaveProfile} disabled={isSaving || !displayName.trim()} className="flex-1">
+                    {isSaving ? <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Saving...
-                      </>
-                    ) : (
-                      <>
+                      </> : <>
                         <Save className="w-4 h-4 mr-2" />
                         Save Changes
-                      </>
-                    )}
+                      </>}
                   </Button>
-                  <Button
-                    onClick={() => {
-                      setIsEditing(false);
-                      setDisplayName(profile?.display_name || "");
-                      setBio(profile?.bio || "");
-                      setInstagramUrl(profile?.instagram_url || "");
-                      setTwitterUrl(profile?.twitter_url || "");
-                      setFacebookUrl(profile?.facebook_url || "");
-                      setLinkedinUrl(profile?.linkedin_url || "");
-                      setTiktokUrl(profile?.tiktok_url || "");
-                    }}
-                    variant="outline"
-                    disabled={isSaving}
-                  >
+                  <Button onClick={() => {
+                setIsEditing(false);
+                setDisplayName(profile?.display_name || "");
+                setBio(profile?.bio || "");
+                setInstagramUrl(profile?.instagram_url || "");
+                setTwitterUrl(profile?.twitter_url || "");
+                setFacebookUrl(profile?.facebook_url || "");
+                setLinkedinUrl(profile?.linkedin_url || "");
+                setTiktokUrl(profile?.tiktok_url || "");
+              }} variant="outline" disabled={isSaving}>
                     <X className="w-4 h-4 mr-2" />
                     Cancel
                   </Button>
-                </div>
-              )}
+                </div>}
             </div>
           </Card>
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Button
-              variant="outline"
-              className="h-20 justify-start"
-              onClick={() => navigate("/settings")}
-            >
+            <Button variant="outline" className="h-20 justify-start" onClick={() => navigate("/settings")}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Settings className="w-5 h-5 text-primary" />
@@ -773,11 +596,7 @@ export default function Profile() {
               </div>
             </Button>
 
-            <Button
-              variant="outline"
-              className="h-20 justify-start"
-              onClick={() => navigate("/favorites")}
-            >
+            <Button variant="outline" className="h-20 justify-start" onClick={() => navigate("/favorites")}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
                   <Heart className="w-5 h-5 text-accent" />
@@ -789,14 +608,10 @@ export default function Profile() {
               </div>
             </Button>
 
-            <Button
-              variant="outline"
-              className="h-20 justify-start"
-              onClick={() => navigate("/social")}
-            >
+            <Button variant="outline" className="h-20 justify-start" onClick={() => navigate("/social")}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-secondary" />
+                  <Users className="w-5 h-5 text-[#c37bf9]" />
                 </div>
                 <div className="text-left">
                   <div className="font-semibold text-foreground">Social</div>
@@ -805,12 +620,7 @@ export default function Profile() {
               </div>
             </Button>
 
-            {isAdmin && (
-              <Button
-                variant="outline"
-                className="h-20 justify-start"
-                onClick={() => navigate("/admin")}
-              >
+            {isAdmin && <Button variant="outline" className="h-20 justify-start" onClick={() => navigate("/admin")}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
                     <Shield className="w-5 h-5 text-destructive" />
@@ -820,8 +630,7 @@ export default function Profile() {
                     <div className="text-xs text-muted-foreground">Dashboard & analytics</div>
                   </div>
                 </div>
-              </Button>
-            )}
+              </Button>}
           </div>
 
           {/* Sign Out */}
@@ -852,11 +661,6 @@ export default function Profile() {
         </div>
       </div>
       
-      <BottomNav 
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        notificationCount={notifications.filter(n => !n.read).length}
-      />
-    </>
-  );
+      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} notificationCount={notifications.filter(n => !n.read).length} />
+    </>;
 }
