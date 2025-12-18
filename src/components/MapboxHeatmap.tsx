@@ -373,6 +373,50 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         // Track if this is the initial geolocate (for auto-centering on load)
         let isInitialGeolocate = true;
         
+        // Store current marker position for smooth interpolation
+        let currentMarkerPos: { lng: number; lat: number } | null = null;
+        let animationFrameId: number | null = null;
+        
+        // Smooth position interpolation function
+        const animateMarkerTo = (targetLng: number, targetLat: number, duration: number = 300) => {
+          if (!userMarker.current || !currentMarkerPos) {
+            // First position - set immediately
+            currentMarkerPos = { lng: targetLng, lat: targetLat };
+            userMarker.current?.setLngLat([targetLng, targetLat]);
+            return;
+          }
+          
+          // Cancel any existing animation
+          if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+          }
+          
+          const startPos = { ...currentMarkerPos };
+          const startTime = performance.now();
+          
+          const animate = (currentTime: number) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Ease-out cubic for smooth deceleration
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            
+            const lng = startPos.lng + (targetLng - startPos.lng) * easeOut;
+            const lat = startPos.lat + (targetLat - startPos.lat) * easeOut;
+            
+            userMarker.current?.setLngLat([lng, lat]);
+            currentMarkerPos = { lng, lat };
+            
+            if (progress < 1) {
+              animationFrameId = requestAnimationFrame(animate);
+            } else {
+              animationFrameId = null;
+            }
+          };
+          
+          animationFrameId = requestAnimationFrame(animate);
+        };
+        
         // Listen for geolocate events to update city and marker
         geolocateControl.on('geolocate', (e: any) => {
           const { longitude, latitude } = e.coords;
@@ -411,7 +455,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             isInitialGeolocate = false;
           }
           
-          // Create or update user marker
+          // Create or update user marker with smooth interpolation
           if (!userMarker.current && map.current) {
             userMarker.current = new mapboxgl.Marker({
               element: createUserMarker(),
@@ -419,8 +463,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             })
               .setLngLat([longitude, latitude])
               .addTo(map.current);
+            currentMarkerPos = { lng: longitude, lat: latitude };
           } else if (userMarker.current) {
-            userMarker.current.setLngLat([longitude, latitude]);
+            // Smoothly animate to new position
+            animateMarkerTo(longitude, latitude, 400);
           }
         });
         
