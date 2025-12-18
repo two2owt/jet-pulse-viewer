@@ -12,19 +12,9 @@ import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// Lazy load heavy components - defer Mapbox until after initial paint
+// Lazy load Mapbox ONLY when map tab is active - no eager loading
 const MapboxHeatmap = lazy(() => 
-  new Promise<{ default: typeof import("@/components/MapboxHeatmap").MapboxHeatmap }>(resolve => {
-    const load = () => {
-      import("@/components/MapboxHeatmap").then(m => resolve({ default: m.MapboxHeatmap }));
-    };
-    // Wait for user to be on map tab and idle before loading heavy Mapbox
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(load, { timeout: 2000 });
-    } else {
-      setTimeout(load, 500);
-    }
-  })
+  import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap }))
 );
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
 const ExploreTab = lazy(() => import("@/components/ExploreTab").then(m => ({ default: m.ExploreTab })));
@@ -84,7 +74,7 @@ const Index = () => {
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const [deepLinkedDeal, setDeepLinkedDeal] = useState<any>(null);
-  const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
+  const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken({ enabled: activeTab === 'map' });
   const { getVenueImage } = useVenueImages();
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
   const { isScrapingActive } = useAutoScrapeVenueImages(true);

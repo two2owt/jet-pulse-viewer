@@ -37,9 +37,14 @@ const setCachedToken = (token: string): void => {
   }
 };
 
-export const useMapboxToken = () => {
+interface UseMapboxTokenOptions {
+  enabled?: boolean;
+}
+
+export const useMapboxToken = (options: UseMapboxTokenOptions = {}) => {
+  const { enabled = true } = options;
   const [token, setToken] = useState<string>(() => getCachedToken() || "");
-  const [loading, setLoading] = useState(() => !getCachedToken());
+  const [loading, setLoading] = useState(() => enabled && !getCachedToken());
   const [error, setError] = useState<string | null>(null);
 
   const fetchToken = useCallback(async () => {
@@ -51,6 +56,7 @@ export const useMapboxToken = () => {
       return;
     }
 
+    setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("get-mapbox-token");
       
@@ -75,11 +81,14 @@ export const useMapboxToken = () => {
   }, []);
 
   useEffect(() => {
+    // Don't fetch if not enabled
+    if (!enabled) return;
+    
     // If we have a cached token, we're already done
     if (token && !loading) return;
     
     fetchToken();
-  }, [fetchToken, token, loading]);
+  }, [fetchToken, token, loading, enabled]);
 
-  return { token, loading, error, refetch: fetchToken };
+  return { token, loading: enabled ? loading : false, error, refetch: fetchToken };
 };
