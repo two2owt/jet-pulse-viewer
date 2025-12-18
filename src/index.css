@@ -1603,6 +1603,18 @@ All colors MUST be HSL.
     }
   }
   
+  /* Marker ring pulse animation for activity indication */
+  @keyframes markerRingPulse {
+    0%, 100% {
+      transform: rotate(-45deg) scale(1);
+      opacity: var(--ring-opacity, 0.5);
+    }
+    50% {
+      transform: rotate(-45deg) scale(1.15);
+      opacity: calc(var(--ring-opacity, 0.5) * 1.5);
+    }
+  }
+  
   /* Orb entrance animation - kept for skeleton loading states */
   @keyframes orbFloatIn {
     0% {
