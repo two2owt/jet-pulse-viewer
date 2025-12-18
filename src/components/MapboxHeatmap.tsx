@@ -121,14 +121,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     return 'night';
   };
   
-  const getMonochromeForTime = (): 'light' | 'dark' => {
+  const getDefaultMapStyle = (): 'light' | 'dark' | 'streets' | 'satellite' => {
     const hour = new Date().getHours();
     // Use light variant during daytime hours (7am - 7pm)
     return (hour >= 7 && hour < 19) ? 'light' : 'dark';
   };
   
+  const [mapStyle, setMapStyle] = useState<'light' | 'dark' | 'streets' | 'satellite'>(getDefaultMapStyle);
   const [lightPreset, setLightPreset] = useState<'dawn' | 'day' | 'dusk' | 'night'>(getTimeOfDayPreset);
-  const [monochromeVariant, setMonochromeVariant] = useState<'light' | 'dark'>(getMonochromeForTime);
   const [show3DTerrain, setShow3DTerrain] = useState(false);
   
   // Time-lapse mode state
@@ -569,16 +569,19 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     });
   }, [selectedCity, mapLoaded]);
 
-  // Handle map style changes based on monochrome variant
+  // Handle map style changes
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     
-    const styleUrl = monochromeVariant === 'light' 
-      ? 'mapbox://styles/mapbox/light-v11'
-      : 'mapbox://styles/mapbox/dark-v11';
+    const styleUrls: Record<string, string> = {
+      'light': 'mapbox://styles/mapbox/light-v11',
+      'dark': 'mapbox://styles/mapbox/dark-v11',
+      'streets': 'mapbox://styles/mapbox/streets-v12',
+      'satellite': 'mapbox://styles/mapbox/satellite-streets-v12'
+    };
     
-    map.current.setStyle(styleUrl);
-  }, [monochromeVariant, mapLoaded]);
+    map.current.setStyle(styleUrls[mapStyle]);
+  }, [mapStyle, mapLoaded]);
 
   // Handle dynamic lighting preset changes with smooth animated transitions
   useEffect(() => {
@@ -1865,14 +1868,32 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               className="bg-card/95 backdrop-blur-xl border border-border text-[9px] sm:text-[10px] md:text-xs shadow-lg h-7 sm:h-8 md:h-9 px-2 sm:px-2.5 md:px-3 transition-all duration-200"
             >
               <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-0.5 sm:mr-1" />
-              <span>Lighting</span>
+              <span>Map Style</span>
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-1.5 sm:mt-2 overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
             <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-1.5 sm:p-2 shadow-lg space-y-2 sm:space-y-2.5">
-              {/* Time of Day Presets */}
+              {/* Map Style Options */}
               <div className="space-y-1">
-                <span className="text-[8px] sm:text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Time of Day</span>
+                <span className="text-[8px] sm:text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Base Style</span>
+                <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
+                  {(['light', 'dark', 'streets', 'satellite'] as const).map((style) => (
+                    <Button
+                      key={style}
+                      onClick={() => { triggerHaptic('light'); setMapStyle(style); }}
+                      variant={mapStyle === style ? "default" : "outline"}
+                      size="sm"
+                      className="h-6 sm:h-7 text-[8px] sm:text-[9px] md:text-[10px] px-1 sm:px-1.5 capitalize"
+                    >
+                      {style}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Time of Day Lighting Presets */}
+              <div className="space-y-1">
+                <span className="text-[8px] sm:text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Lighting</span>
                 <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
                   {(['dawn', 'day', 'dusk', 'night'] as const).map((preset) => (
                     <Button
@@ -1888,29 +1909,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 </div>
               </div>
               
-              {/* Monochrome Variant Toggle */}
-              <div className="space-y-1">
-                <span className="text-[8px] sm:text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Style</span>
-                <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
-                  <Button
-                    onClick={() => { triggerHaptic('light'); setMonochromeVariant('light'); }}
-                    variant={monochromeVariant === 'light' ? "default" : "outline"}
-                    size="sm"
-                    className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
-                  >
-                    Light
-                  </Button>
-                  <Button
-                    onClick={() => { triggerHaptic('light'); setMonochromeVariant('dark'); }}
-                    variant={monochromeVariant === 'dark' ? "default" : "outline"}
-                    size="sm"
-                    className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
-                  >
-                    Dark
-                  </Button>
-                </div>
-              </div>
-              
+              {/* 3D Terrain Toggle */}
               <Button
                 onClick={() => { triggerHaptic('medium'); setShow3DTerrain(!show3DTerrain); }}
                 variant={show3DTerrain ? "default" : "outline"}
