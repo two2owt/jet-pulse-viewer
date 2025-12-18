@@ -25,8 +25,8 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    // Target modern browsers only
-    target: 'es2020',
+    // Target modern browsers only - avoids unnecessary polyfills for ES6+ features
+    target: ['es2022', 'chrome100', 'firefox100', 'safari15'],
     // Increase chunk size warning limit
     chunkSizeWarningLimit: 600,
   },
