@@ -1673,18 +1673,23 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Mobile Controls - Fixed position with stable dimensions to prevent CLS */}
       {isMobile && (
         <div 
-          className="fixed z-50 flex flex-col-reverse gap-2"
+          className="fixed z-50 flex flex-col-reverse gap-2 transition-opacity ease-out"
           style={{
             bottom: 'var(--map-fixed-bottom)',
             right: 'var(--map-ui-inset-right)',
             width: 'var(--map-control-max-width)',
             maxHeight: 'calc(100vh - 200px)',
-            contain: 'strict',
+            // Reserve exact space always - use visibility for CLS prevention
+            minHeight: '200px',
+            contain: 'layout style paint size',
+            contentVisibility: 'auto',
+            containIntrinsicSize: '140px 200px',
             // Use opacity + pointer-events instead of visibility to prevent CLS
             opacity: mapLoaded && !selectedVenue ? 1 : 0,
             pointerEvents: mapLoaded && !selectedVenue ? 'auto' : 'none',
             // Prevent any layout shift by using transform
             transform: 'translateZ(0)',
+            willChange: 'opacity',
           }}
         >
           {/* Paths Button - appears below Heat visually due to flex-col-reverse */}
