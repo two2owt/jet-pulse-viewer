@@ -12,16 +12,65 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   build: {
-    // Optimize chunk splitting for better caching
+    // Optimize chunk splitting for better caching and reduced unused JS
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Split vendor chunks for better caching
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
-          'vendor-query': ['@tanstack/react-query'],
-          // Mapbox in its own chunk - loads on demand
-          'mapbox': ['mapbox-gl'],
+        manualChunks: (id) => {
+          // Core React - always needed
+          if (id.includes('react-dom') || id.includes('react/') || id.includes('/react/')) {
+            return 'vendor-react';
+          }
+          // React Router - needed for navigation
+          if (id.includes('react-router')) {
+            return 'vendor-router';
+          }
+          // TanStack Query - data fetching
+          if (id.includes('@tanstack/react-query')) {
+            return 'vendor-query';
+          }
+          // Mapbox - heavy, load on demand
+          if (id.includes('mapbox-gl')) {
+            return 'mapbox';
+          }
+          // Split Radix UI into smaller chunks by usage frequency
+          if (id.includes('@radix-ui/react-dialog') || id.includes('@radix-ui/react-alert-dialog')) {
+            return 'ui-dialogs';
+          }
+          if (id.includes('@radix-ui/react-select') || id.includes('@radix-ui/react-dropdown-menu')) {
+            return 'ui-menus';
+          }
+          if (id.includes('@radix-ui/react-tooltip') || id.includes('@radix-ui/react-popover')) {
+            return 'ui-overlays';
+          }
+          if (id.includes('@radix-ui/react-tabs') || id.includes('@radix-ui/react-accordion')) {
+            return 'ui-panels';
+          }
+          if (id.includes('@radix-ui/react-switch') || id.includes('@radix-ui/react-checkbox') || id.includes('@radix-ui/react-radio-group')) {
+            return 'ui-inputs';
+          }
+          if (id.includes('@radix-ui')) {
+            return 'ui-core';
+          }
+          // Recharts - charts, load on demand
+          if (id.includes('recharts') || id.includes('d3-')) {
+            return 'charts';
+          }
+          // Date utilities
+          if (id.includes('date-fns')) {
+            return 'date-utils';
+          }
+          // Lucide icons - split from main bundle
+          if (id.includes('lucide-react')) {
+            return 'icons';
+          }
+          // Form handling
+          if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+            return 'forms';
+          }
+          // Framer motion / animations
+          if (id.includes('framer-motion')) {
+            return 'animations';
+          }
         },
       },
     },
@@ -29,6 +78,10 @@ export default defineConfig(({ mode }) => ({
     target: ['es2022', 'chrome100', 'firefox100', 'safari15'],
     // Increase chunk size warning limit
     chunkSizeWarningLimit: 600,
+    // Enable minification optimizations
+    minify: 'esbuild',
+    // Enable tree shaking
+    treeshake: true,
   },
   css: {
     postcss: {

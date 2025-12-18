@@ -1,10 +1,9 @@
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, useRef } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { analytics } from "@/lib/analytics";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLoader } from "@/components/AppLoader";
@@ -26,9 +25,18 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageTracker = () => {
   const location = useLocation();
+  const analyticsRef = useRef<typeof import("@/lib/analytics").analytics | null>(null);
   
   useEffect(() => {
-    analytics.pageView(location.pathname);
+    // Lazy load analytics module to reduce initial bundle
+    if (!analyticsRef.current) {
+      import("@/lib/analytics").then(({ analytics }) => {
+        analyticsRef.current = analytics;
+        analytics.pageView(location.pathname);
+      });
+    } else {
+      analyticsRef.current.pageView(location.pathname);
+    }
   }, [location.pathname]);
   
   return null;
