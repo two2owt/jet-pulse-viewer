@@ -367,12 +367,11 @@ const Index = () => {
             style={{ 
               height: 'calc(100dvh - 7rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
               minHeight: '400px',
-              contain: 'strict',
             }}
           >
 
-            {/* Mapbox Heatmap - Edge to edge with containment */}
-            <div className="map-wrapper animate-fade-in">
+            {/* Mapbox Heatmap - Edge to edge */}
+            <div className="h-full w-full animate-fade-in">
               {mapboxLoading && (
                 <div className="h-full w-full">
                   <MapSkeleton phase="token" />

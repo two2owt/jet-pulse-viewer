@@ -1481,10 +1481,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       style={{
         // Use dvh for dynamic viewport height on mobile (handles iOS Safari address bar)
         minHeight: isMobile ? '100dvh' : '500px',
-        // CSS containment for performance - prevents layout recalculations
-        contain: 'strict',
-        // Create new stacking context
-        isolation: 'isolate',
       }}
     >
       {/* Map Loading Skeleton with phase indicator */}
@@ -1505,12 +1501,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           WebkitOverflowScrolling: 'touch',
           opacity: mapInitializing ? 0 : 1,
           transition: 'opacity 0.3s ease-in-out',
-          // CSS containment for map canvas
-          contain: 'strict',
-          // GPU acceleration
-          transform: 'translateZ(0)',
-          willChange: 'contents',
-        }} 
+        }}
       />
 
       {/* City Selector with Current Location option - responsive for all devices */}
