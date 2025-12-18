@@ -360,7 +360,7 @@ const Index = () => {
         <OfflineBanner />
 
       {/* Main Content */}
-      <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 py-3 sm:py-4'}`}>
+      <main className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4'}`}>
         {activeTab === "map" && (
           <div 
             className="relative w-full"
