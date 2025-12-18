@@ -12,8 +12,21 @@ import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// Lazy load heavy components
-const MapboxHeatmap = lazy(() => import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap })));
+// Lazy load heavy components with delayed initialization to reduce FID
+const MapboxHeatmap = lazy(() => 
+  // Delay Mapbox loading to allow main thread to be interactive first
+  new Promise<{ default: typeof import("@/components/MapboxHeatmap").MapboxHeatmap }>(resolve => {
+    // Use requestIdleCallback to defer heavy module loading
+    const load = () => {
+      import("@/components/MapboxHeatmap").then(m => resolve({ default: m.MapboxHeatmap }));
+    };
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(load, { timeout: 1000 });
+    } else {
+      setTimeout(load, 100);
+    }
+  })
+);
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
 const ExploreTab = lazy(() => import("@/components/ExploreTab").then(m => ({ default: m.ExploreTab })));
 

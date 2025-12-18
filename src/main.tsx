@@ -6,8 +6,6 @@ import { Suspense, lazy } from "react";
 import App from "./App.tsx";
 import "./index.css";
 import { initSentry } from "@/lib/sentry";
-import { analytics } from "@/lib/analytics";
-import { initPrefetching } from "@/lib/prefetch";
 import { AppLoader } from "@/components/AppLoader";
 
 // Lazy load admin dashboard - rarely accessed
@@ -16,18 +14,44 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 // Initialize error monitoring immediately (critical)
 initSentry();
 
-// Defer analytics initialization to improve LCP
-if ('requestIdleCallback' in window) {
-  requestIdleCallback(() => {
-    analytics.init();
-    initPrefetching();
-  }, { timeout: 3000 });
-} else {
-  setTimeout(() => {
-    analytics.init();
-    initPrefetching();
-  }, 2000);
-}
+// Helper to yield to main thread and break up long tasks
+const yieldToMain = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if ('scheduler' in window && 'yield' in (window as any).scheduler) {
+      (window as any).scheduler.yield().then(resolve);
+    } else {
+      setTimeout(resolve, 0);
+    }
+  });
+};
+
+// Defer non-critical initialization after first paint
+const initNonCritical = async () => {
+  // Wait for first paint
+  await new Promise<void>((resolve) => {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => resolve(), { timeout: 5000 });
+    } else {
+      setTimeout(resolve, 3000);
+    }
+  });
+  
+  // Yield before analytics to break up long tasks
+  await yieldToMain();
+  
+  // Import and init analytics lazily
+  const { analytics } = await import("@/lib/analytics");
+  analytics.init();
+  
+  // Yield again before prefetching
+  await yieldToMain();
+  
+  const { initPrefetching } = await import("@/lib/prefetch");
+  initPrefetching();
+};
+
+// Start non-critical initialization
+initNonCritical();
 
 // Create QueryClient with optimized defaults
 const queryClient = new QueryClient({
