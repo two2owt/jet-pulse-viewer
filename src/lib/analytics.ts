@@ -1,42 +1,83 @@
-import mixpanel from "mixpanel-browser";
+import { supabase } from "@/integrations/supabase/client";
 
-const MIXPANEL_TOKEN = import.meta.env.VITE_MIXPANEL_TOKEN;
+// Generate a simple session ID for grouping events
+const getSessionId = (): string => {
+  let sessionId = sessionStorage.getItem('analytics_session_id');
+  if (!sessionId) {
+    sessionId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    sessionStorage.setItem('analytics_session_id', sessionId);
+  }
+  return sessionId;
+};
 
 class Analytics {
   private initialized = false;
+  private queue: Array<{ event_name: string; event_data: Record<string, unknown>; page_path: string }> = [];
+  private userId: string | null = null;
 
   init() {
-    if (MIXPANEL_TOKEN && !this.initialized) {
-      mixpanel.init(MIXPANEL_TOKEN, {
-        debug: import.meta.env.DEV,
-        track_pageview: true,
-        persistence: "localStorage",
-      });
+    if (!this.initialized) {
       this.initialized = true;
+      // Process any queued events
+      this.processQueue();
     }
   }
 
-  identify(userId: string, traits?: Record<string, any>) {
-    if (!this.initialized) return;
-    mixpanel.identify(userId);
+  private async processQueue() {
+    while (this.queue.length > 0) {
+      const event = this.queue.shift();
+      if (event) {
+        await this.sendEvent(event.event_name, event.event_data, event.page_path);
+      }
+    }
+  }
+
+  private async sendEvent(eventName: string, eventData: Record<string, unknown> = {}, pagePath?: string) {
+    try {
+      // Insert analytics event - using any type since table was just created
+      const client = supabase as unknown as { from: (table: string) => { insert: (data: unknown) => Promise<{ error: { message: string } | null }> } };
+      const { error } = await client.from('analytics_events').insert({
+        event_name: eventName,
+        event_data: eventData,
+        page_path: pagePath || window.location.pathname,
+        session_id: getSessionId(),
+        user_id: this.userId,
+      });
+      
+      if (error && import.meta.env.DEV) {
+        console.warn('Analytics event failed:', error.message);
+      }
+    } catch (e) {
+      // Silently fail - analytics should never break the app
+      if (import.meta.env.DEV) {
+        console.warn('Analytics error:', e);
+      }
+    }
+  }
+
+  identify(userId: string, traits?: Record<string, unknown>) {
+    this.userId = userId;
     if (traits) {
-      mixpanel.people.set(traits);
+      this.track("User Identified", traits);
     }
   }
 
-  track(eventName: string, properties?: Record<string, any>) {
-    if (!this.initialized) return;
-    mixpanel.track(eventName, properties);
+  track(eventName: string, properties?: Record<string, unknown>) {
+    if (!this.initialized) {
+      this.queue.push({ event_name: eventName, event_data: properties || {}, page_path: window.location.pathname });
+      return;
+    }
+    this.sendEvent(eventName, properties);
   }
 
-  pageView(pageName: string, properties?: Record<string, any>) {
+  pageView(pageName: string, properties?: Record<string, unknown>) {
     this.track("Page Viewed", {
       page: pageName,
       ...properties,
     });
   }
 
-  dealViewed(dealId: string, dealName: string, properties?: Record<string, any>) {
+  dealViewed(dealId: string, dealName: string, properties?: Record<string, unknown>) {
     this.track("Deal Viewed", {
       deal_id: dealId,
       deal_name: dealName,
@@ -73,8 +114,8 @@ class Analytics {
   }
 
   reset() {
-    if (!this.initialized) return;
-    mixpanel.reset();
+    this.userId = null;
+    sessionStorage.removeItem('analytics_session_id');
   }
 }
 
