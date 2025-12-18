@@ -1679,7 +1679,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             bottom: 'var(--map-fixed-bottom)',
             right: 'var(--map-ui-inset-right)',
             width: 'var(--map-control-max-width)',
-            maxHeight: 'calc(100vh - 280px)',
+            maxHeight: 'calc(100vh - 200px)',
           }}
         >
           {/* Paths Button - appears below Heat visually due to flex-col-reverse */}
@@ -1725,7 +1725,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           <div 
             className={`overflow-hidden overflow-y-auto scroll-smooth overscroll-contain transition-all duration-300 ease-out ${
               showMovementPaths 
-                ? 'max-h-[180px] opacity-100' 
+                ? 'max-h-[220px] opacity-100' 
                 : 'max-h-0 opacity-0'
             }`}
           >
@@ -1792,7 +1792,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           <div 
             className={`overflow-hidden overflow-y-auto scroll-smooth overscroll-contain transition-all duration-300 ease-out ${
               showDensityLayer 
-                ? 'max-h-[220px] opacity-100' 
+                ? 'max-h-[280px] opacity-100' 
                 : 'max-h-0 opacity-0'
             }`}
           >
@@ -1819,7 +1819,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               <div 
                 className={`overflow-hidden transition-all duration-300 ease-out ${
                   timelapseMode 
-                    ? 'max-h-[160px] opacity-100' 
+                    ? 'max-h-[200px] opacity-100' 
                     : 'max-h-0 opacity-0'
                 }`}
               >
