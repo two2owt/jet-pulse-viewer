@@ -360,9 +360,10 @@ All colors MUST be HSL.
     overflow: hidden;
     /* Force GPU layer to prevent repaints causing shifts */
     transform: translateZ(0);
-    will-change: contents;
     /* Explicit sizing prevents browser recalculation */
     box-sizing: border-box;
+    /* Create isolated stacking context to prevent shift propagation */
+    isolation: isolate;
   }
   
   /* Prevent pseudo-element animations from causing layout shifts in app-wrapper only */
@@ -418,7 +419,8 @@ All colors MUST be HSL.
     contain: strict;
     /* Force GPU layer to prevent repaints causing shifts */
     transform: translateZ(0);
-    will-change: contents;
+    /* Create isolated stacking context */
+    isolation: isolate;
     /* Explicit content-visibility for performance */
     content-visibility: auto;
     contain-intrinsic-size: 100vw 100dvh;
