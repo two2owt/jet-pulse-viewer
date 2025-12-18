@@ -340,10 +340,7 @@ const Index = () => {
       {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
       
       <div 
-        className={`bg-background ${activeTab === 'map' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}
-        style={{
-          paddingBottom: activeTab === 'map' ? '0' : 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
-        }}
+        className={`app-wrapper ${activeTab === 'map' ? 'map-container' : 'page-container'}`}
       >
         {/* Header */}
         <Header 
