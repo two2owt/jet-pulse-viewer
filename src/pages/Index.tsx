@@ -29,7 +29,7 @@ import { useVenueActivity } from "@/hooks/useVenueActivity";
 import { CITIES, type City } from "@/types/cities";
 import { Zap, Navigation, Map as MapIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import jetLogo from "@/assets/jet-logo.webp";
+import jetLogo from "@/assets/jet-logo-256.webp";
 import {
   Dialog,
   DialogContent,

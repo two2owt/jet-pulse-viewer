@@ -2,7 +2,7 @@ import { Download, X, Share, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useMultiDirectionSwipe } from "@/hooks/useMultiDirectionSwipe";
-import jetLogo from "@/assets/jet-logo.png";
+import jetLogo from "@/assets/jet-logo-256.webp";
 
 export const PWAInstallPrompt = () => {
   const { isInstallable, isInstalled, isIOS, showPrompt, installApp, dismissPrompt } = usePWAInstall();
