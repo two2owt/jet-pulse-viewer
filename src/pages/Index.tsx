@@ -365,7 +365,8 @@ const Index = () => {
         className={`${activeTab === 'map' ? 'w-full flex-1' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex-1'}`}
         style={{ 
           minHeight: activeTab === 'map' ? 'calc(100dvh - 7rem)' : 'auto',
-          contain: 'layout style',
+          contain: 'strict',
+          transform: 'translateZ(0)',
         }}
       >
         {activeTab === "map" && (
@@ -374,7 +375,8 @@ const Index = () => {
             style={{ 
               height: 'calc(100dvh - 7rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
               minHeight: '400px',
-              contain: 'layout style paint',
+              contain: 'strict',
+              transform: 'translateZ(0)',
             }}
           >
 

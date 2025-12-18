@@ -358,6 +358,16 @@ All colors MUST be HSL.
     /* CSS containment - layout changes don't affect parent */
     contain: layout style;
     overflow: hidden;
+    /* Prevent layout shift by reserving space immediately */
+    transform: translateZ(0);
+  }
+  
+  /* Prevent pseudo-element animations from causing layout shifts */
+  .app-wrapper::before,
+  .app-wrapper::after {
+    contain: strict;
+    position: absolute;
+    pointer-events: none;
   }
 
   /* Main content area - consistent across all pages */
@@ -398,6 +408,9 @@ All colors MUST be HSL.
     position: relative;
     /* Strict containment for map - prevents all layout recalculations */
     contain: strict;
+    /* Force GPU layer to prevent repaints causing shifts */
+    transform: translateZ(0);
+    will-change: transform;
   }
 
   /* Map wrapper - isolates map from parent layout changes */
