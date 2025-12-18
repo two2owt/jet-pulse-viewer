@@ -49,14 +49,15 @@ export const SearchResults = ({
         <CardContent className="p-4 space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between sticky top-0 bg-card pb-2 border-b border-border">
-            <h3 className="font-semibold text-foreground">
-              Search Results for "{query}"
+            <h3 className="font-semibold text-foreground text-sm sm:text-base">
+              Results for "{query}"
             </h3>
             <button 
               onClick={onClose}
-              className="w-8 h-8 rounded-full hover:bg-secondary/50 flex items-center justify-center transition-all"
+              className="w-10 h-10 sm:w-8 sm:h-8 -mr-2 sm:mr-0 rounded-full bg-secondary/50 hover:bg-secondary flex items-center justify-center transition-all active:scale-95"
+              aria-label="Close search results"
             >
-              <X className="w-5 h-5 text-muted-foreground" />
+              <X className="w-5 h-5 sm:w-4 sm:h-4 text-foreground" />
             </button>
           </div>
 
