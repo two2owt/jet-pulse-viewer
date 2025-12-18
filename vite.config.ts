@@ -279,21 +279,6 @@ export default defineConfig(({ mode }) => ({
               },
             },
           },
-          // Cache Mixpanel scripts
-          {
-            urlPattern: /^https:\/\/cdn\.mxpnl\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "mixpanel-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
         ],
       },
     }),
