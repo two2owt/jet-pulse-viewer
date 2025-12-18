@@ -1671,18 +1671,17 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Mobile Controls - Positioned to align with legend, expand upward */}
       {isMobile && (
         <div 
-          className={`fixed z-50 flex flex-col-reverse gap-2 transition-opacity ease-out ${
+          className={`fixed z-50 flex flex-col-reverse gap-2 ${
             mapLoaded && !selectedVenue 
-              ? 'opacity-100 duration-500 delay-150' 
-              : 'opacity-0 duration-200 delay-0 pointer-events-none'
+              ? 'visible' 
+              : 'invisible pointer-events-none'
           }`}
           style={{
             bottom: 'var(--map-fixed-bottom)',
             right: 'var(--map-ui-inset-right)',
             width: 'var(--map-control-max-width)',
             maxHeight: 'calc(100vh - 200px)',
-            willChange: 'opacity',
-            contain: 'layout style',
+            contain: 'strict',
           }}
         >
           {/* Paths Button - appears below Heat visually due to flex-col-reverse */}
@@ -1724,16 +1723,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             {showDensityLayer ? "Heat On" : "Heat Off"}
           </Button>
 
-          {/* Mobile Path Filter Controls - Show when Paths layer is active, expand upward with max height */}
+          {/* Mobile Path Filter Controls - Show when Paths layer is active */}
           <div 
-            className={`overflow-hidden overflow-y-auto scroll-smooth overscroll-contain transition-all duration-300 ease-out ${
+            className={`overflow-hidden transition-all duration-200 ${
               showMovementPaths 
-                ? 'max-h-[220px] opacity-100' 
-                : 'max-h-0 opacity-0'
+                ? 'max-h-[220px]' 
+                : 'max-h-0'
             }`}
-            style={{ contain: 'layout style', willChange: 'max-height, opacity' }}
+            style={{ contain: 'strict' }}
           >
-            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2 animate-scale-in">
+            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2">
               <div className="flex items-center justify-between text-[10px] font-semibold text-muted-foreground">
                 <span>Flow Filters</span>
                 {pathsLoading && (
@@ -1792,16 +1791,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             </div>
           </div>
 
-          {/* Mobile Filter Controls - Show when Heat layer is active, expand upward with max height */}
+          {/* Mobile Filter Controls - Show when Heat layer is active */}
           <div 
-            className={`overflow-hidden overflow-y-auto scroll-smooth overscroll-contain transition-all duration-300 ease-out ${
+            className={`overflow-hidden transition-all duration-200 ${
               showDensityLayer 
-                ? 'max-h-[280px] opacity-100' 
-                : 'max-h-0 opacity-0'
+                ? 'max-h-[280px]' 
+                : 'max-h-0'
             }`}
-            style={{ contain: 'layout style', willChange: 'max-height, opacity' }}
+            style={{ contain: 'strict' }}
           >
-            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2 animate-scale-in">
+            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2">
               {/* Time-lapse toggle */}
               <Button
                 onClick={() => {

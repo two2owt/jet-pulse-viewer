@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-// Use optimized WebP format - smaller version for display, larger for high-DPI
+// Use optimized 256px WebP format - matches display size exactly
 import jetLogo from "@/assets/jet-logo-256.webp";
-import jetLogoLarge from "@/assets/jet-logo.webp";
 import { Button } from "./ui/button";
 import { SkipForward } from "lucide-react";
 
@@ -13,23 +12,23 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Shorter intro for better Speed Index - 1.5s is enough for branding
+    // Very short intro - 800ms is enough for branding, prioritize content
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onComplete, 300); // Faster fade out
-    }, 1500);
+      setTimeout(onComplete, 200); // Very fast fade out
+    }, 800);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
 
   const handleSkip = () => {
     setIsVisible(false);
-    setTimeout(onComplete, 300);
+    setTimeout(onComplete, 200);
   };
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-300 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-200 ${
         isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
       style={{ contain: 'layout style paint' }}
@@ -59,14 +58,12 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
           >
             <img
               src={jetLogo}
-              srcSet={`${jetLogo} 256w, ${jetLogoLarge} 1024w`}
-              sizes="128px"
               alt="JET Logo"
-              className="w-32 h-32 object-contain animate-fade-in"
+              className="w-32 h-32 object-contain"
               width="128"
               height="128"
               fetchPriority="high"
-              decoding="async"
+              decoding="sync"
             />
           </div>
         </div>
