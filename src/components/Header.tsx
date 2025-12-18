@@ -104,7 +104,7 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
             className="flex items-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => navigate('/')}
           >
-            <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-foreground tracking-wider">
+            <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-foreground tracking-wider">
               JET
             </h1>
           </div>
