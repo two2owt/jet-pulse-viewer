@@ -112,8 +112,23 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   const [hourFilter, setHourFilter] = useState<number | undefined>();
   const [dayFilter, setDayFilter] = useState<number | undefined>();
-  const [lightPreset, setLightPreset] = useState<'dawn' | 'day' | 'dusk' | 'night'>('night');
-  const [monochromeVariant, setMonochromeVariant] = useState<'light' | 'dark'>('dark');
+  // Auto-detect time of day based on local time
+  const getTimeOfDayPreset = (): 'dawn' | 'day' | 'dusk' | 'night' => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 8) return 'dawn';
+    if (hour >= 8 && hour < 17) return 'day';
+    if (hour >= 17 && hour < 20) return 'dusk';
+    return 'night';
+  };
+  
+  const getMonochromeForTime = (): 'light' | 'dark' => {
+    const hour = new Date().getHours();
+    // Use light variant during daytime hours (7am - 7pm)
+    return (hour >= 7 && hour < 19) ? 'light' : 'dark';
+  };
+  
+  const [lightPreset, setLightPreset] = useState<'dawn' | 'day' | 'dusk' | 'night'>(getTimeOfDayPreset);
+  const [monochromeVariant, setMonochromeVariant] = useState<'light' | 'dark'>(getMonochromeForTime);
   const [show3DTerrain, setShow3DTerrain] = useState(false);
   
   // Time-lapse mode state
