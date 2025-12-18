@@ -17,28 +17,41 @@ export const AppLoader = ({ message = "Loading JET", showProgress = false }: App
       />
       
       <div className="relative flex flex-col items-center gap-4 px-4 z-10">
-        {/* Animated plane with glow */}
-        <div className="relative">
-          <div 
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--accent) / 0.1) 100%)',
-              boxShadow: '0 0 40px hsl(var(--primary) / 0.2)',
-            }}
+        {/* Progress circle with centered plane */}
+        <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
+          {/* Spinning progress ring */}
+          <svg 
+            className="absolute inset-0 w-full h-full"
+            viewBox="0 0 100 100"
+            style={{ animation: 'loader-spin 1.5s linear infinite' }}
           >
-            <Plane 
-              className="w-8 h-8 sm:w-10 sm:h-10 text-primary"
-              style={{ 
-                transform: 'rotate(-45deg)',
-                animation: 'loader-float 2s ease-in-out infinite',
-              }}
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="hsl(var(--primary) / 0.2)"
+              strokeWidth="4"
             />
-          </div>
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="hsl(var(--primary))"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeDasharray="70 213"
+            />
+          </svg>
           
-          {/* Pulsing ring */}
-          <div 
-            className="absolute inset-0 rounded-full border-2 border-primary/30"
-            style={{ animation: 'loader-pulse-ring 1.5s ease-out infinite' }}
+          {/* Centered plane icon */}
+          <Plane 
+            className="w-8 h-8 sm:w-10 sm:h-10 text-primary z-10"
+            style={{ 
+              transform: 'rotate(-45deg)',
+              animation: 'loader-float 2s ease-in-out infinite',
+            }}
           />
         </div>
         
@@ -60,11 +73,11 @@ export const AppLoader = ({ message = "Loading JET", showProgress = false }: App
       <style>{`
         @keyframes loader-float {
           0%, 100% { transform: rotate(-45deg) translateY(0); }
-          50% { transform: rotate(-45deg) translateY(-6px); }
+          50% { transform: rotate(-45deg) translateY(-4px); }
         }
-        @keyframes loader-pulse-ring {
-          0% { transform: scale(1); opacity: 0.5; }
-          100% { transform: scale(1.3); opacity: 0; }
+        @keyframes loader-spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       `}</style>
     </div>
