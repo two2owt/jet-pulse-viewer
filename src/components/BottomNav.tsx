@@ -25,6 +25,8 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
         paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.25rem)',
         paddingLeft: 'env(safe-area-inset-left, 0px)',
         paddingRight: 'env(safe-area-inset-right, 0px)',
+        minHeight: '56px',
+        contain: 'layout style',
       }}
     >
       <div className="max-w-7xl mx-auto px-1 sm:px-2">

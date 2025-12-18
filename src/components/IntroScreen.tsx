@@ -28,8 +28,9 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-500 ${
-        isVisible ? "opacity-100" : "opacity-0"
+        isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
+      style={{ contain: 'layout style paint' }}
     >
       <div className="relative flex items-center justify-center">
         {/* Neumorphism container */}

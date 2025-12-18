@@ -360,25 +360,32 @@ const Index = () => {
         <OfflineBanner />
 
       {/* Main Content */}
-      <main className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4'}`}>
+      <main 
+        className={`${activeTab === 'map' ? 'w-full flex-1' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex-1'}`}
+        style={{ 
+          minHeight: activeTab === 'map' ? 'calc(100dvh - 7rem)' : 'auto',
+          contain: 'layout style',
+        }}
+      >
         {activeTab === "map" && (
           <div 
-            className="relative w-full"
+            className="relative w-full h-full"
             style={{ 
               height: 'calc(100dvh - 7rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
               minHeight: '400px',
+              contain: 'layout style paint',
             }}
           >
 
             {/* Mapbox Heatmap - Edge to edge */}
-            <div className="h-full w-full animate-fade-in">
+            <div className="h-full w-full">
               {mapboxLoading && (
                 <div className="h-full w-full">
                   <MapSkeleton phase="token" />
                 </div>
               )}
               {mapboxError && (
-                <div className="h-full flex items-center justify-center bg-card animate-fade-in">
+                <div className="h-full flex items-center justify-center bg-card">
                   <div className="text-center space-y-1.5 sm:space-y-2">
                     <p className="text-xs sm:text-sm text-destructive font-medium">Failed to load map</p>
                     <p className="text-[10px] sm:text-xs text-muted-foreground">{mapboxError}</p>
