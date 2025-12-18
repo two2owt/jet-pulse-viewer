@@ -1739,10 +1739,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 }}
                 variant={timelapseMode ? "default" : "outline"}
                 size="sm"
-                className="w-full h-8 text-[10px] font-semibold transition-all duration-200"
+                className="w-full h-8 text-[10px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5"
               >
-                <Clock className="w-3 h-3 mr-1" />
-                {timelapseMode ? "Time-lapse On" : "Time-lapse"}
+                <Clock className="w-3 h-3 flex-shrink-0" />
+                <span>{timelapseMode ? "Time-lapse On" : "Time-lapse"}</span>
               </Button>
 
               {/* Time-lapse controls when active */}
