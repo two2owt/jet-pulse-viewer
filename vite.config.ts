@@ -104,6 +104,8 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      // Defer service worker registration to avoid render-blocking
+      injectRegister: null,
       includeAssets: ["favicon.ico", "jet-logo.png", "robots.txt"],
       manifest: {
         name: "JET - Discover What's Hot",

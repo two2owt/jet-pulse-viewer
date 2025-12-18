@@ -59,6 +59,12 @@ const initNonCritical = async () => {
   const { initPrefetching } = await import("@/lib/prefetch");
   await yieldToMain();
   initPrefetching();
+  
+  // Register service worker after all critical work is done
+  await yieldToMain();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+  }
 };
 
 // Start non-critical initialization after render
