@@ -1288,19 +1288,20 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       const activitySizeFactor = venue.activity >= 80 ? 1.3 : venue.activity >= 60 ? 1.15 : 1;
       const markerSize = baseSize * proximityFactor * activitySizeFactor;
 
-      // Create custom glassmorphic marker element via JavaScript
+      // Create custom marker element using Mapbox native anchor (no CSS overlay positioning)
+      // The element is structured so the pin tip is at the bottom-center
       const el = document.createElement("div");
       el.className = "venue-marker";
       el.style.cssText = `
-        width: ${markerSize}px;
-        height: ${markerSize * 1.4}px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         cursor: pointer;
-        position: relative;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         will-change: transform;
       `;
 
-      // Create pin element with improved visibility
+      // Create pin element - rotated square becomes a pin pointing down
       const pinEl = document.createElement('div');
       pinEl.style.cssText = `
         width: ${markerSize}px;
@@ -1318,10 +1319,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
         filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
         transform: rotate(-45deg);
-        position: absolute;
-        top: 0;
-        left: 50%;
-        margin-left: -${markerSize / 2}px;
+        transform-origin: center center;
       `;
 
       // Add activity indicator ring for high activity venues
@@ -1521,11 +1519,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           setTimeout(() => {
             const pinEl = el.querySelector('div') as HTMLElement;
             if (pinEl) {
-              el.style.width = `${newBaseSize}px`;
-              el.style.height = `${newBaseSize * 1.5}px`;
+              // Update pin size - no need for marginLeft since Mapbox handles anchor positioning
               pinEl.style.width = `${newBaseSize}px`;
               pinEl.style.height = `${newBaseSize}px`;
-              pinEl.style.marginLeft = `-${newBaseSize / 2}px`;
               
               const innerEl = pinEl.querySelector('div') as HTMLElement;
               if (innerEl) {
