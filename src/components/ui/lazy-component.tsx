@@ -150,6 +150,8 @@ interface LazyModuleProps<T extends ComponentType<any>> {
   fallback?: ReactNode;
   rootMargin?: string;
   props?: React.ComponentProps<T>;
+  /** Minimum height for the skeleton fallback to prevent layout shift */
+  minHeight?: string | number;
 }
 
 /**
@@ -161,6 +163,7 @@ export function LazyModule<T extends ComponentType<any>>({
   fallback,
   rootMargin = '300px',
   props,
+  minHeight = 128,
 }: LazyModuleProps<T>) {
   const [ref, isVisible] = useIntersectionObserver<HTMLDivElement>({
     rootMargin,
@@ -168,15 +171,23 @@ export function LazyModule<T extends ComponentType<any>>({
   });
 
   const LazyLoadedComponent = isVisible ? lazy(factory) : null;
+  const heightStyle = typeof minHeight === 'number' ? `${minHeight}px` : minHeight;
+  
+  const defaultFallback = (
+    <Skeleton 
+      className="w-full rounded-xl" 
+      style={{ height: heightStyle }}
+    />
+  );
 
   return (
-    <div ref={ref}>
+    <div ref={ref} style={{ minHeight: !isVisible ? heightStyle : undefined }}>
       {isVisible && LazyLoadedComponent ? (
-        <Suspense fallback={fallback || <Skeleton className="w-full h-32 rounded-xl" />}>
+        <Suspense fallback={fallback || defaultFallback}>
           <LazyLoadedComponent {...(props as any)} />
         </Suspense>
       ) : (
-        fallback || <Skeleton className="w-full h-32 rounded-xl" />
+        fallback || defaultFallback
       )}
     </div>
   );
