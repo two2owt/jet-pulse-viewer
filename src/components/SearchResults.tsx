@@ -44,12 +44,6 @@ export const SearchResults = ({
 
   return (
     <>
-      {/* Mobile backdrop overlay */}
-      <div 
-        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 sm:hidden"
-        onClick={onClose}
-      />
-      
       <div className="fixed sm:absolute top-[60px] sm:top-full left-2 right-2 sm:left-auto sm:right-0 mt-0 sm:mt-2 z-50 animate-fade-in sm:min-w-[320px] sm:max-w-[400px]">
         <Card className="max-h-[60vh] sm:max-h-[70vh] overflow-y-auto shadow-glow w-full">
         <CardContent className="p-4 space-y-4">
