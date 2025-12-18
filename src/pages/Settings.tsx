@@ -208,7 +208,7 @@ const Settings = () => {
                 onClick={() => navigate("/")}
                 className="hover:bg-muted w-8 h-8 sm:w-9 sm:h-9"
               >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
               </Button>
               <h1 className="text-fluid-xl font-bold text-foreground">Settings</h1>
             </div>
@@ -233,7 +233,7 @@ const Settings = () => {
                 onClick={() => navigate("/")}
                 className="hover:bg-muted"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-5 h-5 text-muted-foreground" />
               </Button>
               <h1 className="text-xl font-bold text-foreground">Settings</h1>
             </div>
@@ -265,7 +265,7 @@ const Settings = () => {
               onClick={() => navigate("/")}
               className="hover:bg-muted w-8 h-8 sm:w-9 sm:h-9"
             >
-              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
             </Button>
             <h1 className="text-fluid-xl font-bold text-foreground">Settings</h1>
           </div>
