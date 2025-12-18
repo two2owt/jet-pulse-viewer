@@ -12,18 +12,20 @@ import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// Lazy load heavy components with delayed initialization to reduce FID
+// Lazy load heavy components with aggressive deferral to reduce JS execution time
 const MapboxHeatmap = lazy(() => 
-  // Delay Mapbox loading to allow main thread to be interactive first
+  // Delay Mapbox loading significantly to allow main thread to be interactive first
   new Promise<{ default: typeof import("@/components/MapboxHeatmap").MapboxHeatmap }>(resolve => {
-    // Use requestIdleCallback to defer heavy module loading
     const load = () => {
       import("@/components/MapboxHeatmap").then(m => resolve({ default: m.MapboxHeatmap }));
     };
+    // Use requestIdleCallback with longer timeout, or setTimeout as fallback
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(load, { timeout: 1000 });
+      // Wait for idle with 2s timeout to ensure interactivity first
+      requestIdleCallback(load, { timeout: 2000 });
     } else {
-      setTimeout(load, 100);
+      // Longer delay for non-supporting browsers
+      setTimeout(load, 500);
     }
   })
 );
