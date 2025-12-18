@@ -1592,19 +1592,19 @@ All colors MUST be HSL.
     }
   }
 
-  /* Orb entrance animation - float up and fade in */
+  /* Orb entrance animation - scale up and fade in (no translate to preserve GPS anchor) */
   @keyframes orbFloatIn {
     0% {
       opacity: 0;
-      transform: translateY(16px) scale(0.7);
+      transform: scale(0.5);
     }
     60% {
       opacity: 1;
-      transform: translateY(-4px) scale(1.05);
+      transform: scale(1.08);
     }
     100% {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      transform: scale(1);
     }
   }
 

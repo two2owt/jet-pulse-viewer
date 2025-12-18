@@ -2746,27 +2746,27 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       <style>{`
         @keyframes pulse {
           0%, 100% {
-            transform: translate(-50%, 0) scale(1);
+            transform: scale(1);
             opacity: 1;
           }
           50% {
-            transform: translate(-50%, 0) scale(1.05);
+            transform: scale(1.05);
             opacity: 0.9;
           }
         }
         
         @keyframes bounce {
           0%, 100% {
-            transform: translateX(-50%) translateY(0);
+            transform: scale(1);
           }
           25% {
-            transform: translateX(-50%) translateY(-20px);
+            transform: scale(1.15);
           }
           50% {
-            transform: translateX(-50%) translateY(-10px);
+            transform: scale(0.95);
           }
           75% {
-            transform: translateX(-50%) translateY(-15px);
+            transform: scale(1.05);
           }
         }
         
@@ -2792,11 +2792,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         
         @keyframes heatmap-pulse {
           0%, 100% {
-            transform: translate(-50%, -50%) scale(1);
+            transform: scale(1);
             opacity: 0;
           }
           50% {
-            transform: translate(-50%, -50%) scale(1.2);
+            transform: scale(1.2);
             opacity: 0.3;
           }
         }
