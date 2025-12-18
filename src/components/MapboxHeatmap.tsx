@@ -1877,6 +1877,73 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               </div>
             </div>
           </div>
+
+          {/* Mobile Path Filter Controls - Show when Paths layer is active */}
+          <div 
+            className={`overflow-hidden transition-all duration-300 ease-out ${
+              showMovementPaths 
+                ? 'max-h-[300px] opacity-100' 
+                : 'max-h-0 opacity-0'
+            }`}
+          >
+            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2 animate-scale-in">
+              <div className="flex items-center justify-between text-[10px] font-semibold text-muted-foreground">
+                <span>Flow Filters</span>
+                {pathsLoading && (
+                  <div className="w-2.5 h-2.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                )}
+              </div>
+
+              {/* Error UI */}
+              {pathsError && (
+                <div className="flex items-center gap-1.5 p-1.5 bg-destructive/10 rounded text-[10px]">
+                  <AlertCircle className="w-3 h-3 text-destructive flex-shrink-0" />
+                  <span className="text-destructive truncate">Load failed</span>
+                  <Button onClick={refreshPaths} variant="ghost" size="sm" className="h-5 text-[9px] px-1.5 ml-auto">
+                    Retry
+                  </Button>
+                </div>
+              )}
+
+              {/* Time filter */}
+              <Select value={pathTimeFilter} onValueChange={(v: any) => setPathTimeFilter(v)}>
+                <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200">
+                  <SelectValue placeholder="Time" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="this_week">This Week</SelectItem>
+                  <SelectItem value="this_hour">This Hour</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Frequency slider */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-muted-foreground">Min. Frequency</span>
+                  <span className="font-semibold text-primary">{minPathFrequency}</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={minPathFrequency}
+                  onChange={(e) => setMinPathFrequency(parseInt(e.target.value))}
+                  className="path-flow-slider w-full"
+                />
+              </div>
+
+              {/* Stats */}
+              {pathData && (
+                <div className="flex items-center gap-2 text-[9px] text-muted-foreground pt-1 border-t border-border/30">
+                  <span>{pathData.stats.total_paths} paths</span>
+                  <span>•</span>
+                  <span>{pathData.stats.unique_users} users</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
