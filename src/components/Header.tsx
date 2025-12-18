@@ -87,13 +87,13 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
 
   return (
     <header 
-      className="bg-card/80 backdrop-blur-xl border-b border-border/30 fixed top-0 left-0 right-0 z-[60] header-contained"
+      className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] header-contained"
       style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
         // Fixed height prevents CLS during load
         height: 'calc(48px + env(safe-area-inset-top, 0px))',
         minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
-        contain: 'layout style',
+        contain: 'strict',
         transform: 'translateZ(0)',
       }}
     >
