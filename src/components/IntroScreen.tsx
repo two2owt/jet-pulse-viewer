@@ -23,10 +23,9 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
   const isDay = useMemo(() => isDaytime(), []);
 
   useEffect(() => {
-    // Very short intro - 800ms is enough for branding, prioritize content
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onComplete, 200); // Very fast fade out
+      setTimeout(onComplete, 200);
     }, 800);
 
     return () => clearTimeout(timer);
@@ -44,62 +43,13 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
       } ${isVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
       style={{ contain: 'layout style paint' }}
     >
-      <div className="relative flex items-center justify-center">
-        {/* Neumorphism container */}
-        <div
-          className={`relative rounded-[3rem] p-16 animate-pulse-glow ${isDay ? "bg-white" : "bg-black"}`}
-          style={{
-            boxShadow: isDay
-              ? `
-                20px 20px 60px rgba(0, 0, 0, 0.1),
-                -20px -20px 60px rgba(255, 255, 255, 0.8),
-                inset 5px 5px 10px rgba(0, 0, 0, 0.05),
-                inset -5px -5px 10px rgba(255, 255, 255, 0.5)
-              `
-              : `
-                20px 20px 60px rgba(0, 0, 0, 0.8),
-                -20px -20px 60px rgba(255, 255, 255, 0.05),
-                inset 5px 5px 10px rgba(0, 0, 0, 0.5),
-                inset -5px -5px 10px rgba(255, 255, 255, 0.03)
-              `,
-          }}
-        >
-          {/* Logo container with inner neumorphism */}
-          <div
-            className={`rounded-[2.5rem] p-12 animate-scale-in ${isDay ? "bg-white" : "bg-black"}`}
-            style={{
-              boxShadow: isDay
-                ? `
-                  inset 10px 10px 20px rgba(0, 0, 0, 0.05),
-                  inset -10px -10px 20px rgba(255, 255, 255, 0.8)
-                `
-                : `
-                  inset 10px 10px 20px rgba(0, 0, 0, 0.8),
-                  inset -10px -10px 20px rgba(255, 255, 255, 0.05)
-                `,
-            }}
-          >
-            <img
-              src={currentLogo}
-              alt="JET Logo"
-              className="w-32 h-32 object-contain"
-              width="128"
-              height="128"
-              fetchPriority="high"
-              decoding="sync"
-            />
-          </div>
-        </div>
-
-        {/* Glowing ring effect */}
-        <div
-          className="absolute inset-0 rounded-[3rem] animate-pulse"
-          style={{
-            background: `radial-gradient(circle, hsl(var(--primary) / 0.1) 0%, transparent 70%)`,
-            filter: "blur(20px)",
-          }}
-        />
-      </div>
+      <img
+        src={currentLogo}
+        alt="JET Logo"
+        className="w-full h-full object-contain animate-scale-in"
+        fetchPriority="high"
+        decoding="sync"
+      />
 
       {/* Skip Button */}
       <Button
