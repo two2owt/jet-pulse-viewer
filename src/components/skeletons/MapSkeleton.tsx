@@ -72,15 +72,16 @@ export const MapSkeleton = ({ phase = 'loading' }: MapSkeletonProps) => {
         }}
       />
       
-      {/* City selector skeleton */}
+      {/* City selector skeleton - matches SelectTrigger dimensions */}
       <div 
         className="absolute z-10"
         style={{
           top: 'var(--map-ui-inset-top, 1rem)',
           left: 'var(--map-ui-inset-left, 1rem)',
+          contain: 'layout style',
         }}
       >
-        <Skeleton className="h-8 sm:h-9 w-36 sm:w-44 rounded-lg" />
+        <Skeleton className="h-7 sm:h-8 md:h-9 lg:h-10 min-w-[120px] w-36 sm:w-44 rounded-lg" />
       </div>
       
       {/* Navigation controls skeleton (top-right) */}

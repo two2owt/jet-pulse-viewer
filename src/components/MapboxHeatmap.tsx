@@ -1506,13 +1506,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       {/* City Selector with Current Location option - responsive for all devices */}
       <div 
-        className={`absolute z-10 transition-all duration-500 ease-out ${
-          mapLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+        className={`absolute z-10 transition-opacity duration-300 ease-out ${
+          mapLoaded ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
           top: 'var(--map-ui-inset-top)',
           left: 'var(--map-ui-inset-left)',
           maxWidth: isMobile ? 'calc(100vw - 7rem)' : 'var(--map-control-max-width)',
+          contain: 'layout style',
         }}
       >
         <Select
@@ -1553,7 +1554,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             }
           }}
         >
-          <SelectTrigger className="w-auto text-[9px] sm:text-[10px] md:text-xs lg:text-sm h-7 sm:h-8 md:h-9 lg:h-10 px-2 sm:px-2.5 md:px-3">
+          <SelectTrigger className="w-auto min-w-[120px] text-[9px] sm:text-[10px] md:text-xs lg:text-sm h-7 sm:h-8 md:h-9 lg:h-10 px-2 sm:px-2.5 md:px-3">
             <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
               <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-primary flex-shrink-0" />
               <span className="font-semibold truncate max-w-[100px] sm:max-w-[140px] md:max-w-[180px]">
