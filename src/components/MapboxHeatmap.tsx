@@ -1694,28 +1694,28 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             }}
             variant={showDensityLayer ? "default" : "outline"}
             size="sm"
-            className={`w-full h-11 text-xs font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation ${
+            className={`w-full h-11 text-xs font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation flex items-center justify-center gap-2 ${
               showDensityLayer 
                 ? 'bg-primary text-primary-foreground shadow-primary/30' 
                 : 'bg-card/95 backdrop-blur-xl text-foreground border-border'
             }`}
           >
-            <Layers className="w-4 h-4 mr-2" />
-            {showDensityLayer ? "Heat On" : "Heat Off"}
+            <Layers className="w-4 h-4 flex-shrink-0" />
+            <span>{showDensityLayer ? "Heat On" : "Heat Off"}</span>
           </Button>
 
           <Button
             onClick={() => { triggerHaptic('medium'); setShowMovementPaths(!showMovementPaths); }}
             variant={showMovementPaths ? "default" : "outline"}
             size="sm"
-            className={`w-full h-11 text-xs font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation ${
+            className={`w-full h-11 text-xs font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation flex items-center justify-center gap-2 ${
               showMovementPaths 
                 ? 'bg-primary text-primary-foreground shadow-primary/30' 
                 : 'bg-card/95 backdrop-blur-xl text-foreground border-border'
             }`}
           >
-            <Route className="w-4 h-4 mr-2" />
-            {showMovementPaths ? "Paths On" : "Paths Off"}
+            <Route className="w-4 h-4 flex-shrink-0" />
+            <span>{showMovementPaths ? "Paths On" : "Paths Off"}</span>
           </Button>
 
           {/* Mobile Filter Controls - Show when Heat layer is active */}
@@ -1739,9 +1739,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 }}
                 variant={timelapseMode ? "default" : "outline"}
                 size="sm"
-                className="w-full h-8 text-[10px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5"
+                className="w-full h-9 text-[11px] font-semibold rounded-lg shadow-sm transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
               >
-                <Clock className="w-3 h-3 flex-shrink-0" />
+                <Clock className="w-3.5 h-3.5 flex-shrink-0" />
                 <span>{timelapseMode ? "Time-lapse On" : "Time-lapse"}</span>
               </Button>
 
@@ -1760,27 +1760,27 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                       onClick={() => { triggerHaptic('light'); timelapse.stepBackward(); }}
                       variant="outline"
                       size="sm"
-                      className="h-7 w-7 p-0 transition-transform duration-150 active:scale-90"
+                      className="h-8 w-8 p-0 rounded-lg transition-all duration-200 active:scale-95 flex items-center justify-center"
                       disabled={timelapse.isPlaying}
                     >
-                      <SkipBack className="w-3 h-3" />
+                      <SkipBack className="w-3.5 h-3.5 flex-shrink-0" />
                     </Button>
                     <Button
                       onClick={() => { triggerHaptic('medium'); timelapse.isPlaying ? timelapse.pause() : timelapse.play(); }}
                       variant={timelapse.isPlaying ? "default" : "outline"}
                       size="sm"
-                      className="h-7 flex-1 transition-all duration-200"
+                      className="h-8 flex-1 rounded-lg transition-all duration-200 active:scale-95 flex items-center justify-center"
                     >
-                      {timelapse.isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                      {timelapse.isPlaying ? <Pause className="w-3.5 h-3.5 flex-shrink-0" /> : <Play className="w-3.5 h-3.5 flex-shrink-0" />}
                     </Button>
                     <Button
                       onClick={() => { triggerHaptic('light'); timelapse.stepForward(); }}
                       variant="outline"
                       size="sm"
-                      className="h-7 w-7 p-0 transition-transform duration-150 active:scale-90"
+                      className="h-8 w-8 p-0 rounded-lg transition-all duration-200 active:scale-95 flex items-center justify-center"
                       disabled={timelapse.isPlaying}
                     >
-                      <SkipForward className="w-3 h-3" />
+                      <SkipForward className="w-3.5 h-3.5 flex-shrink-0" />
                     </Button>
                   </div>
 
@@ -1808,10 +1808,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                         onClick={() => timelapse.setSpeed(speed)}
                         variant={timelapse.speed === speed ? "default" : "outline"}
                         size="sm"
-                        className="h-6 flex-1 text-[9px] px-1 transition-all duration-200"
+                        className="h-7 flex-1 text-[10px] px-1.5 rounded-lg transition-all duration-200 active:scale-95 flex items-center justify-center font-semibold"
                         style={{ animationDelay: `${i * 50}ms` }}
                       >
-                        {speed === 2 ? '0.5x' : speed === 1 ? '1x' : '2x'}
+                        <span>{speed === 2 ? '0.5x' : speed === 1 ? '1x' : '2x'}</span>
                       </Button>
                     ))}
                   </div>
