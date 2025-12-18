@@ -690,27 +690,53 @@ All colors MUST be HSL.
     @apply flex items-center justify-between text-[10px] font-medium text-muted-foreground mb-1;
   }
 
-  /* Path flow compact slider */
+  /* Path flow compact slider - orange themed */
   .path-flow-slider {
     @apply w-full appearance-none bg-transparent cursor-pointer;
     height: 20px;
   }
 
   .path-flow-slider::-webkit-slider-runnable-track {
-    @apply w-full h-1 rounded-full bg-border;
+    @apply w-full rounded-full;
+    height: 6px;
+    background: linear-gradient(to right, hsl(var(--primary) / 0.3), hsl(var(--primary) / 0.5));
+    border: 1px solid hsl(var(--primary) / 0.3);
   }
 
   .path-flow-slider::-webkit-slider-thumb {
-    @apply appearance-none w-4 h-4 rounded-full bg-primary border-2 border-background shadow-sm;
+    @apply appearance-none rounded-full shadow-lg;
+    width: 16px;
+    height: 16px;
+    background: hsl(var(--primary));
+    border: 2px solid hsl(var(--background));
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.5);
     margin-top: -6px;
+    transform: translateY(0.5px);
+  }
+
+  .path-flow-slider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 12px hsl(var(--primary) / 0.7);
+    transform: translateY(0.5px) scale(1.1);
   }
 
   .path-flow-slider::-moz-range-track {
-    @apply w-full h-1 rounded-full bg-border;
+    @apply w-full rounded-full;
+    height: 6px;
+    background: linear-gradient(to right, hsl(var(--primary) / 0.3), hsl(var(--primary) / 0.5));
+    border: 1px solid hsl(var(--primary) / 0.3);
   }
 
   .path-flow-slider::-moz-range-thumb {
-    @apply w-4 h-4 rounded-full bg-primary border-2 border-background shadow-sm;
+    @apply rounded-full;
+    width: 16px;
+    height: 16px;
+    background: hsl(var(--primary));
+    border: 2px solid hsl(var(--background));
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.5);
+  }
+
+  .path-flow-slider::-moz-range-thumb:hover {
+    box-shadow: 0 0 12px hsl(var(--primary) / 0.7);
   }
 
   /* Compact control inline row */
