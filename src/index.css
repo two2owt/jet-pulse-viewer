@@ -354,6 +354,8 @@ All colors MUST be HSL.
     position: relative;
     flex: 1;
     background-color: hsl(var(--background));
+    /* CSS containment - layout changes don't affect parent */
+    contain: layout style;
   }
 
   /* Main content area - consistent across all pages */
@@ -364,6 +366,8 @@ All colors MUST be HSL.
     width: 100%;
     max-width: 100vw;
     position: relative;
+    /* CSS containment for performance */
+    contain: layout style;
   }
 
   /* Page container with bottom nav clearance */
@@ -372,9 +376,11 @@ All colors MUST be HSL.
     width: 100%;
     max-width: 100vw;
     padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+    /* CSS containment */
+    contain: layout style;
   }
 
-  /* Map page container - no scroll, full height */
+  /* Map page container - no scroll, full height with strict containment */
   .map-container {
     height: 100dvh;
     height: 100vh;
@@ -382,6 +388,41 @@ All colors MUST be HSL.
     max-width: 100vw;
     overflow: hidden;
     position: relative;
+    /* Strict containment for map - prevents all layout recalculations */
+    contain: strict;
+  }
+
+  /* Map wrapper - isolates map from parent layout changes */
+  .map-wrapper {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* Strict containment for the actual map element */
+    contain: strict;
+    /* Create new stacking context */
+    isolation: isolate;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: contents;
+  }
+
+  /* Card containment - prevents card updates from affecting layout */
+  .card-contained {
+    contain: layout style paint;
+  }
+
+  /* Header containment - prevents header updates from affecting body */
+  .header-contained {
+    contain: layout style;
+    /* Create stacking context */
+    isolation: isolate;
+  }
+
+  /* Bottom nav containment */
+  .nav-contained {
+    contain: layout style paint;
+    isolation: isolate;
   }
 }
 
