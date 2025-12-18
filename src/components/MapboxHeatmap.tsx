@@ -1721,7 +1721,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
           {/* Mobile Filter Controls - Show when Heat layer is active, expand upward with max height */}
           <div 
-            className={`overflow-hidden overflow-y-auto transition-all duration-300 ease-out ${
+            className={`overflow-hidden overflow-y-auto scroll-smooth overscroll-contain transition-all duration-300 ease-out ${
               showDensityLayer 
                 ? 'max-h-[280px] opacity-100' 
                 : 'max-h-0 opacity-0'
@@ -1881,7 +1881,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
           {/* Mobile Path Filter Controls - Show when Paths layer is active, expand upward with max height */}
           <div 
-            className={`overflow-hidden overflow-y-auto transition-all duration-300 ease-out ${
+            className={`overflow-hidden overflow-y-auto scroll-smooth overscroll-contain transition-all duration-300 ease-out ${
               showMovementPaths 
                 ? 'max-h-[220px] opacity-100' 
                 : 'max-h-0 opacity-0'
