@@ -11,8 +11,16 @@ import { AppLoader } from "@/components/AppLoader";
 // Lazy load admin dashboard - rarely accessed
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
-// Initialize error monitoring immediately (critical)
-initSentry();
+// Defer Sentry init to reduce main thread blocking
+const initCritical = () => {
+  // Use requestIdleCallback for non-urgent initialization
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => initSentry(), { timeout: 2000 });
+  } else {
+    setTimeout(() => initSentry(), 100);
+  }
+};
+initCritical();
 
 // Helper to yield to main thread and break up long tasks
 const yieldToMain = (): Promise<void> => {
@@ -20,38 +28,43 @@ const yieldToMain = (): Promise<void> => {
     if ('scheduler' in window && 'yield' in (window as any).scheduler) {
       (window as any).scheduler.yield().then(resolve);
     } else {
-      setTimeout(resolve, 0);
+      // Use multiple frames to ensure browser can render
+      requestAnimationFrame(() => setTimeout(resolve, 0));
     }
   });
 };
 
-// Defer non-critical initialization after first paint
+// Defer non-critical initialization significantly
 const initNonCritical = async () => {
-  // Wait for first paint
+  // Wait longer for first meaningful paint and user interaction
   await new Promise<void>((resolve) => {
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => resolve(), { timeout: 5000 });
+      requestIdleCallback(() => resolve(), { timeout: 8000 });
     } else {
-      setTimeout(resolve, 3000);
+      setTimeout(resolve, 5000);
     }
   });
   
   // Yield before analytics to break up long tasks
   await yieldToMain();
   
-  // Import and init analytics lazily
+  // Import and init analytics lazily in small chunks
   const { analytics } = await import("@/lib/analytics");
+  await yieldToMain();
   analytics.init();
   
   // Yield again before prefetching
   await yieldToMain();
   
   const { initPrefetching } = await import("@/lib/prefetch");
+  await yieldToMain();
   initPrefetching();
 };
 
-// Start non-critical initialization
-initNonCritical();
+// Start non-critical initialization after render
+requestAnimationFrame(() => {
+  initNonCritical();
+});
 
 // Create QueryClient with optimized defaults
 const queryClient = new QueryClient({
