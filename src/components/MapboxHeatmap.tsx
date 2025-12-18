@@ -1499,8 +1499,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           // Ensure proper touch handling for different mobile devices
           touchAction: isMobile ? 'manipulation' : 'none',
           WebkitOverflowScrolling: 'touch',
+          // Use opacity instead of display to prevent CLS
           opacity: mapInitializing ? 0 : 1,
-          transition: 'opacity 0.3s ease-in-out',
+          // Remove transition to prevent any layout shift timing issues
+          contain: 'strict',
         }}
       />
 
@@ -1668,20 +1670,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Collapsible>
       </div>
 
-      {/* Mobile Controls - Positioned to align with legend, expand upward */}
+      {/* Mobile Controls - Fixed position with stable dimensions to prevent CLS */}
       {isMobile && (
         <div 
-          className={`fixed z-50 flex flex-col-reverse gap-2 ${
-            mapLoaded && !selectedVenue 
-              ? 'visible' 
-              : 'invisible pointer-events-none'
-          }`}
+          className="fixed z-50 flex flex-col-reverse gap-2"
           style={{
             bottom: 'var(--map-fixed-bottom)',
             right: 'var(--map-ui-inset-right)',
             width: 'var(--map-control-max-width)',
             maxHeight: 'calc(100vh - 200px)',
             contain: 'strict',
+            // Use opacity + pointer-events instead of visibility to prevent CLS
+            opacity: mapLoaded && !selectedVenue ? 1 : 0,
+            pointerEvents: mapLoaded && !selectedVenue ? 'auto' : 'none',
+            // Prevent any layout shift by using transform
+            transform: 'translateZ(0)',
           }}
         >
           {/* Paths Button - appears below Heat visually due to flex-col-reverse */}
