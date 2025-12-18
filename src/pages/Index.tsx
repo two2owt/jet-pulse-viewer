@@ -378,7 +378,10 @@ const Index = () => {
           flex: '1 1 auto',
           minHeight: activeTab === 'map' ? 'calc(100dvh - 104px)' : '400px',
           height: activeTab === 'map' ? 'calc(100dvh - 104px)' : 'auto',
-          contain: 'strict',
+          // Use layout containment to prevent reflows from affecting siblings
+          contain: 'layout style paint',
+          contentVisibility: 'auto',
+          containIntrinsicSize: activeTab === 'map' ? '100vw calc(100dvh - 104px)' : '100vw 400px',
           // Create a stable layer
           transform: 'translateZ(0)',
           // Explicit sizing prevents browser recalculation
@@ -392,7 +395,9 @@ const Index = () => {
             style={{ 
               height: '100%',
               minHeight: '400px',
-              contain: 'strict',
+              contain: 'layout style paint',
+              contentVisibility: 'auto',
+              containIntrinsicSize: '100vw 400px',
               transform: 'translateZ(0)',
             }}
           >
