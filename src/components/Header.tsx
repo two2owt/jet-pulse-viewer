@@ -87,7 +87,7 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
 
   return (
     <header 
-      className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-40"
+      className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-40 header-contained"
       style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
