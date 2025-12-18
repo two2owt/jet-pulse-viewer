@@ -128,7 +128,7 @@ export const SyncStatusIndicator = ({
       const hours = Math.floor(minutes / 60);
 
       if (seconds < 10) {
-        setTimeSinceUpdate("Just landed");
+        setTimeSinceUpdate("Just now");
       } else if (seconds < 60) {
         setTimeSinceUpdate(`${seconds}s ago`);
       } else if (minutes < 60) {
@@ -256,7 +256,7 @@ export const SyncStatusIndicator = ({
                   "text-[8px] sm:text-[9px] md:text-[10px] text-muted-foreground whitespace-nowrap",
                   showSuccessFlash && "animate-fade-in"
                 )}>
-                  {timeSinceUpdate || "Just landed"}
+                  {showSuccessFlash ? "Just landed" : (timeSinceUpdate || "Just now")}
                 </span>
               </div>
             </div>
