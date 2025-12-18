@@ -351,6 +351,8 @@ const Index = () => {
           minHeight: '100dvh',
           contain: 'strict',
           transform: 'translateZ(0)',
+          // Isolate stacking context to prevent shift propagation
+          isolation: 'isolate',
         }}
       >
         {/* Header */}
@@ -378,8 +380,8 @@ const Index = () => {
           flex: '1 1 auto',
           minHeight: activeTab === 'map' ? 'calc(100dvh - 104px)' : '400px',
           height: activeTab === 'map' ? 'calc(100dvh - 104px)' : 'auto',
-          // Use layout containment to prevent reflows from affecting siblings
-          contain: 'layout style paint',
+          // Strict size containment prevents content from affecting layout
+          contain: 'size layout style paint',
           contentVisibility: 'auto',
           containIntrinsicSize: activeTab === 'map' ? '100vw calc(100dvh - 104px)' : '100vw 400px',
           // Create a stable layer
@@ -387,6 +389,8 @@ const Index = () => {
           // Explicit sizing prevents browser recalculation
           boxSizing: 'border-box',
           width: '100%',
+          // Isolate stacking context
+          isolation: 'isolate',
         }}
       >
         {activeTab === "map" && (
