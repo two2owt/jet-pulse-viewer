@@ -1340,146 +1340,113 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         }
       });
 
-      // Adjust size based on proximity and activity level
-      const proximityFactor = nearbyCount > 0 ? Math.max(0.75, 1 - (nearbyCount * 0.1)) : 1;
-      const activitySizeFactor = venue.activity >= 80 ? 1.3 : venue.activity >= 60 ? 1.15 : 1;
-      const markerSize = baseSize * proximityFactor * activitySizeFactor;
+      // Adjust size based on proximity - smaller markers to reduce congestion
+      const proximityFactor = nearbyCount > 0 ? Math.max(0.8, 1 - (nearbyCount * 0.05)) : 1;
+      const activitySizeFactor = venue.activity >= 80 ? 1.1 : venue.activity >= 60 ? 1.05 : 1;
+      const markerSize = Math.min(28, baseSize * 0.75) * proximityFactor * activitySizeFactor;
+      const markerHeight = markerSize * 1.4;
 
-      // Create glassmorphic orb marker element with entrance animation
-      const staggerDelay = (index % 30) * 40; // Staggered entrance, cycles every 30 markers
+      // Create teardrop marker element with entrance animation
+      const staggerDelay = (index % 30) * 30;
       const el = document.createElement("div");
       el.className = "venue-marker";
       el.style.cssText = `
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
         cursor: pointer;
         will-change: opacity;
         opacity: 0;
-        animation: orbFloatIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${staggerDelay}ms forwards;
+        animation: markerFadeIn 0.4s ease-out ${staggerDelay}ms forwards;
       `;
 
-      // Create glassmorphic orb container
-      const orbEl = document.createElement('div');
-      orbEl.style.cssText = `
+      // Create teardrop pin container
+      const pinEl = document.createElement('div');
+      pinEl.style.cssText = `
+        width: ${markerSize}px;
+        height: ${markerHeight}px;
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        transition: transform 0.2s ease;
+      `;
+
+      // Create teardrop shape using CSS
+      const teardropEl = document.createElement('div');
+      teardropEl.style.cssText = `
         width: ${markerSize}px;
         height: ${markerSize}px;
-        border-radius: 50%;
         background: linear-gradient(
-          135deg, 
-          rgba(255, 255, 255, 0.25) 0%, 
-          rgba(255, 255, 255, 0.05) 50%,
-          rgba(0, 0, 0, 0.1) 100%
+          180deg, 
+          ${color} 0%, 
+          ${color}dd 60%,
+          ${color}aa 100%
         );
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1.5px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
-        overflow: visible;
-        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      `;
-
-      // Add inner glow based on activity level
-      const glowIntensity = venue.activity >= 80 ? 0.8 : venue.activity >= 60 ? 0.5 : 0.3;
-      const glowSize = venue.activity >= 80 ? 20 : venue.activity >= 60 ? 14 : 8;
-      orbEl.style.boxShadow = `
-        0 0 ${glowSize}px ${color}${Math.round(glowIntensity * 100).toString(16).padStart(2, '0')},
-        0 4px 20px rgba(0, 0, 0, 0.3),
-        inset 0 1px 2px rgba(255, 255, 255, 0.4),
-        inset 0 -2px 6px rgba(0, 0, 0, 0.15)
-      `;
-
-      // Add pulsing glow ring for high activity
-      if (venue.activity >= 80) {
-        const pulseRing = document.createElement('div');
-        pulseRing.style.cssText = `
-          position: absolute;
-          inset: -4px;
-          border-radius: 50%;
-          border: 2px solid ${color};
-          opacity: 0;
-          animation: orbPulse 2s ease-out infinite;
-        `;
-        orbEl.appendChild(pulseRing);
-      } else if (venue.activity >= 60) {
-        const pulseRing = document.createElement('div');
-        pulseRing.style.cssText = `
-          position: absolute;
-          inset: -3px;
-          border-radius: 50%;
-          border: 1.5px solid ${color};
-          opacity: 0;
-          animation: orbPulse 2.5s ease-out infinite;
-        `;
-        orbEl.appendChild(pulseRing);
-      }
-
-      // Create inner colored core
-      const coreEl = document.createElement('div');
-      const coreSize = markerSize * 0.55;
-      coreEl.style.cssText = `
-        width: ${coreSize}px;
-        height: ${coreSize}px;
-        border-radius: 50%;
-        background: radial-gradient(
-          circle at 30% 30%,
-          ${color}ff 0%,
-          ${color}dd 40%,
-          ${color}aa 100%
-        );
+        border: 2px solid rgba(255, 255, 255, 0.4);
         box-shadow: 
-          0 2px 8px ${color}60,
-          inset 0 2px 4px rgba(255, 255, 255, 0.4),
-          inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+          0 3px 10px rgba(0, 0, 0, 0.3),
+          0 0 8px ${color}60,
+          inset 0 2px 4px rgba(255, 255, 255, 0.3);
+      `;
+
+      // Create inner circle for icon
+      const innerCircle = document.createElement('div');
+      const innerSize = markerSize * 0.5;
+      innerCircle.style.cssText = `
+        width: ${innerSize}px;
+        height: ${innerSize}px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.95);
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s ease;
+        transform: rotate(45deg);
       `;
 
-      // Add category icon
-      coreEl.innerHTML = `
-        <svg width="${coreSize * 0.55}" height="${coreSize * 0.55}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-          <circle cx="12" cy="10" r="3"></circle>
-        </svg>
+      // Add simple dot indicator
+      innerCircle.innerHTML = `
+        <div style="
+          width: ${innerSize * 0.5}px;
+          height: ${innerSize * 0.5}px;
+          border-radius: 50%;
+          background: ${color};
+        "></div>
       `;
 
-      orbEl.appendChild(coreEl);
-      el.appendChild(orbEl);
+      teardropEl.appendChild(innerCircle);
+      pinEl.appendChild(teardropEl);
+      el.appendChild(pinEl);
 
-      // Enhanced hover effects - scale the orb, not the wrapper (to preserve Mapbox anchor)
+      // Hover effects - only visual enhancement, no position change
       el.addEventListener("mouseenter", () => {
         el.style.zIndex = "100";
-        orbEl.style.transform = "scale(1.2)";
-        orbEl.style.boxShadow = `
-          0 0 ${glowSize * 1.8}px ${color}cc,
-          0 8px 32px rgba(0, 0, 0, 0.4),
-          inset 0 1px 2px rgba(255, 255, 255, 0.5),
-          inset 0 -2px 6px rgba(0, 0, 0, 0.2)
+        teardropEl.style.boxShadow = `
+          0 4px 14px rgba(0, 0, 0, 0.4),
+          0 0 12px ${color}80,
+          inset 0 2px 4px rgba(255, 255, 255, 0.4)
         `;
-        coreEl.style.transform = "scale(1.1)";
       });
 
       el.addEventListener("mouseleave", () => {
         el.style.zIndex = "";
-        orbEl.style.transform = "scale(1)";
-        orbEl.style.boxShadow = `
-          0 0 ${glowSize}px ${color}${Math.round(glowIntensity * 100).toString(16).padStart(2, '0')},
-          0 4px 20px rgba(0, 0, 0, 0.3),
-          inset 0 1px 2px rgba(255, 255, 255, 0.4),
-          inset 0 -2px 6px rgba(0, 0, 0, 0.15)
+        teardropEl.style.boxShadow = `
+          0 3px 10px rgba(0, 0, 0, 0.3),
+          0 0 8px ${color}60,
+          inset 0 2px 4px rgba(255, 255, 255, 0.3)
         `;
-        coreEl.style.transform = "scale(1)";
       });
 
-      // Create marker with center anchor for circular glassmorphic orbs
+      // Create marker with bottom anchor for teardrop (pin point at GPS location)
       const marker = new mapboxgl.Marker({
         element: el,
-        anchor: 'center'
+        anchor: 'bottom'
       })
         .setLngLat([venue.lng, venue.lat])
         .addTo(mapInstance);
@@ -1529,19 +1496,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       // Attach popup to marker
       marker.setPopup(popup);
 
-      // Handle click on the marker element - bounce animation + open venue card
+      // Handle click on the marker element
       el.addEventListener("click", (e) => {
         e.stopPropagation();
         
         // Haptic feedback for venue selection
         triggerHaptic('medium');
-        
-        // Bounce animation on the orb
-        orbEl.style.animation = "bounce 0.6s ease-out";
-        setTimeout(() => {
-          // Restore pulse animation after bounce for high activity venues
-          orbEl.style.animation = "";
-        }, 600);
         
         // Open venue card
         onVenueSelect(venue);
