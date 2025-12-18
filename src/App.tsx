@@ -21,6 +21,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const VerificationSuccess = lazy(() => import("./pages/VerificationSuccess"));
+const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageTracker = () => {
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/social" element={<Social />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/verification-success" element={<VerificationSuccess />} />
+              <Route path="/investor-deck" element={<InvestorDeck />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
