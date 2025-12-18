@@ -1445,30 +1445,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         pointer-events: none;
       `;
 
-      // Create inner content holder (rotated back to normal)
-      const innerContent = document.createElement('div');
-      innerContent.style.cssText = `
-        transform: rotate(45deg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-      `;
-
-      // Add activity dot indicator
-      const dotSize = markerSize * 0.35;
-      innerContent.innerHTML = `
-        <div style="
-          width: ${dotSize}px;
-          height: ${dotSize}px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent, var(--primary))));
-          box-shadow: 0 0 ${venue.activity >= 60 ? '8px' : '4px'} hsl(var(--primary) / 0.5);
-        "></div>
-      `;
-
-      teardropEl.appendChild(innerContent);
       pinEl.appendChild(ringEl);
       pinEl.appendChild(teardropEl);
       pinEl.appendChild(borderWrapper);
