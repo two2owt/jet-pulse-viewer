@@ -265,17 +265,23 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         map.current.on('style.load', () => {
           if (!map.current) return;
           
-          // Configure Standard style with dynamic lighting
-          // Standard style includes built-in 3D buildings, landmarks, and dynamic lighting
+          // Configure Standard style with dynamic lighting and native POI markers
+          // Standard style includes built-in 3D buildings, landmarks, POI icons, and dynamic lighting
           try {
             // Set the light preset for dynamic lighting (dawn, day, dusk, night)
             map.current.setConfigProperty('basemap', 'lightPreset', 'night');
             
-            // Enable 3D landmark buildings (Standard style feature)
+            // Enable native POI markers and labels (Standard style feature)
             map.current.setConfigProperty('basemap', 'showPointOfInterestLabels', true);
             map.current.setConfigProperty('basemap', 'showTransitLabels', true);
             map.current.setConfigProperty('basemap', 'showPlaceLabels', true);
             map.current.setConfigProperty('basemap', 'showRoadLabels', true);
+            
+            // Enable 3D landmark icons for enhanced visual experience
+            map.current.setConfigProperty('basemap', 'showLandmarkIcons', true);
+            
+            // Configure POI density and styling
+            map.current.setConfigProperty('basemap', 'theme', 'default');
           } catch (e) {
             // Config properties may not be available in all style versions
             console.log('Standard style config not fully available:', e);
