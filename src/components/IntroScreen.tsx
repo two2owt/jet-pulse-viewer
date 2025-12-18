@@ -46,10 +46,26 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
       <img
         src={currentLogo}
         alt="JET Logo"
-        className="w-full h-full object-contain animate-scale-in"
+        className="w-full h-full object-contain"
+        style={{
+          animation: 'introZoomFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        }}
         fetchPriority="high"
         decoding="sync"
       />
+      
+      <style>{`
+        @keyframes introZoomFade {
+          0% {
+            opacity: 0;
+            transform: scale(0.85);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
 
       {/* Skip Button */}
       <Button
