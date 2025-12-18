@@ -380,18 +380,21 @@ const Index = () => {
         {/* Offline Banner */}
         <OfflineBanner />
 
-      {/* Main Content - Reserve height immediately to prevent CLS */}
+      {/* Main Content - Map extends full height, other tabs have header spacing */}
       <main 
         className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4'}`}
         style={{ 
-          // Fixed dimensions prevent layout shifts - use flex-grow instead of flex-1 class
+          // Fixed dimensions prevent layout shifts
           flex: '1 1 auto',
-          minHeight: activeTab === 'map' ? 'calc(100dvh - 104px)' : '400px',
-          height: activeTab === 'map' ? 'calc(100dvh - 104px)' : 'auto',
+          // Map takes full viewport, other tabs account for fixed header
+          minHeight: activeTab === 'map' ? '100dvh' : '400px',
+          height: activeTab === 'map' ? '100dvh' : 'auto',
+          // Add top padding for non-map tabs to clear fixed header
+          paddingTop: activeTab === 'map' ? '0' : 'calc(48px + env(safe-area-inset-top, 0px))',
           // Strict size containment prevents content from affecting layout
           contain: 'size layout style paint',
           contentVisibility: 'auto',
-          containIntrinsicSize: activeTab === 'map' ? '100vw calc(100dvh - 104px)' : '100vw 400px',
+          containIntrinsicSize: activeTab === 'map' ? '100vw 100dvh' : '100vw 400px',
           // Create a stable layer
           transform: 'translateZ(0)',
           // Explicit sizing prevents browser recalculation
