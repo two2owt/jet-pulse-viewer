@@ -504,47 +504,122 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     map.current.setStyle(styleUrl);
   }, [mapStyle, mapLoaded]);
 
-  // Handle dynamic lighting preset changes
+  // Handle dynamic lighting preset changes with smooth animated transitions
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     
+    const mapInstance = map.current;
+    
+    // Fog configurations for each light preset
+    const fogConfigs: Record<string, { color: string; highColor: string; horizonBlend: number; spaceColor: string; starIntensity: number }> = {
+      dawn: {
+        color: 'rgb(255, 200, 150)',
+        highColor: 'rgb(200, 150, 120)',
+        horizonBlend: 0.08,
+        spaceColor: 'rgb(50, 30, 40)',
+        starIntensity: 0.05,
+      },
+      day: {
+        color: 'rgb(220, 230, 240)',
+        highColor: 'rgb(180, 200, 230)',
+        horizonBlend: 0.1,
+        spaceColor: 'rgb(100, 150, 200)',
+        starIntensity: 0,
+      },
+      dusk: {
+        color: 'rgb(180, 100, 80)',
+        highColor: 'rgb(120, 80, 100)',
+        horizonBlend: 0.08,
+        spaceColor: 'rgb(30, 20, 40)',
+        starIntensity: 0.1,
+      },
+      night: {
+        color: 'rgb(10, 10, 15)',
+        highColor: 'rgb(30, 20, 40)',
+        horizonBlend: 0.05,
+        spaceColor: 'rgb(5, 5, 10)',
+        starIntensity: 0.2,
+      },
+    };
+    
+    // Helper to parse RGB string to array
+    const parseRgb = (rgb: string): [number, number, number] => {
+      const match = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (match) {
+        return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])];
+      }
+      return [0, 0, 0];
+    };
+    
+    // Helper to interpolate between two RGB colors
+    const lerpRgb = (from: [number, number, number], to: [number, number, number], t: number): string => {
+      const r = Math.round(from[0] + (to[0] - from[0]) * t);
+      const g = Math.round(from[1] + (to[1] - from[1]) * t);
+      const b = Math.round(from[2] + (to[2] - from[2]) * t);
+      return `rgb(${r}, ${g}, ${b})`;
+    };
+    
+    // Helper to interpolate between two numbers
+    const lerp = (from: number, to: number, t: number): number => {
+      return from + (to - from) * t;
+    };
+    
+    // Easing function for smooth animation
+    const easeInOutCubic = (t: number): number => {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    };
+    
     try {
-      // Apply the light preset for dynamic lighting
-      map.current.setConfigProperty('basemap', 'lightPreset', lightPreset);
+      // Apply the light preset for dynamic lighting (instant, handled by Mapbox)
+      mapInstance.setConfigProperty('basemap', 'lightPreset', lightPreset);
       
-      // Update fog based on light preset
-      const fogConfigs: Record<string, any> = {
-        dawn: {
-          color: 'rgb(255, 200, 150)',
-          'high-color': 'rgb(200, 150, 120)',
-          'horizon-blend': 0.08,
-          'space-color': 'rgb(50, 30, 40)',
-          'star-intensity': 0.05,
-        },
-        day: {
-          color: 'rgb(220, 230, 240)',
-          'high-color': 'rgb(180, 200, 230)',
-          'horizon-blend': 0.1,
-          'space-color': 'rgb(100, 150, 200)',
-          'star-intensity': 0,
-        },
-        dusk: {
-          color: 'rgb(180, 100, 80)',
-          'high-color': 'rgb(120, 80, 100)',
-          'horizon-blend': 0.08,
-          'space-color': 'rgb(30, 20, 40)',
-          'star-intensity': 0.1,
-        },
-        night: {
-          color: 'rgb(10, 10, 15)',
-          'high-color': 'rgb(30, 20, 40)',
-          'horizon-blend': 0.05,
-          'space-color': 'rgb(5, 5, 10)',
-          'star-intensity': 0.2,
-        },
+      // Get current fog state (approximate from previous preset or default to night)
+      const targetConfig = fogConfigs[lightPreset];
+      
+      // Animate fog transition over 1.5 seconds
+      const duration = 1500;
+      const startTime = performance.now();
+      let animationFrame: number;
+      
+      // Get starting values (we'll interpolate from current state)
+      const currentFog = mapInstance.getFog();
+      const startColor = currentFog?.color ? parseRgb(currentFog.color as string) : parseRgb(fogConfigs.night.color);
+      const startHighColor = currentFog?.['high-color'] ? parseRgb(currentFog['high-color'] as string) : parseRgb(fogConfigs.night.highColor);
+      const startSpaceColor = currentFog?.['space-color'] ? parseRgb(currentFog['space-color'] as string) : parseRgb(fogConfigs.night.spaceColor);
+      const startHorizonBlend = (currentFog?.['horizon-blend'] as number) ?? fogConfigs.night.horizonBlend;
+      const startStarIntensity = (currentFog?.['star-intensity'] as number) ?? fogConfigs.night.starIntensity;
+      
+      const targetColor = parseRgb(targetConfig.color);
+      const targetHighColor = parseRgb(targetConfig.highColor);
+      const targetSpaceColor = parseRgb(targetConfig.spaceColor);
+      
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const rawProgress = Math.min(elapsed / duration, 1);
+        const progress = easeInOutCubic(rawProgress);
+        
+        const interpolatedFog = {
+          color: lerpRgb(startColor, targetColor, progress),
+          'high-color': lerpRgb(startHighColor, targetHighColor, progress),
+          'horizon-blend': lerp(startHorizonBlend, targetConfig.horizonBlend, progress),
+          'space-color': lerpRgb(startSpaceColor, targetSpaceColor, progress),
+          'star-intensity': lerp(startStarIntensity, targetConfig.starIntensity, progress),
+        };
+        
+        mapInstance.setFog(interpolatedFog);
+        
+        if (rawProgress < 1) {
+          animationFrame = requestAnimationFrame(animate);
+        }
       };
       
-      map.current.setFog(fogConfigs[lightPreset]);
+      animationFrame = requestAnimationFrame(animate);
+      
+      return () => {
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+        }
+      };
     } catch (e) {
       console.log('Light preset configuration not available:', e);
     }
