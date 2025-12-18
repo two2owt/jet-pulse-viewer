@@ -121,13 +121,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     return 'night';
   };
   
-  const getDefaultMapStyle = (): 'light' | 'dark' | 'streets' | 'satellite' => {
-    const hour = new Date().getHours();
-    // Use light variant during daytime hours (7am - 7pm)
-    return (hour >= 7 && hour < 19) ? 'light' : 'dark';
-  };
-  
-  const [mapStyle, setMapStyle] = useState<'light' | 'dark' | 'streets' | 'satellite'>(getDefaultMapStyle);
+  const [mapStyle, setMapStyle] = useState<'light' | 'dark' | 'streets' | 'satellite'>('dark');
   const [lightPreset, setLightPreset] = useState<'dawn' | 'day' | 'dusk' | 'night'>(getTimeOfDayPreset);
   const [show3DTerrain, setShow3DTerrain] = useState(false);
   
@@ -1886,24 +1880,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                       className="h-6 sm:h-7 text-[8px] sm:text-[9px] md:text-[10px] px-1 sm:px-1.5 capitalize"
                     >
                       {style}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Time of Day Lighting Presets */}
-              <div className="space-y-1">
-                <span className="text-[8px] sm:text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Lighting</span>
-                <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
-                  {(['dawn', 'day', 'dusk', 'night'] as const).map((preset) => (
-                    <Button
-                      key={preset}
-                      onClick={() => { triggerHaptic('light'); setLightPreset(preset); }}
-                      variant={lightPreset === preset ? "default" : "outline"}
-                      size="sm"
-                      className="h-6 sm:h-7 text-[8px] sm:text-[9px] md:text-[10px] px-1 sm:px-1.5 capitalize"
-                    >
-                      {preset}
                     </Button>
                   ))}
                 </div>
