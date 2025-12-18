@@ -28,6 +28,18 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('@tanstack/react-query')) {
             return 'vendor-query';
           }
+          // Supabase - split into separate chunk
+          if (id.includes('@supabase/supabase-js') || id.includes('@supabase/')) {
+            return 'supabase';
+          }
+          // Sentry - error monitoring, load deferred
+          if (id.includes('@sentry/')) {
+            return 'sentry';
+          }
+          // Sonner/toast - deferred loading
+          if (id.includes('sonner')) {
+            return 'toasts';
+          }
           // Mapbox - heavy, load on demand
           if (id.includes('mapbox-gl')) {
             return 'mapbox';
@@ -47,6 +59,9 @@ export default defineConfig(({ mode }) => ({
           }
           if (id.includes('@radix-ui/react-switch') || id.includes('@radix-ui/react-checkbox') || id.includes('@radix-ui/react-radio-group')) {
             return 'ui-inputs';
+          }
+          if (id.includes('@radix-ui/react-toast')) {
+            return 'toasts';
           }
           if (id.includes('@radix-ui')) {
             return 'ui-core';
@@ -70,6 +85,10 @@ export default defineConfig(({ mode }) => ({
           // Framer motion / animations
           if (id.includes('framer-motion')) {
             return 'animations';
+          }
+          // Next-themes - theme management
+          if (id.includes('next-themes')) {
+            return 'theme';
           }
         },
       },

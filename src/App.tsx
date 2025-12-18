@@ -1,12 +1,16 @@
-import { Suspense, lazy, useEffect, useRef } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLoader } from "@/components/AppLoader";
+
+// Lazy load toaster components - not needed until a toast is triggered
+const Toaster = lazy(() => import("@/components/ui/toaster").then(m => ({ default: m.Toaster })));
+const Sonner = lazy(() => import("@/components/ui/sonner").then(m => ({ default: m.Toaster })));
+
+// Lazy load PWA prompt - only needed after initial render
+const PWAInstallPrompt = lazy(() => import("@/components/PWAInstallPrompt").then(m => ({ default: m.PWAInstallPrompt })));
 
 // Lazy load pages for better performance with webpack magic comments for prefetching
 const Index = lazy(() => import(/* webpackPrefetch: true */ "./pages/Index"));
@@ -42,15 +46,36 @@ const PageTracker = () => {
   return null;
 };
 
+// Deferred loading wrapper for non-critical UI
+const DeferredUI = () => {
+  const [showDeferred, setShowDeferred] = useState(false);
+  
+  useEffect(() => {
+    // Delay loading of toasters and PWA prompt until after first paint
+    const timer = requestAnimationFrame(() => {
+      setTimeout(() => setShowDeferred(true), 100);
+    });
+    return () => cancelAnimationFrame(timer);
+  }, []);
+  
+  if (!showDeferred) return null;
+  
+  return (
+    <Suspense fallback={null}>
+      <Toaster />
+      <Sonner />
+      <PWAInstallPrompt />
+    </Suspense>
+  );
+};
+
 const App = () => (
   <ErrorBoundary>
     <AuthProvider>
       <TooltipProvider>
         <div className="app-wrapper">
-          <Toaster />
-          <Sonner />
+          <DeferredUI />
           <PageTracker />
-          <PWAInstallPrompt />
           <Suspense fallback={<AppLoader message="Loading" />}>
             <Routes>
               <Route path="/" element={<Index />} />
