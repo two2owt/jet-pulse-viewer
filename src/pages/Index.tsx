@@ -380,18 +380,21 @@ const Index = () => {
         className={`${activeTab === 'map' ? 'w-full flex-1' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex-1'}`}
         style={{ 
           minHeight: activeTab === 'map' ? 'calc(100dvh - 7rem)' : 'auto',
+          height: activeTab === 'map' ? 'calc(100dvh - 7rem)' : 'auto',
           contain: 'strict',
           transform: 'translateZ(0)',
+          willChange: 'contents',
         }}
       >
         {activeTab === "map" && (
           <div 
             className="relative w-full h-full"
             style={{ 
-              height: 'calc(100dvh - 7rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
+              height: '100%',
               minHeight: '400px',
               contain: 'strict',
               transform: 'translateZ(0)',
+              willChange: 'contents',
             }}
           >
 
