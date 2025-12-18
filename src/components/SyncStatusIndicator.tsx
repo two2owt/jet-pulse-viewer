@@ -128,7 +128,7 @@ export const SyncStatusIndicator = ({
       const hours = Math.floor(minutes / 60);
 
       if (seconds < 10) {
-        setTimeSinceUpdate("Just now");
+        setTimeSinceUpdate("Just landed");
       } else if (seconds < 60) {
         setTimeSinceUpdate(`${seconds}s ago`);
       } else if (minutes < 60) {
