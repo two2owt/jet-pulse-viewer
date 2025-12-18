@@ -34,12 +34,14 @@ export const prefetchMapbox = () => {
  */
 export const initPrefetching = () => {
   // Wait for initial render to complete, then prefetch during idle
+  // Use a longer delay to ensure critical path is fully complete
   if (document.readyState === 'complete') {
-    prefetchMapbox();
+    // Delay prefetch to after Time to Interactive (~3s on mobile)
+    setTimeout(prefetchMapbox, 3000);
   } else {
     window.addEventListener('load', () => {
-      // Small delay to let critical rendering complete
-      setTimeout(prefetchMapbox, 100);
+      // Longer delay to let critical rendering and LCP complete
+      setTimeout(prefetchMapbox, 3000);
     }, { once: true });
   }
 };
