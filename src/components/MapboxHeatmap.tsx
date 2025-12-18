@@ -111,7 +111,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   const [hourFilter, setHourFilter] = useState<number | undefined>();
   const [dayFilter, setDayFilter] = useState<number | undefined>();
-  const [mapStyle, setMapStyle] = useState<'dark' | 'light' | 'satellite' | 'streets'>('dark');
+  const [mapStyle, setMapStyle] = useState<'standard' | 'standard-satellite'>('standard');
+  const [lightPreset, setLightPreset] = useState<'dawn' | 'day' | 'dusk' | 'night'>('night');
   const [show3DTerrain, setShow3DTerrain] = useState(false);
   
   // Time-lapse mode state
@@ -228,9 +229,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         const settings = platformSettings.current;
         
         // Initialize map centered on selected city with platform-specific optimizations
+        // Using Mapbox Standard Style for enhanced 3D buildings, dynamic lighting, and performance
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
-          style: `mapbox://styles/mapbox/${mapStyle}-v11`,
+          style: 'mapbox://styles/mapbox/standard',
           center: [selectedCity.lng, selectedCity.lat],
           zoom: selectedCity.zoom,
           pitch: settings.pitch,
@@ -259,30 +261,38 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           'bottom-right'
         );
 
-        // Add atmospheric effects and terrain when style loads
+        // Add atmospheric effects and configure Standard style when loaded
         map.current.on('style.load', () => {
           if (!map.current) return;
           
-          // Dynamic fog based on map style
-          const fogConfig = mapStyle === 'dark' ? {
+          // Configure Standard style with dynamic lighting
+          // Standard style includes built-in 3D buildings, landmarks, and dynamic lighting
+          try {
+            // Set the light preset for dynamic lighting (dawn, day, dusk, night)
+            map.current.setConfigProperty('basemap', 'lightPreset', 'night');
+            
+            // Enable 3D landmark buildings (Standard style feature)
+            map.current.setConfigProperty('basemap', 'showPointOfInterestLabels', true);
+            map.current.setConfigProperty('basemap', 'showTransitLabels', true);
+            map.current.setConfigProperty('basemap', 'showPlaceLabels', true);
+            map.current.setConfigProperty('basemap', 'showRoadLabels', true);
+          } catch (e) {
+            // Config properties may not be available in all style versions
+            console.log('Standard style config not fully available:', e);
+          }
+          
+          // Dynamic fog based on light preset for atmospheric depth
+          const fogConfig = {
             color: 'rgb(10, 10, 15)',
             'high-color': 'rgb(30, 20, 40)',
             'horizon-blend': 0.05,
             'space-color': 'rgb(5, 5, 10)',
             'star-intensity': 0.2,
-          } : mapStyle === 'light' ? {
-            color: 'rgb(220, 220, 230)',
-            'high-color': 'rgb(180, 200, 230)',
-            'horizon-blend': 0.1,
-          } : {
-            color: 'rgb(186, 210, 235)',
-            'high-color': 'rgb(120, 170, 220)',
-            'horizon-blend': 0.08,
           };
           
           map.current.setFog(fogConfig);
 
-          // Add terrain source
+          // Add terrain source for 3D terrain support
           if (!map.current.getSource('mapbox-dem')) {
             map.current.addSource('mapbox-dem', {
               type: 'raster-dem',
@@ -290,52 +300,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               tileSize: 512,
               maxzoom: 14,
             });
-          }
-
-          // Enhance 3D buildings with dynamic styling
-          const layers = map.current.getStyle().layers;
-          if (layers) {
-            const labelLayerId = layers.find(
-              (layer) => layer.type === 'symbol' && layer.layout && layer.layout['text-field']
-            )?.id;
-
-            if (labelLayerId && !map.current.getLayer('3d-buildings')) {
-              const buildingColor = mapStyle === 'dark' 
-                ? 'hsl(0, 0%, 15%)' 
-                : mapStyle === 'light' 
-                ? 'hsl(0, 0%, 85%)'
-                : 'hsl(0, 0%, 70%)';
-                
-              map.current.addLayer(
-                {
-                  id: '3d-buildings',
-                  source: 'composite',
-                  'source-layer': 'building',
-                  filter: ['==', 'extrude', 'true'],
-                  type: 'fill-extrusion',
-                  minzoom: 14,
-                  paint: {
-                    'fill-extrusion-color': buildingColor,
-                    'fill-extrusion-height': [
-                      'interpolate',
-                      ['linear'],
-                      ['zoom'],
-                      14, 0,
-                      14.05, ['get', 'height'],
-                    ],
-                    'fill-extrusion-base': [
-                      'interpolate',
-                      ['linear'],
-                      ['zoom'],
-                      14, 0,
-                      14.05, ['get', 'min_height'],
-                    ],
-                    'fill-extrusion-opacity': mapStyle === 'satellite' ? 0.6 : 0.8,
-                  },
-                },
-                labelLayerId
-              );
-            }
           }
         });
 
@@ -529,12 +493,62 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     });
   }, [selectedCity, mapLoaded]);
 
-  // Handle map style changes
+  // Handle map style changes (Standard vs Standard-Satellite)
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     
-    map.current.setStyle(`mapbox://styles/mapbox/${mapStyle}-v11`);
+    const styleUrl = mapStyle === 'standard-satellite' 
+      ? 'mapbox://styles/mapbox/standard-satellite'
+      : 'mapbox://styles/mapbox/standard';
+    
+    map.current.setStyle(styleUrl);
   }, [mapStyle, mapLoaded]);
+
+  // Handle dynamic lighting preset changes
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    
+    try {
+      // Apply the light preset for dynamic lighting
+      map.current.setConfigProperty('basemap', 'lightPreset', lightPreset);
+      
+      // Update fog based on light preset
+      const fogConfigs: Record<string, any> = {
+        dawn: {
+          color: 'rgb(255, 200, 150)',
+          'high-color': 'rgb(200, 150, 120)',
+          'horizon-blend': 0.08,
+          'space-color': 'rgb(50, 30, 40)',
+          'star-intensity': 0.05,
+        },
+        day: {
+          color: 'rgb(220, 230, 240)',
+          'high-color': 'rgb(180, 200, 230)',
+          'horizon-blend': 0.1,
+          'space-color': 'rgb(100, 150, 200)',
+          'star-intensity': 0,
+        },
+        dusk: {
+          color: 'rgb(180, 100, 80)',
+          'high-color': 'rgb(120, 80, 100)',
+          'horizon-blend': 0.08,
+          'space-color': 'rgb(30, 20, 40)',
+          'star-intensity': 0.1,
+        },
+        night: {
+          color: 'rgb(10, 10, 15)',
+          'high-color': 'rgb(30, 20, 40)',
+          'horizon-blend': 0.05,
+          'space-color': 'rgb(5, 5, 10)',
+          'star-intensity': 0.2,
+        },
+      };
+      
+      map.current.setFog(fogConfigs[lightPreset]);
+    } catch (e) {
+      console.log('Light preset configuration not available:', e);
+    }
+  }, [lightPreset, mapLoaded]);
 
   // Handle 3D terrain toggle
   useEffect(() => {
@@ -1622,39 +1636,67 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-1.5 sm:mt-2 overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
             <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-1.5 sm:p-2 shadow-lg space-y-1.5 sm:space-y-2">
+              {/* Map Style Toggle */}
               <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                 <Button
-                  onClick={() => { triggerHaptic('light'); setMapStyle('dark'); }}
-                  variant={mapStyle === 'dark' ? "default" : "outline"}
+                  onClick={() => { triggerHaptic('light'); setMapStyle('standard'); }}
+                  variant={mapStyle === 'standard' ? "default" : "outline"}
                   size="sm"
                   className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
                 >
-                  Dark
+                  Standard
                 </Button>
                 <Button
-                  onClick={() => { triggerHaptic('light'); setMapStyle('light'); }}
-                  variant={mapStyle === 'light' ? "default" : "outline"}
-                  size="sm"
-                  className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
-                >
-                  Light
-                </Button>
-                <Button
-                  onClick={() => { triggerHaptic('light'); setMapStyle('satellite'); }}
-                  variant={mapStyle === 'satellite' ? "default" : "outline"}
+                  onClick={() => { triggerHaptic('light'); setMapStyle('standard-satellite'); }}
+                  variant={mapStyle === 'standard-satellite' ? "default" : "outline"}
                   size="sm"
                   className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
                 >
                   Satellite
                 </Button>
-                <Button
-                  onClick={() => { triggerHaptic('light'); setMapStyle('streets'); }}
-                  variant={mapStyle === 'streets' ? "default" : "outline"}
-                  size="sm"
-                  className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
-                >
-                  Streets
-                </Button>
+              </div>
+              
+              {/* Dynamic Lighting Presets */}
+              <div className="pt-1 border-t border-border/30">
+                <div className="text-[8px] sm:text-[9px] text-muted-foreground mb-1">Lighting</div>
+                <div className="grid grid-cols-4 gap-1">
+                  <Button
+                    onClick={() => { triggerHaptic('light'); setLightPreset('dawn'); }}
+                    variant={lightPreset === 'dawn' ? "default" : "outline"}
+                    size="sm"
+                    className="h-5 sm:h-6 text-[8px] sm:text-[9px] px-1"
+                    title="Dawn"
+                  >
+                    🌅
+                  </Button>
+                  <Button
+                    onClick={() => { triggerHaptic('light'); setLightPreset('day'); }}
+                    variant={lightPreset === 'day' ? "default" : "outline"}
+                    size="sm"
+                    className="h-5 sm:h-6 text-[8px] sm:text-[9px] px-1"
+                    title="Day"
+                  >
+                    ☀️
+                  </Button>
+                  <Button
+                    onClick={() => { triggerHaptic('light'); setLightPreset('dusk'); }}
+                    variant={lightPreset === 'dusk' ? "default" : "outline"}
+                    size="sm"
+                    className="h-5 sm:h-6 text-[8px] sm:text-[9px] px-1"
+                    title="Dusk"
+                  >
+                    🌆
+                  </Button>
+                  <Button
+                    onClick={() => { triggerHaptic('light'); setLightPreset('night'); }}
+                    variant={lightPreset === 'night' ? "default" : "outline"}
+                    size="sm"
+                    className="h-5 sm:h-6 text-[8px] sm:text-[9px] px-1"
+                    title="Night"
+                  >
+                    🌙
+                  </Button>
+                </div>
               </div>
               
               <Button
@@ -1663,7 +1705,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 size="sm"
                 className="w-full h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs mt-1"
               >
-                {show3DTerrain ? "Disable" : "Enable"} 3D
+                {show3DTerrain ? "Disable" : "Enable"} 3D Terrain
               </Button>
             </div>
           </CollapsibleContent>
