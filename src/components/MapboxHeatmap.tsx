@@ -112,8 +112,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   const [hourFilter, setHourFilter] = useState<number | undefined>();
   const [dayFilter, setDayFilter] = useState<number | undefined>();
-  const [mapStyle, setMapStyle] = useState<'light-mono' | 'dark-mono' | 'satellite'>('dark-mono');
   const [lightPreset, setLightPreset] = useState<'dawn' | 'day' | 'dusk' | 'night'>('night');
+  const [monochromeVariant, setMonochromeVariant] = useState<'light' | 'dark'>('dark');
   const [show3DTerrain, setShow3DTerrain] = useState(false);
   
   // Time-lapse mode state
@@ -554,18 +554,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     });
   }, [selectedCity, mapLoaded]);
 
-  // Handle map style changes (Standard vs Standard-Satellite)
+  // Handle map style changes based on monochrome variant
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     
-    const styleUrls: Record<string, string> = {
-      'light-mono': 'mapbox://styles/mapbox/light-v11',
-      'dark-mono': 'mapbox://styles/mapbox/dark-v11',
-      'satellite': 'mapbox://styles/mapbox/satellite-streets-v12'
-    };
+    const styleUrl = monochromeVariant === 'light' 
+      ? 'mapbox://styles/mapbox/light-v11'
+      : 'mapbox://styles/mapbox/dark-v11';
     
-    map.current.setStyle(styleUrls[mapStyle]);
-  }, [mapStyle, mapLoaded]);
+    map.current.setStyle(styleUrl);
+  }, [monochromeVariant, mapLoaded]);
 
   // Handle dynamic lighting preset changes with smooth animated transitions
   useEffect(() => {
@@ -1852,44 +1850,57 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               className="bg-card/95 backdrop-blur-xl border border-border text-[9px] sm:text-[10px] md:text-xs shadow-lg h-7 sm:h-8 md:h-9 px-2 sm:px-2.5 md:px-3 transition-all duration-200"
             >
               <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-0.5 sm:mr-1" />
-              <span>Map Style</span>
+              <span>Lighting</span>
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-1.5 sm:mt-2 overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
-            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-1.5 sm:p-2 shadow-lg space-y-1.5 sm:space-y-2">
-              {/* Monochrome Map Style Toggle */}
-              <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
-                <Button
-                  onClick={() => { triggerHaptic('light'); setMapStyle('light-mono'); }}
-                  variant={mapStyle === 'light-mono' ? "default" : "outline"}
-                  size="sm"
-                  className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
-                >
-                  Light
-                </Button>
-                <Button
-                  onClick={() => { triggerHaptic('light'); setMapStyle('dark-mono'); }}
-                  variant={mapStyle === 'dark-mono' ? "default" : "outline"}
-                  size="sm"
-                  className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
-                >
-                  Dark
-                </Button>
-                <Button
-                  onClick={() => { triggerHaptic('light'); setMapStyle('satellite'); }}
-                  variant={mapStyle === 'satellite' ? "default" : "outline"}
-                  size="sm"
-                  className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
-                >
-                  Satellite
-                </Button>
+            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-1.5 sm:p-2 shadow-lg space-y-2 sm:space-y-2.5">
+              {/* Time of Day Presets */}
+              <div className="space-y-1">
+                <span className="text-[8px] sm:text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Time of Day</span>
+                <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
+                  {(['dawn', 'day', 'dusk', 'night'] as const).map((preset) => (
+                    <Button
+                      key={preset}
+                      onClick={() => { triggerHaptic('light'); setLightPreset(preset); }}
+                      variant={lightPreset === preset ? "default" : "outline"}
+                      size="sm"
+                      className="h-6 sm:h-7 text-[8px] sm:text-[9px] md:text-[10px] px-1 sm:px-1.5 capitalize"
+                    >
+                      {preset}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Monochrome Variant Toggle */}
+              <div className="space-y-1">
+                <span className="text-[8px] sm:text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Style</span>
+                <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
+                  <Button
+                    onClick={() => { triggerHaptic('light'); setMonochromeVariant('light'); }}
+                    variant={monochromeVariant === 'light' ? "default" : "outline"}
+                    size="sm"
+                    className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
+                  >
+                    Light
+                  </Button>
+                  <Button
+                    onClick={() => { triggerHaptic('light'); setMonochromeVariant('dark'); }}
+                    variant={monochromeVariant === 'dark' ? "default" : "outline"}
+                    size="sm"
+                    className="h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2"
+                  >
+                    Dark
+                  </Button>
+                </div>
               </div>
               
               <Button
                 onClick={() => { triggerHaptic('medium'); setShow3DTerrain(!show3DTerrain); }}
                 variant={show3DTerrain ? "default" : "outline"}
                 size="sm"
-                className="w-full h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs mt-1"
+                className="w-full h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs"
               >
                 {show3DTerrain ? "Disable" : "Enable"} 3D Terrain
               </Button>
