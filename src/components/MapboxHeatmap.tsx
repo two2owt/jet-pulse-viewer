@@ -1343,8 +1343,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        will-change: transform, opacity;
+        will-change: opacity;
         opacity: 0;
         animation: orbFloatIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${staggerDelay}ms forwards;
       `;
@@ -1441,10 +1440,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       orbEl.appendChild(coreEl);
       el.appendChild(orbEl);
 
-      // Enhanced hover effects - orb expands and glows brighter
+      // Enhanced hover effects - scale the orb, not the wrapper (to preserve Mapbox anchor)
       el.addEventListener("mouseenter", () => {
-        el.style.transform = "scale(1.2)";
         el.style.zIndex = "100";
+        orbEl.style.transform = "scale(1.2)";
         orbEl.style.boxShadow = `
           0 0 ${glowSize * 1.8}px ${color}cc,
           0 8px 32px rgba(0, 0, 0, 0.4),
@@ -1455,8 +1454,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       });
 
       el.addEventListener("mouseleave", () => {
-        el.style.transform = "scale(1)";
         el.style.zIndex = "";
+        orbEl.style.transform = "scale(1)";
         orbEl.style.boxShadow = `
           0 0 ${glowSize}px ${color}${Math.round(glowIntensity * 100).toString(16).padStart(2, '0')},
           0 4px 20px rgba(0, 0, 0, 0.3),
