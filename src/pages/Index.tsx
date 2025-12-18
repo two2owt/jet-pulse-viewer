@@ -355,6 +355,13 @@ const Index = () => {
       
       <div 
         className={`app-wrapper ${activeTab === 'map' ? 'map-container' : 'page-container'}`}
+        style={{
+          // Fixed dimensions prevent layout shifts during initial render
+          height: '100dvh',
+          minHeight: '100dvh',
+          contain: 'strict',
+          transform: 'translateZ(0)',
+        }}
       >
         {/* Header */}
         <Header 
@@ -375,24 +382,27 @@ const Index = () => {
 
       {/* Main Content - Reserve height immediately to prevent CLS */}
       <main 
-        className={`${activeTab === 'map' ? 'w-full flex-1' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex-1'}`}
+        className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4'}`}
         style={{ 
-          // Fixed dimensions prevent layout shifts
-          minHeight: activeTab === 'map' ? 'calc(100dvh - 7rem)' : '400px',
-          height: activeTab === 'map' ? 'calc(100dvh - 7rem)' : 'auto',
+          // Fixed dimensions prevent layout shifts - use flex-grow instead of flex-1 class
+          flex: '1 1 auto',
+          minHeight: activeTab === 'map' ? 'calc(100dvh - 104px)' : '400px',
+          height: activeTab === 'map' ? 'calc(100dvh - 104px)' : 'auto',
           contain: 'strict',
           // Create a stable layer
           transform: 'translateZ(0)',
+          // Explicit sizing prevents browser recalculation
+          boxSizing: 'border-box',
+          width: '100%',
         }}
       >
         {activeTab === "map" && (
           <div 
-            className="relative w-full"
+            className="relative w-full h-full"
             style={{ 
-              height: 'calc(100dvh - 7rem)',
+              height: '100%',
               minHeight: '400px',
               contain: 'strict',
-              // Stable layer for map
               transform: 'translateZ(0)',
             }}
           >
