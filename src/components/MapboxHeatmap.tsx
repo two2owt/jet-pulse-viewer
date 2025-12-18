@@ -2514,6 +2514,36 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             transform: translateY(0);
           }
         }
+        
+        /* Glassmorphic scrollbar styling for filter panels */
+        .scroll-smooth::-webkit-scrollbar {
+          width: 4px;
+        }
+        
+        .scroll-smooth::-webkit-scrollbar-track {
+          background: transparent;
+          border-radius: 2px;
+        }
+        
+        .scroll-smooth::-webkit-scrollbar-thumb {
+          background: hsl(var(--primary) / 0.3);
+          border-radius: 2px;
+          transition: background 0.2s ease;
+        }
+        
+        .scroll-smooth::-webkit-scrollbar-thumb:hover {
+          background: hsl(var(--primary) / 0.5);
+        }
+        
+        .scroll-smooth::-webkit-scrollbar-thumb:active {
+          background: hsl(var(--primary) / 0.7);
+        }
+        
+        /* Firefox scrollbar */
+        .scroll-smooth {
+          scrollbar-width: thin;
+          scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+        }
       `}</style>
     </div>
   );
