@@ -13,12 +13,21 @@ import { AppLoader } from "@/components/AppLoader";
 // Lazy load admin dashboard - rarely accessed
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
-// Initialize error monitoring and analytics
+// Initialize error monitoring immediately (critical)
 initSentry();
-analytics.init();
 
-// Prefetch heavy chunks during idle time
-initPrefetching();
+// Defer analytics initialization to improve LCP
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(() => {
+    analytics.init();
+    initPrefetching();
+  }, { timeout: 3000 });
+} else {
+  setTimeout(() => {
+    analytics.init();
+    initPrefetching();
+  }, 2000);
+}
 
 // Create QueryClient with optimized defaults
 const queryClient = new QueryClient({
