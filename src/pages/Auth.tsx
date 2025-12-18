@@ -8,8 +8,8 @@ import { toast } from "sonner";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { Footer } from "@/components/Footer";
-// Use optimized WebP format for auth logo
-import jetLogo from "@/assets/jet-logo.webp";
+// Use optimized 256px WebP format for auth logo
+import jetLogo from "@/assets/jet-logo-256.webp";
 import authBackground from "@/assets/auth-background.webp";
 
 // Enhanced validation schemas
