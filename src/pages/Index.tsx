@@ -41,6 +41,7 @@ import { MapSkeleton } from "@/components/skeletons/MapSkeleton";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 // Top 10 most popular venues in Charlotte, NC metropolitan area with real addresses
 const charlotteVenues: Venue[] = [
@@ -357,6 +358,9 @@ const Index = () => {
           }}
           cityName={`${selectedCity.name}, ${selectedCity.state}`}
         />
+
+        {/* Offline Banner */}
+        <OfflineBanner />
 
       {/* Main Content */}
       <main className={`max-w-7xl mx-auto ${activeTab === 'map' ? 'px-0 py-0' : 'px-3 sm:px-4 py-3 sm:py-4'}`}>
