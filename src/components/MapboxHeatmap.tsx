@@ -1334,7 +1334,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       const activitySizeFactor = venue.activity >= 80 ? 1.3 : venue.activity >= 60 ? 1.15 : 1;
       const markerSize = baseSize * proximityFactor * activitySizeFactor;
 
-      // Create glassmorphic orb marker element
+      // Create glassmorphic orb marker element with entrance animation
+      const staggerDelay = (index % 30) * 40; // Staggered entrance, cycles every 30 markers
       const el = document.createElement("div");
       el.className = "venue-marker";
       el.style.cssText = `
@@ -1343,7 +1344,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         justify-content: center;
         cursor: pointer;
         transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        will-change: transform;
+        will-change: transform, opacity;
+        opacity: 0;
+        animation: orbFloatIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${staggerDelay}ms forwards;
       `;
 
       // Create glassmorphic orb container
