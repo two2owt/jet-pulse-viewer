@@ -198,7 +198,7 @@ const Settings = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pb-[calc(4rem+var(--safe-area-inset-bottom))] sm:pb-[calc(5rem+var(--safe-area-inset-bottom))]">
+      <div className="main-content page-container">
         <header className="bg-card border-b border-border sticky top-0 z-40 safe-area-top">
           <div className="max-w-3xl mx-auto px-fluid-md py-fluid-sm">
             <div className="flex items-center gap-fluid-sm">
@@ -223,7 +223,7 @@ const Settings = () => {
 
   if (!preferences) {
     return (
-      <div className="min-h-screen bg-background pb-20">
+      <div className="main-content page-container">
         <header className="bg-card border-b border-border sticky top-0 z-40">
           <div className="max-w-lg mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
@@ -254,7 +254,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-[calc(4rem+var(--safe-area-inset-bottom))] sm:pb-[calc(5rem+var(--safe-area-inset-bottom))]">
+    <div className="main-content page-container">
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-40 safe-area-top">
         <div className="max-w-3xl mx-auto px-fluid-md py-fluid-sm">

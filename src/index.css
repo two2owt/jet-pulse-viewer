@@ -298,8 +298,11 @@ All colors MUST be HSL.
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
-    background-color: #0f0f0f !important; /* Hex fallback with !important */
+    background-color: #0f0f0f !important;
     color: #fafafa !important;
+    /* Force consistent viewport on all visits */
+    height: 100%;
+    min-height: 100%;
   }
 
   body {
@@ -311,21 +314,74 @@ All colors MUST be HSL.
     max-width: 100vw;
     min-height: 100vh;
     min-height: 100dvh;
+    height: 100%;
     touch-action: pan-y pinch-zoom;
     -webkit-overflow-scrolling: touch;
+    /* Safe area padding applied consistently */
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    background-color: #0f0f0f !important; /* Hex fallback with !important */
+    background-color: #0f0f0f !important;
     color: #fafafa !important;
+    /* Prevent layout shift on session restore */
+    position: relative;
+    display: flex;
+    flex-direction: column;
   }
   
   #root {
     width: 100%;
     max-width: 100vw;
     min-height: 100%;
+    height: 100%;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     background-color: #0f0f0f;
+    /* Ensure consistent flex container behavior */
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    position: relative;
+  }
+
+  /* App wrapper - ensures consistent layout on all visits including session restore */
+  .app-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    min-height: 100dvh;
+    width: 100%;
+    max-width: 100vw;
+    position: relative;
+    flex: 1;
+    background-color: hsl(var(--background));
+  }
+
+  /* Main content area - consistent across all pages */
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100vw;
+    position: relative;
+  }
+
+  /* Page container with bottom nav clearance */
+  .page-container {
+    flex: 1;
+    width: 100%;
+    max-width: 100vw;
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Map page container - no scroll, full height */
+  .map-container {
+    height: 100dvh;
+    height: 100vh;
+    width: 100%;
+    max-width: 100vw;
+    overflow: hidden;
+    position: relative;
   }
 }
 
