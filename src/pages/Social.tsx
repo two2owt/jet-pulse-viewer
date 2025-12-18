@@ -288,18 +288,18 @@ export default function Social() {
               renderItem={(connection) => {
                 const friendId = connection.user_id === user?.id ? connection.friend_id : connection.user_id;
                 return (
-                  <div className="bg-card border border-border rounded-xl p-4 flex items-center justify-between h-full">
+                  <div className="bg-card border border-border rounded-xl p-3 sm:p-4 flex items-center justify-between gap-2 sm:gap-3 h-full">
                     <button
-                      className="flex items-center gap-3 text-left flex-1 min-w-0"
+                      className="flex items-center gap-2 sm:gap-3 text-left flex-1 min-w-0"
                       onClick={() => setSelectedProfileId(friendId)}
                     >
-                      <Avatar className="w-10 h-10 flex-shrink-0">
+                      <Avatar className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0">
                         <AvatarImage src={connection.profile?.avatar_url || undefined} alt={connection.profile?.display_name || "Friend"} />
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {connection.profile?.display_name?.charAt(0)?.toUpperCase() || <Users className="w-5 h-5" />}
+                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                          {connection.profile?.display_name?.charAt(0)?.toUpperCase() || <Users className="w-4 h-4 sm:w-5 sm:h-5" />}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="font-medium text-foreground truncate">
+                      <p className="font-medium text-foreground text-sm sm:text-base truncate">
                         {connection.profile?.display_name || "Friend"}
                       </p>
                     </button>
@@ -307,6 +307,7 @@ export default function Social() {
                       size="sm"
                       variant="ghost"
                       onClick={() => handleRemoveConnection(connection.id)}
+                      className="flex-shrink-0 h-8 sm:h-9 w-8 sm:w-9 p-0"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -329,25 +330,24 @@ export default function Social() {
             columns={{ mobile: 1, tablet: 2, desktop: 3 }}
             getItemKey={(profile) => profile.id}
             renderItem={(profile) => (
-              <div className="bg-card border border-border rounded-xl p-4 flex items-center justify-between h-full">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10">
+              <div className="bg-card border border-border rounded-xl p-3 sm:p-4 flex items-center justify-between gap-2 sm:gap-3 h-full">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <Avatar className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0">
                     <AvatarImage src={profile.avatar_url || undefined} alt={profile.display_name || "User"} />
-                    <AvatarFallback className="bg-accent/10 text-accent">
-                      {profile.display_name?.charAt(0)?.toUpperCase() || <Users className="w-5 h-5" />}
+                    <AvatarFallback className="bg-accent/10 text-accent text-sm">
+                      {profile.display_name?.charAt(0)?.toUpperCase() || <Users className="w-4 h-4 sm:w-5 sm:h-5" />}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-medium text-foreground">
-                      {profile.display_name || "User"}
-                    </p>
-                  </div>
+                  <p className="font-medium text-foreground text-sm sm:text-base truncate">
+                    {profile.display_name || "User"}
+                  </p>
                 </div>
                 <Button
                   size="sm"
                   onClick={() => handleSendRequest(profile.id)}
+                  className="flex-shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm"
                 >
-                  <UserPlus className="w-4 h-4 mr-1" />
+                  <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
                   Add
                 </Button>
               </div>
