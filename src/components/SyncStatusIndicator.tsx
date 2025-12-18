@@ -252,7 +252,10 @@ export const SyncStatusIndicator = ({
               
               {/* Last sync time */}
               <div className="absolute left-1.5 sm:left-2 md:left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-1.5">
-                <span className="text-[8px] sm:text-[9px] md:text-[10px] text-muted-foreground truncate max-w-[40px] sm:max-w-[60px] md:max-w-[80px]">
+                <span className={cn(
+                  "text-[8px] sm:text-[9px] md:text-[10px] text-muted-foreground whitespace-nowrap",
+                  showSuccessFlash && "animate-fade-in"
+                )}>
                   {timeSinceUpdate || "Just landed"}
                 </span>
               </div>
