@@ -48,6 +48,7 @@ interface MapboxHeatmapProps {
   onCityChange: (city: City) => void;
   isLoadingVenues?: boolean;
   selectedVenue?: Venue | null;
+  resetUIKey?: number; // Incremented when tab changes to reset collapsed UI state
 }
 
 const getActivityColor = (activity: number) => {
@@ -92,7 +93,7 @@ const getPlatformSettings = (isMobile: boolean) => {
   };
 };
 
-export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, isLoadingVenues = false, selectedVenue }: MapboxHeatmapProps) => {
+export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, isLoadingVenues = false, selectedVenue, resetUIKey }: MapboxHeatmapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -123,14 +124,22 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [pathTimeFilter, setPathTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   const [minPathFrequency, setMinPathFrequency] = useState(2);
   
-  // Controls visibility state
-  const [controlsCollapsed, setControlsCollapsed] = useState(false);
-  const [legendCollapsed, setLegendCollapsed] = useState(false); // Legend expanded by default on mobile
+  // Controls visibility state - collapsed by default for maximum map visibility
+  const [controlsCollapsed, setControlsCollapsed] = useState(true);
+  const [legendCollapsed, setLegendCollapsed] = useState(true);
   
   // User location state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [detectedCity, setDetectedCity] = useState<City | null>(null); // City detected from user's location
   const [isUsingCurrentLocation, setIsUsingCurrentLocation] = useState(true); // Default to current location
+  
+  // Reset UI state when tab changes (resetUIKey increments)
+  useEffect(() => {
+    if (resetUIKey !== undefined) {
+      setControlsCollapsed(true);
+      setLegendCollapsed(true);
+    }
+  }, [resetUIKey]);
   
   const { densityData, loading: densityLoading, error: densityError, refresh: refreshDensity } = useLocationDensity({
     timeFilter,
@@ -1873,7 +1882,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           maxWidth: isMobile ? 'calc(50vw - 1rem)' : 'var(--map-control-max-width)',
         }}
       >
-        <Collapsible defaultOpen={true}>
+        <Collapsible defaultOpen={false}>
           <CollapsibleTrigger asChild>
             <Button
               variant="secondary"

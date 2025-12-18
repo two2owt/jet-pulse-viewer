@@ -70,6 +70,7 @@ const Index = () => {
     return !hasSeenIntro;
   });
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("map");
+  const [mapUIResetKey, setMapUIResetKey] = useState(0); // Increments when switching to map tab to reset collapsed UI
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
@@ -215,6 +216,13 @@ const Index = () => {
       navigate("/social");
     }
   }, [activeTab, navigate]);
+
+  // Reset map UI collapsed state when switching to map tab
+  useEffect(() => {
+    if (activeTab === "map") {
+      setMapUIResetKey(prev => prev + 1);
+    }
+  }, [activeTab]);
 
   const handleCityChange = (city: City) => {
     setSelectedCity(city);
@@ -435,6 +443,7 @@ const Index = () => {
                   onCityChange={handleCityChange}
                   isLoadingVenues={venuesLoading}
                   selectedVenue={selectedVenue}
+                  resetUIKey={mapUIResetKey}
                 />
               </Suspense>
               )}
