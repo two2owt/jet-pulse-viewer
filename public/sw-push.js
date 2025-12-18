@@ -1,4 +1,83 @@
-// Service Worker for Web Push Notifications (FCM-based)
+// Service Worker for Web Push Notifications (FCM-based) + Offline Map Caching
+
+const MAP_TILE_CACHE = 'jet-map-tiles-v1';
+const STATIC_CACHE = 'jet-static-v1';
+const MAX_TILE_CACHE_SIZE = 500; // Maximum number of tiles to cache
+
+// Mapbox tile URL patterns to cache
+const MAPBOX_TILE_PATTERNS = [
+  /^https:\/\/api\.mapbox\.com\/v4\//,
+  /^https:\/\/a\.tiles\.mapbox\.com\//,
+  /^https:\/\/b\.tiles\.mapbox\.com\//,
+  /^https:\/\/c\.tiles\.mapbox\.com\//,
+  /^https:\/\/d\.tiles\.mapbox\.com\//,
+  /^https:\/\/api\.mapbox\.com\/styles\//,
+  /^https:\/\/api\.mapbox\.com\/fonts\//,
+  /^https:\/\/api\.mapbox\.com\/sprites\//,
+];
+
+// Check if URL is a Mapbox tile
+function isMapboxTile(url) {
+  return MAPBOX_TILE_PATTERNS.some(pattern => pattern.test(url));
+}
+
+// Trim cache to max size (LRU-style)
+async function trimCache(cacheName, maxSize) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxSize) {
+    const deleteCount = keys.length - maxSize;
+    for (let i = 0; i < deleteCount; i++) {
+      await cache.delete(keys[i]);
+    }
+    console.log(`[SW] Trimmed ${deleteCount} items from ${cacheName}`);
+  }
+}
+
+// Fetch handler for caching map tiles
+self.addEventListener('fetch', function(event) {
+  const url = event.request.url;
+  
+  // Only handle GET requests
+  if (event.request.method !== 'GET') return;
+  
+  // Handle Mapbox tiles with cache-first strategy
+  if (isMapboxTile(url)) {
+    event.respondWith(
+      caches.open(MAP_TILE_CACHE).then(async (cache) => {
+        const cachedResponse = await cache.match(event.request);
+        
+        if (cachedResponse) {
+          // Return cached tile immediately, update in background if online
+          if (navigator.onLine) {
+            fetch(event.request).then(response => {
+              if (response.ok) {
+                cache.put(event.request, response.clone());
+              }
+            }).catch(() => {});
+          }
+          return cachedResponse;
+        }
+        
+        // No cache, try network
+        try {
+          const networkResponse = await fetch(event.request);
+          if (networkResponse.ok) {
+            cache.put(event.request, networkResponse.clone());
+            // Trim cache periodically
+            trimCache(MAP_TILE_CACHE, MAX_TILE_CACHE_SIZE);
+          }
+          return networkResponse;
+        } catch (error) {
+          console.log('[SW] Tile fetch failed, no cache available:', url);
+          // Return a transparent tile placeholder for failed requests
+          return new Response('', { status: 408, statusText: 'Tile unavailable offline' });
+        }
+      })
+    );
+    return;
+  }
+});
 
 self.addEventListener('push', function(event) {
   console.log('[SW] Push event received:', event);
@@ -115,16 +194,18 @@ self.addEventListener('pushsubscriptionchange', function(event) {
   );
 });
 
-// Log service worker activation - delete old caches
+// Log service worker activation - delete old caches but preserve map tiles
 self.addEventListener('activate', function(event) {
   console.log('[SW] Service worker activated');
   event.waitUntil(
     caches.keys().then(function(cacheNames) {
       return Promise.all(
         cacheNames.map(function(cacheName) {
-          // Delete all old caches to ensure fresh assets
-          console.log('[SW] Deleting old cache:', cacheName);
-          return caches.delete(cacheName);
+          // Keep map tile cache, delete others
+          if (cacheName !== MAP_TILE_CACHE && cacheName !== STATIC_CACHE) {
+            console.log('[SW] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
         })
       );
     }).then(function() {
