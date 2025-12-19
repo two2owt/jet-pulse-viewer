@@ -74,8 +74,8 @@ const getPlatformSettings = (isMobile: boolean) => {
     fadeDuration: (isMobile || isLowPowerMode || hasReducedMotion) ? 0 : 100,
     // Tile cache - smaller on mobile
     maxTileCacheSize: isMobile ? 30 : 100,
-    // Cooperative gestures on mobile (two-finger pan)
-    cooperativeGestures: isMobile,
+    // Cooperative gestures disabled - allow single finger pan on all devices
+    cooperativeGestures: false,
     // Touch controls
     touchZoomRotate: true,
     touchPitch: !isMobile,
