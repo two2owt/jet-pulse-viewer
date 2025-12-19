@@ -148,6 +148,7 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
               showTimestamp={true}
               compact={true}
               cityName={cityName}
+              isInitializing={!lastUpdated && !isLoading}
             />
           </div>
 
