@@ -130,8 +130,10 @@
     </script>
     
     
-    <!-- Preload smaller LCP image for faster rendering -->
+    <!-- Preload LCP image with high priority -->
     <link rel="preload" href="/src/assets/jet-logo-256.webp" as="image" type="image/webp" fetchpriority="high">
+    <!-- Preload above-fold images -->
+    <link rel="preload" href="/pwa-192x192.png" as="image" type="image/png">
     
     <!-- Preload critical CSS bundle -->
     <link rel="modulepreload" href="/src/main.tsx">

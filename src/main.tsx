@@ -11,20 +11,33 @@ import { AppLoader } from "@/components/AppLoader";
 // Lazy load admin dashboard - rarely accessed
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
-// Defer Sentry init - dynamically import to avoid bundling in main chunk
-const initCritical = () => {
+// Defer Sentry init until after user interaction - prevents loading 75KB unused JS on initial load
+const initSentryOnInteraction = () => {
+  let sentryLoaded = false;
+  
   const loadSentry = () => {
+    if (sentryLoaded) return;
+    sentryLoaded = true;
+    
+    // Remove listeners once loaded
+    window.removeEventListener('click', loadSentry);
+    window.removeEventListener('scroll', loadSentry);
+    window.removeEventListener('keydown', loadSentry);
+    window.removeEventListener('touchstart', loadSentry);
+    
     import("@/lib/sentry").then(({ initSentry }) => initSentry());
   };
   
-  // Use requestIdleCallback for non-urgent initialization
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(loadSentry, { timeout: 3000 });
-  } else {
-    setTimeout(loadSentry, 1000);
-  }
+  // Load on first user interaction
+  window.addEventListener('click', loadSentry, { once: true, passive: true });
+  window.addEventListener('scroll', loadSentry, { once: true, passive: true });
+  window.addEventListener('keydown', loadSentry, { once: true, passive: true });
+  window.addEventListener('touchstart', loadSentry, { once: true, passive: true });
+  
+  // Fallback: load after 10 seconds if no interaction
+  setTimeout(loadSentry, 10000);
 };
-initCritical();
+initSentryOnInteraction();
 
 // Helper to yield to main thread and break up long tasks
 const yieldToMain = (): Promise<void> => {
