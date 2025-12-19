@@ -1781,7 +1781,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           WebkitOverflowScrolling: 'touch',
           // Use opacity instead of display to prevent CLS
           opacity: mapInitializing ? 0 : 1,
-          // Remove transition to prevent any layout shift timing issues
+          // Smooth transition to prevent jarring appearance
+          transition: 'opacity 0.3s ease-out',
           contain: 'strict',
         }}
       />
