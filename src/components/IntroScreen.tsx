@@ -50,16 +50,23 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
         alt="JET Logo"
         className="w-full h-full object-contain"
         style={{
-          animation: 'introScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          animation: 'introFlyThrough 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         }}
         fetchPriority="high"
         decoding="sync"
       />
       
       <style>{`
-        @keyframes introScale {
-          0% { transform: scale(0.9); }
-          100% { transform: scale(1); }
+        @keyframes introFlyThrough {
+          0% { 
+            transform: scale(0.85) translateY(30px); 
+          }
+          50% { 
+            transform: scale(1) translateY(0); 
+          }
+          100% { 
+            transform: scale(1.05) translateY(-20px); 
+          }
         }
       `}</style>
 
