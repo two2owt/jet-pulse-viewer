@@ -176,6 +176,46 @@ export const useDeals = (enablePreferenceFilter: boolean = false) => {
 
   const loadDeals = useCallback(async () => {
     try {
+      // Check for prefetched data from index.html early load script
+      const prefetchedDeals = (window as any).__PREFETCHED_DATA__?.deals;
+      
+      if (prefetchedDeals && Array.isArray(prefetchedDeals) && prefetchedDeals.length > 0) {
+        // Use prefetched data for instant initial render
+        const now = new Date().toISOString();
+        const validDeals = prefetchedDeals.filter((deal: Deal) => 
+          deal.active && 
+          deal.expires_at >= now && 
+          deal.starts_at <= now
+        );
+        
+        setDeals(validDeals);
+        const filtered = filterDealsByPreferences(validDeals, userPreferences);
+        setFilteredDeals(filtered);
+        setLastUpdated(new Date());
+        setLoading(false);
+        
+        // Clear prefetched data to avoid stale data on refresh
+        delete (window as any).__PREFETCHED_DATA__?.deals;
+        
+        // Still fetch fresh data in background for updates
+        const { data } = await supabase
+          .from('deals')
+          .select('*')
+          .eq('active', true)
+          .gte('expires_at', now)
+          .lte('starts_at', now)
+          .order('created_at', { ascending: false });
+        
+        if (data && JSON.stringify(data) !== JSON.stringify(validDeals)) {
+          setDeals(data);
+          const newFiltered = filterDealsByPreferences(data, userPreferences);
+          setFilteredDeals(newFiltered);
+          setLastUpdated(new Date());
+        }
+        return;
+      }
+
+      // Normal fetch if no prefetched data
       const { data, error: fetchError } = await supabase
         .from('deals')
         .select('*')

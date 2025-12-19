@@ -15,4 +15,8 @@ interface VisualViewport extends EventTarget {
 
 interface Window {
   visualViewport?: VisualViewport;
+  __PREFETCHED_DATA__?: {
+    deals?: unknown[];
+    neighborhoods?: unknown[];
+  };
 }
