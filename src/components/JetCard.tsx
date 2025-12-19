@@ -1,5 +1,5 @@
 import { memo, useState, useEffect } from "react";
-import { Clock, MapPin, Users, Star, TrendingUp, X, Share2, Crown } from "lucide-react";
+import { MapPin, Users, Star, TrendingUp, X, Share2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { OptimizedImage } from "./ui/optimized-image";
 import { glideHaptic } from "@/lib/haptics";
@@ -183,18 +183,6 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
           </div>
         </div>
 
-        {/* Current Offer */}
-        <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-xl p-4 border border-primary/20">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-              <Clock className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-foreground mb-1">Happy Hour Special</p>
-              <p className="text-xs text-muted-foreground">$5 cocktails until 7 PM • Today only</p>
-            </div>
-          </div>
-        </div>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-3">
