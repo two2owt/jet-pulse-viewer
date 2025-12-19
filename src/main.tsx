@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Suspense, lazy } from "react";
 import App from "./App.tsx";
 import "./index.css";
-
+import { AppLoader } from "@/components/AppLoader";
 
 // Lazy load admin dashboard - rarely accessed
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -91,7 +91,7 @@ createRoot(document.getElementById("root")!).render(
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Suspense fallback={null}>
+        <Suspense fallback={<AppLoader message="Starting JET" showProgress />}>
           <Routes>
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/*" element={<App />} />

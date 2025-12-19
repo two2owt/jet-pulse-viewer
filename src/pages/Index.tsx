@@ -6,7 +6,7 @@ import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationCard, type Notification } from "@/components/NotificationCard";
 import { Header } from "@/components/Header";
-
+import { IntroScreen } from "@/components/IntroScreen";
 import { glideHaptic, soarHaptic } from "@/lib/haptics";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
@@ -63,6 +63,12 @@ const charlotteVenues: Venue[] = [
 const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  // Skip intro for returning users - check synchronously to avoid flash
+  const [showIntro, setShowIntro] = useState(() => {
+    const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+    // If they've seen it, don't show - prioritize content
+    return !hasSeenIntro;
+  });
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("map");
   const [mapUIResetKey, setMapUIResetKey] = useState(0); // Increments when switching to map tab to reset collapsed UI
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
@@ -161,6 +167,10 @@ const Index = () => {
     onVenueOpen: handleDeepLinkVenue,
   });
 
+  const handleIntroComplete = () => {
+    localStorage.setItem('hasSeenIntro', 'true');
+    setShowIntro(false);
+  };
 
 
   // Check onboarding status - only redirect to onboarding if needed, never sign out
@@ -338,6 +348,8 @@ const Index = () => {
 
   return (
     <>
+      {/* Intro Screen */}
+      {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
       
       <div 
         className={`app-wrapper ${activeTab === 'map' ? 'map-container' : 'page-container'}`}
