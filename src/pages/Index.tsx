@@ -407,16 +407,30 @@ const Index = () => {
 
             {/* Mapbox Heatmap - Edge to edge */}
             <div className="h-full w-full">
-              {mapboxLoading && (
+              {/* Show skeleton while mapbox token is loading OR venues are loading (initial load) */}
+              {(mapboxLoading || (venuesLoading && venues.length === 0)) && (
                 <div className="h-full w-full">
-                  <MapSkeleton phase="token" />
+                  <MapSkeleton phase={mapboxLoading ? "token" : "initializing"} />
                 </div>
               )}
-              {mapboxError && (
+              {mapboxError && !mapboxLoading && (
                 <div className="h-full flex items-center justify-center bg-card">
-                  <div className="text-center space-y-1.5 sm:space-y-2">
-                    <p className="text-xs sm:text-sm text-destructive font-medium">Failed to load map</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">{mapboxError}</p>
+                  <div className="text-center space-y-3 p-6">
+                    <div className="w-12 h-12 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
+                      <MapIcon className="w-6 h-6 text-destructive" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-medium text-foreground">Unable to load map</p>
+                      <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">{mapboxError}</p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.location.reload()}
+                      className="mt-2"
+                    >
+                      Try Again
+                    </Button>
                   </div>
                 </div>
               )}

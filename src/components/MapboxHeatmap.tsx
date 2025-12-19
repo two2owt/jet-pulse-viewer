@@ -1850,10 +1850,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       )}
       
       {/* Map Loading Skeleton with phase indicator - fade out smoothly */}
+      {/* Show skeleton until map is fully loaded, not just until initialization completes */}
       <div 
         className="absolute inset-0 z-50 pointer-events-none"
         style={{
-          opacity: mapInitializing && !mapError ? 1 : 0,
+          // Keep visible until map is truly loaded (not just initialized)
+          opacity: !mapLoaded && !mapError ? 1 : 0,
           transition: 'opacity 0.4s ease-out',
           // Remove from layout after fade completes
           visibility: mapLoaded || mapError ? 'hidden' : 'visible',
@@ -1862,7 +1864,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         }}
       >
         <MapSkeleton 
-          phase={mapLoaded ? "ready" : tileProgress > 20 ? "loading" : "initializing"} 
+          phase={mapLoaded ? "ready" : tileProgress > 50 ? "loading" : tileProgress > 20 ? "initializing" : "token"} 
           progress={tileProgress}
         />
       </div>
