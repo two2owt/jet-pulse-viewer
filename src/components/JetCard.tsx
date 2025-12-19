@@ -126,6 +126,7 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
             responsiveSizes={['small', 'medium', 'large']}
             sizesConfig={{ mobile: '100vw', tablet: '640px', desktop: '800px' }}
             quality={85}
+            aspectRatio="16/10"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}
