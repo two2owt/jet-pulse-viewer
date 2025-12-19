@@ -5,19 +5,22 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Suspense, lazy } from "react";
 import App from "./App.tsx";
 import "./index.css";
-import { initSentry } from "@/lib/sentry";
 import { AppLoader } from "@/components/AppLoader";
 
 // Lazy load admin dashboard - rarely accessed
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
-// Defer Sentry init to reduce main thread blocking
+// Defer Sentry init - dynamically import to avoid bundling in main chunk
 const initCritical = () => {
+  const loadSentry = () => {
+    import("@/lib/sentry").then(({ initSentry }) => initSentry());
+  };
+  
   // Use requestIdleCallback for non-urgent initialization
   if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => initSentry(), { timeout: 2000 });
+    requestIdleCallback(loadSentry, { timeout: 3000 });
   } else {
-    setTimeout(() => initSentry(), 100);
+    setTimeout(loadSentry, 1000);
   }
 };
 initCritical();
