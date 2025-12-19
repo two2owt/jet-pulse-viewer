@@ -99,6 +99,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInitializing, setMapInitializing] = useState(true);
   const [tileProgress, setTileProgress] = useState(0);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const userMarker = useRef<mapboxgl.Marker | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const dealMarkersRef = useRef<mapboxgl.Marker[]>([]);
@@ -562,12 +564,36 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           setTileProgress(100);
         });
 
-        // Add error handler
+        // Add error handler with retry tracking
+        let errorCount = 0;
+        const maxErrors = 5;
+        
         map.current.on('error', (e) => {
           console.error('MapboxHeatmap: Map error', e.error);
+          errorCount++;
+          
+          // If too many errors occur during loading, show error state
+          if (errorCount >= maxErrors && !mapLoaded) {
+            setMapError('Failed to load map tiles. Please check your connection.');
+            setMapInitializing(false);
+          }
         });
+        
+        // Timeout fallback - if map doesn't load within 30 seconds, show error
+        const loadTimeout = setTimeout(() => {
+          if (!mapLoaded && mapInitializing) {
+            setMapError('Map loading timed out. Please try again.');
+            setMapInitializing(false);
+          }
+        }, 30000);
+        
+        map.current.once('load', () => {
+          clearTimeout(loadTimeout);
+        });
+        
       } catch (error) {
         console.error('MapboxHeatmap: Failed to initialize map', error);
+        setMapError('Failed to initialize map. Please try again.');
         setMapInitializing(false);
       }
     };
@@ -587,6 +613,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       if (timeoutId !== undefined) clearTimeout(timeoutId);
       // Cleanup map resources
       setMapLoaded(false);
+      setMapError(null);
       if (userMarker.current) {
         userMarker.current.remove();
       }
@@ -595,7 +622,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       map.current?.remove();
       map.current = null;
     };
-  }, [mapboxToken]);
+  }, [mapboxToken, retryCount]);
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     
@@ -1795,16 +1822,43 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         minHeight: isMobile ? '100dvh' : '500px',
       }}
     >
+      {/* Map Error State with Retry */}
+      {mapError && !mapInitializing && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 p-6 max-w-sm text-center">
+            <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center">
+              <AlertCircle className="w-7 h-7 text-destructive" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-foreground">Map Loading Failed</h3>
+              <p className="text-sm text-muted-foreground">{mapError}</p>
+            </div>
+            <Button 
+              onClick={() => {
+                setMapError(null);
+                setMapInitializing(true);
+                setTileProgress(0);
+                setRetryCount(c => c + 1);
+              }}
+              className="gap-2"
+            >
+              <Route className="w-4 h-4" />
+              Try Again
+            </Button>
+          </div>
+        </div>
+      )}
+      
       {/* Map Loading Skeleton with phase indicator - fade out smoothly */}
       <div 
         className="absolute inset-0 z-50 pointer-events-none"
         style={{
-          opacity: mapInitializing ? 1 : 0,
+          opacity: mapInitializing && !mapError ? 1 : 0,
           transition: 'opacity 0.4s ease-out',
           // Remove from layout after fade completes
-          visibility: mapLoaded ? 'hidden' : 'visible',
+          visibility: mapLoaded || mapError ? 'hidden' : 'visible',
           transitionProperty: 'opacity, visibility',
-          transitionDelay: mapLoaded ? '0s, 0.4s' : '0s, 0s',
+          transitionDelay: mapLoaded || mapError ? '0s, 0.4s' : '0s, 0s',
         }}
       >
         <MapSkeleton 
