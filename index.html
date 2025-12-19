@@ -1,19 +1,49 @@
 <!doctype html>
-<html lang="en" class="dark" style="background-color: #0f0f0f !important; color: #fafafa !important; min-height: 100%;">
+<html lang="en" style="min-height: 100%;">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- Critical CSS - MUST render dark theme before any other CSS loads -->
-    <style id="critical-dark-theme">
-      :root { color-scheme: dark; }
-      html, body, #root, .dark { 
-        background-color: #0f0f0f !important; 
-        color: #fafafa !important; 
-        margin: 0; 
-        padding: 0; 
-        min-height: 100%; 
+    <!-- Critical CSS - set a boot theme before app CSS loads to avoid flash -->
+    <style id="critical-theme">
+      :root {
+        --boot-bg: #ffffff;
+        --boot-fg: #0b0b0c;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --boot-bg: #0f0f0f;
+          --boot-fg: #fafafa;
+          color-scheme: dark;
+        }
+      }
+      html, body, #root {
+        background-color: var(--boot-bg);
+        color: var(--boot-fg);
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
       }
       * { box-sizing: border-box; }
+
+      /* Font-face fallback with metric adjustments to match Kanit and prevent CLS */
+      @font-face {
+        font-family: 'Kanit Fallback';
+        src: local('system-ui'), local('-apple-system'), local('BlinkMacSystemFont'), local('Segoe UI'), local('Arial');
+        /* Metric adjustments to match Kanit - prevents layout shift on font swap */
+        ascent-override: 103%;
+        descent-override: 32%;
+        line-gap-override: 0%;
+        size-adjust: 97%;
+      }
+
+      body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Use Kanit with metric-adjusted fallback to prevent CLS */
+        font-family: 'Kanit', 'Kanit Fallback', system-ui, -apple-system, sans-serif;
+      }
+    </style>
       
       /* Font-face fallback with metric adjustments to match Kanit and prevent CLS */
       @font-face {
@@ -163,7 +193,7 @@
           justify-content: center;
           min-height: 100vh;
           min-height: 100dvh;
-          background-color: #0f0f0f;
+          background-color: var(--boot-bg);
           flex-direction: column;
           gap: 1rem;
         ">
@@ -190,7 +220,7 @@
             "></div>
           </div>
           <p style="
-            color: #fafafa;
+            color: var(--boot-fg);
             font-size: 14px;
             font-family: system-ui, -apple-system, sans-serif;
             margin: 0;
