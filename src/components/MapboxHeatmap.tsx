@@ -1763,12 +1763,20 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         minHeight: isMobile ? '100dvh' : '500px',
       }}
     >
-      {/* Map Loading Skeleton with phase indicator */}
-      {mapInitializing && (
-        <div className="absolute inset-0 z-50">
-          <MapSkeleton phase="initializing" />
-        </div>
-      )}
+      {/* Map Loading Skeleton with phase indicator - fade out smoothly */}
+      <div 
+        className="absolute inset-0 z-50 pointer-events-none"
+        style={{
+          opacity: mapInitializing ? 1 : 0,
+          transition: 'opacity 0.4s ease-out',
+          // Remove from layout after fade completes
+          visibility: mapLoaded ? 'hidden' : 'visible',
+          transitionProperty: 'opacity, visibility',
+          transitionDelay: mapLoaded ? '0s, 0.4s' : '0s, 0s',
+        }}
+      >
+        <MapSkeleton phase={mapLoaded ? "ready" : "initializing"} />
+      </div>
       
       <div 
         ref={mapContainer} 
@@ -1780,9 +1788,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           touchAction: isMobile ? 'manipulation' : 'none',
           WebkitOverflowScrolling: 'touch',
           // Use opacity instead of display to prevent CLS
-          opacity: mapInitializing ? 0 : 1,
-          // Smooth transition to prevent jarring appearance
-          transition: 'opacity 0.3s ease-out',
+          opacity: mapLoaded ? 1 : 0,
+          // Smooth fade-in transition
+          transition: 'opacity 0.5s ease-out',
           contain: 'strict',
         }}
       />
