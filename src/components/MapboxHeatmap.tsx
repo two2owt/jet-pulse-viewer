@@ -335,6 +335,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           "top-right"
         );
 
+        // Configure touchZoomRotate handler for smoother pinch-to-zoom on mobile
+        if (map.current.touchZoomRotate) {
+          // Disable rotation during pinch (zoom only) for more predictable behavior
+          map.current.touchZoomRotate.disableRotation();
+        }
+
+        // Enable scroll zoom with smooth animation
+        map.current.scrollZoom.enable();
+        map.current.scrollZoom.setWheelZoomRate(1 / 200); // Smoother wheel zoom
+
         // Add geolocate control with location change handler
         const geolocateControl = new mapboxgl.GeolocateControl({
           positionOptions: {
