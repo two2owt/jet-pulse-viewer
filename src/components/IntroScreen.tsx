@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-// Time-based logos - dark for night, light for day
-import jetLogoDark from "@/assets/jet-logo-dark.jpg";
-import jetLogoLight from "@/assets/jet-logo-light.jpg";
+// Transparent PNG logo for intro
+import jetIntroLogo from "@/assets/jet-intro-logo.png";
 import { Button } from "./ui/button";
 import { SkipForward } from "lucide-react";
 
@@ -18,8 +17,6 @@ interface IntroScreenProps {
 export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
   const [isVisible, setIsVisible] = useState(true);
   
-  // Select logo based on time of day
-  const currentLogo = useMemo(() => isDaytime() ? jetLogoLight : jetLogoDark, []);
   const isDay = useMemo(() => isDaytime(), []);
 
   useEffect(() => {
@@ -47,12 +44,11 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
       }}
     >
       <img
-        src={currentLogo}
+        src={jetIntroLogo}
         alt="JET Logo"
-        className="w-full h-full object-contain"
+        className="w-64 h-64 object-contain"
         style={{
           animation: 'introFlyThrough 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-          backgroundColor: isDay ? '#ffffff' : '#000000',
         }}
         fetchPriority="high"
         decoding="sync"
