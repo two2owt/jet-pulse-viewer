@@ -171,7 +171,7 @@ export default function Favorites() {
             className="min-h-[60vh]"
             columns={{ mobile: 1, tablet: 2, desktop: 3 }}
             getItemKey={(deal) => deal.id}
-            renderItem={(deal) => <DealCard deal={deal} />}
+            renderItem={(deal, index) => <DealCard deal={deal} index={index} />}
           />
         )}
         </div>
