@@ -3,15 +3,24 @@ import { Map } from "lucide-react";
 
 interface MapSkeletonProps {
   phase?: 'token' | 'initializing' | 'loading' | 'ready';
+  progress?: number; // 0-100 for actual tile loading progress
 }
 
-export const MapSkeleton = ({ phase = 'loading' }: MapSkeletonProps) => {
+export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) => {
   const phaseText: Record<string, string> = {
     token: 'Connecting...',
     initializing: 'Initializing...',
-    loading: 'Loading map...',
+    loading: 'Loading tiles...',
     ready: 'Almost ready...',
   };
+
+  // Use actual progress if provided, otherwise estimate based on phase
+  const displayProgress = progress ?? {
+    token: 10,
+    initializing: 30,
+    loading: 60,
+    ready: 90,
+  }[phase] ?? 50;
 
   return (
     <div className="relative w-full h-full bg-muted/30 overflow-hidden">
@@ -60,23 +69,57 @@ export const MapSkeleton = ({ phase = 'loading' }: MapSkeletonProps) => {
         <Skeleton className="h-8 w-8 rounded-md" />
       </div>
       
-      {/* Center loading indicator - subtle and minimal */}
+      {/* Center loading indicator with progress */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="flex flex-col items-center gap-3">
-          {/* Pulsing map icon */}
-          <div className="relative">
-            <div 
-              className="absolute inset-0 bg-primary/20 rounded-full animate-ping"
-              style={{ animationDuration: '1.5s' }}
-            />
-            <div className="relative w-12 h-12 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-border/50 shadow-sm">
+          {/* Progress ring */}
+          <div className="relative w-14 h-14">
+            <svg 
+              className="w-full h-full -rotate-90"
+              viewBox="0 0 100 100"
+            >
+              {/* Background ring */}
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="hsl(var(--muted))"
+                strokeWidth="6"
+              />
+              {/* Progress arc */}
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="hsl(var(--primary))"
+                strokeWidth="6"
+                strokeLinecap="round"
+                strokeDasharray={`${2 * Math.PI * 42}`}
+                strokeDashoffset={`${2 * Math.PI * 42 * (1 - displayProgress / 100)}`}
+                style={{ 
+                  transition: 'stroke-dashoffset 0.3s ease-out',
+                }}
+              />
+            </svg>
+            
+            {/* Center icon */}
+            <div className="absolute inset-0 flex items-center justify-center">
               <Map className="w-5 h-5 text-primary" />
             </div>
           </div>
           
-          <p className="text-xs text-muted-foreground font-medium">
-            {phaseText[phase] || 'Loading...'}
-          </p>
+          <div className="flex flex-col items-center gap-1">
+            <p className="text-xs text-muted-foreground font-medium">
+              {phaseText[phase] || 'Loading...'}
+            </p>
+            {progress !== undefined && (
+              <p className="text-[10px] text-muted-foreground/70 tabular-nums">
+                {Math.round(progress)}%
+              </p>
+            )}
+          </div>
         </div>
       </div>
       

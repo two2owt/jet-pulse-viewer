@@ -98,6 +98,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInitializing, setMapInitializing] = useState(true);
+  const [tileProgress, setTileProgress] = useState(0);
   const userMarker = useRef<mapboxgl.Marker | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const dealMarkersRef = useRef<mapboxgl.Marker[]>([]);
@@ -528,6 +529,37 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               geolocateControlRef.current?.trigger();
             }, 500);
           }
+        });
+
+        // Track tile loading progress
+        let tilesLoading = 0;
+        let tilesLoaded = 0;
+        
+        const updateProgress = () => {
+          if (tilesLoading === 0) {
+            setTileProgress(100);
+          } else {
+            const progress = Math.min(95, Math.round((tilesLoaded / tilesLoading) * 100));
+            setTileProgress(progress);
+          }
+        };
+        
+        map.current.on('dataloading', (e) => {
+          if (e.dataType === 'source' && e.tile) {
+            tilesLoading++;
+            updateProgress();
+          }
+        });
+        
+        map.current.on('data', (e) => {
+          if (e.dataType === 'source' && e.tile) {
+            tilesLoaded++;
+            updateProgress();
+          }
+        });
+        
+        map.current.on('idle', () => {
+          setTileProgress(100);
         });
 
         // Add error handler
@@ -1775,7 +1807,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           transitionDelay: mapLoaded ? '0s, 0.4s' : '0s, 0s',
         }}
       >
-        <MapSkeleton phase={mapLoaded ? "ready" : "initializing"} />
+        <MapSkeleton 
+          phase={mapLoaded ? "ready" : tileProgress > 20 ? "loading" : "initializing"} 
+          progress={tileProgress}
+        />
       </div>
       
       <div 
