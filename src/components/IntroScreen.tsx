@@ -40,10 +40,11 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center ${
-        isDay ? "bg-white" : "bg-black"
-      }`}
-      style={{ contain: 'layout style paint' }}
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ 
+        contain: 'layout style paint',
+        backgroundColor: isDay ? '#ffffff' : '#000000'
+      }}
     >
       <img
         src={currentLogo}
@@ -51,6 +52,7 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
         className="w-full h-full object-contain"
         style={{
           animation: 'introFlyThrough 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          backgroundColor: isDay ? '#ffffff' : '#000000',
         }}
         fetchPriority="high"
         decoding="sync"
