@@ -34,7 +34,7 @@ export const PWAInstallPrompt = () => {
           {/* App info row */}
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-background to-muted border border-border/50 flex items-center justify-center overflow-hidden shadow-lg">
-              <img src={jetLogo} alt="JET" className="w-10 h-10 object-contain" />
+              <img src={jetLogo} alt="JET" className="w-10 h-10 object-contain" loading="lazy" decoding="async" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-lg text-foreground">Install JET</h3>
