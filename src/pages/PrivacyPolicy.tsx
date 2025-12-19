@@ -119,8 +119,8 @@ const PrivacyPolicy = () => {
             <h2 className="text-2xl font-bold mb-4">10. Contact Us</h2>
             <p className="text-foreground/80">
               If you have questions about this privacy policy, please contact us at{" "}
-              <a href="mailto:privacy@jet-around.com" className="text-primary hover:underline">
-                privacy@jet-around.com
+              <a href="mailto:creativebreakroominfo@gmail.com" className="text-primary hover:underline">
+                creativebreakroominfo@gmail.com
               </a>
             </p>
           </section>

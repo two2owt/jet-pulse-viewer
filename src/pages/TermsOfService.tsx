@@ -130,8 +130,8 @@ const TermsOfService = () => {
             <h2 className="text-2xl font-bold mb-4">12. Contact Information</h2>
             <p className="text-foreground/80">
               For questions about these terms, please contact us at{" "}
-              <a href="mailto:legal@jet-around.com" className="text-primary hover:underline">
-                legal@jet-around.com
+              <a href="mailto:creativebreakroominfo@gmail.com" className="text-primary hover:underline">
+                creativebreakroominfo@gmail.com
               </a>
             </p>
           </section>
