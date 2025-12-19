@@ -352,6 +352,7 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
                     responsiveSizes={['thumbnail', 'small']}
                     sizesConfig={{ mobile: '64px', tablet: '64px', desktop: '64px' }}
                     deferLoad={shouldDeferLoad}
+                    aspectRatio="1/1"
                     fallback={
                       <div className="w-16 h-16 flex items-center justify-center text-3xl flex-shrink-0">
                         {getDealIcon(deal.deal_type)}

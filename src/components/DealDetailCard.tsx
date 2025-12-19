@@ -170,6 +170,7 @@ export const DealDetailCard = memo(({ deal, onClose }: DealDetailCardProps) => {
             responsiveSizes={["small", "medium", "large"]}
             sizesConfig={{ mobile: "100vw", tablet: "640px", desktop: "800px" }}
             quality={85}
+            aspectRatio="16/10"
             onError={(e) => {
               e.currentTarget.style.display = "none";
             }}

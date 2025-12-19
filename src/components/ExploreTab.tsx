@@ -525,6 +525,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
                     responsiveSizes={['thumbnail', 'small']}
                     sizesConfig={{ mobile: '80px', tablet: '80px', desktop: '80px' }}
                     deferLoad={index >= 3}
+                    aspectRatio="1/1"
                     fallback={
                       <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-lg flex-shrink-0">
                         <span className="text-3xl">{getDealIcon(deal.deal_type)}</span>
