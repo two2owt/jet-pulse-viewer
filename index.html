@@ -146,8 +146,8 @@
 
   <body>
     <div id="root">
-      <!-- Initial loader - shows before React hydrates -->
-      <div id="initial-loader" style="
+      <!-- Main landmark for accessibility - React will replace this content -->
+      <main role="main" id="initial-loader" style="
         display: flex;
         align-items: center;
         justify-content: center;
@@ -207,7 +207,7 @@
           100% { opacity: 0; pointer-events: none; }
         }
       </style>
-    </div>
+    </main>
     <script type="module" src="/src/main.tsx"></script>
   
   </body>
