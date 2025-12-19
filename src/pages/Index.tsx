@@ -381,13 +381,15 @@ const Index = () => {
         <OfflineBanner />
 
       {/* Main Content - Reserve height immediately to prevent CLS */}
+      {/* Header is 48px + safe area, bottom nav is ~56px on mobile */}
       <main 
         className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4'}`}
         style={{ 
           // Fixed dimensions prevent layout shifts - use flex-grow instead of flex-1 class
           flex: '1 1 auto',
-          minHeight: activeTab === 'map' ? 'calc(100dvh - 104px)' : '400px',
-          height: activeTab === 'map' ? 'calc(100dvh - 104px)' : 'auto',
+          // Calculate height: 100dvh - header (48px + safe-area-top) - bottom nav (56px + safe-area-bottom)
+          minHeight: activeTab === 'map' ? 'calc(100dvh - 48px - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))' : '400px',
+          height: activeTab === 'map' ? 'calc(100dvh - 48px - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))' : 'auto',
           // Strict size containment prevents content from affecting layout
           contain: 'size layout style paint',
           contentVisibility: 'auto',
