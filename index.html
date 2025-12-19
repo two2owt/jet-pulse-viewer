@@ -44,25 +44,6 @@
         font-family: 'Kanit', 'Kanit Fallback', system-ui, -apple-system, sans-serif;
       }
     </style>
-      
-      /* Font-face fallback with metric adjustments to match Kanit and prevent CLS */
-      @font-face {
-        font-family: 'Kanit Fallback';
-        src: local('system-ui'), local('-apple-system'), local('BlinkMacSystemFont'), local('Segoe UI'), local('Arial');
-        /* Metric adjustments to match Kanit - prevents layout shift on font swap */
-        ascent-override: 103%;
-        descent-override: 32%;
-        line-gap-override: 0%;
-        size-adjust: 97%;
-      }
-      
-      body { 
-        -webkit-font-smoothing: antialiased; 
-        -moz-osx-font-smoothing: grayscale;
-        /* Use Kanit with metric-adjusted fallback to prevent CLS */
-        font-family: 'Kanit', 'Kanit Fallback', system-ui, -apple-system, sans-serif;
-      }
-    </style>
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0f0f0f" />
     <meta name="mobile-web-app-capable" content="yes" />
