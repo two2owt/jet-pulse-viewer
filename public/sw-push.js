@@ -216,5 +216,13 @@ self.addEventListener('activate', function(event) {
 
 self.addEventListener('install', function(event) {
   console.log('[SW] Service worker installed');
-  self.skipWaiting();
+  // Don't skip waiting automatically - let the user decide when to update
+});
+
+// Listen for skip waiting message from client
+self.addEventListener('message', function(event) {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Skip waiting requested by client');
+    self.skipWaiting();
+  }
 });
