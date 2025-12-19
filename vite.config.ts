@@ -125,7 +125,7 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       // Defer service worker registration to avoid render-blocking
       injectRegister: null,
-      includeAssets: ["favicon.ico", "jet-logo.png", "robots.txt"],
+      includeAssets: ["favicon.ico", "robots.txt", "jet-email-logo.png"],
       manifest: {
         name: "JET - Discover What's Hot",
         short_name: "JET",
