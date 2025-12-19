@@ -261,6 +261,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           touchZoomRotate: settings.touchZoomRotate,
           touchPitch: settings.touchPitch,
           dragRotate: settings.dragRotate,
+          doubleClickZoom: true, // Enable double-tap/double-click to zoom in
           projection: 'globe' as any,
           // Performance optimizations
           fadeDuration: settings.fadeDuration,
