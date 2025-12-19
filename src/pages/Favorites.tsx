@@ -98,7 +98,7 @@ export default function Favorites() {
           deals={[]}
           onVenueSelect={() => {}}
         />
-        <div className="main-content page-container">
+        <main className="main-content page-container" role="main">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <EmptyState
               icon={Heart}
@@ -108,7 +108,7 @@ export default function Favorites() {
               onAction={() => navigate("/auth")}
             />
           </div>
-        </div>
+        </main>
         <BottomNav 
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -126,11 +126,11 @@ export default function Favorites() {
           deals={[]}
           onVenueSelect={() => {}}
         />
-        <div className="main-content page-container">
+        <main className="main-content page-container" role="main">
           <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
             <FavoritesSkeleton />
           </div>
-        </div>
+        </main>
         <BottomNav 
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -147,7 +147,7 @@ export default function Favorites() {
         deals={[]}
         onVenueSelect={() => {}}
       />
-      <div className="main-content page-container">
+      <main className="main-content page-container" role="main">
         <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground mb-2">My Favorites</h1>
@@ -175,9 +175,9 @@ export default function Favorites() {
           />
         )}
         </div>
-      </div>
+      </main>
       
-      <BottomNav 
+      <BottomNav
         activeTab={activeTab}
         onTabChange={handleTabChange}
         notificationCount={notifications.filter(n => !n.read).length}

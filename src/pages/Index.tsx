@@ -383,6 +383,7 @@ const Index = () => {
       {/* Main Content - Reserve height immediately to prevent CLS */}
       {/* Header is 48px + safe area, bottom nav is ~56px on mobile */}
       <main 
+        role="main"
         className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4'}`}
         style={{ 
           // Fixed dimensions prevent layout shifts - use flex-grow instead of flex-1 class
