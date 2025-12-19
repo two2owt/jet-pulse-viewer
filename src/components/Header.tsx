@@ -126,6 +126,7 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
               onFocus={() => searchQuery.trim() && setShowResults(true)}
               className="w-full pl-6 sm:pl-7 md:pl-8 pr-1.5 sm:pr-2 h-7 sm:h-8 md:h-9 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-[10px] sm:text-xs md:text-sm text-foreground placeholder:text-muted-foreground"
               maxLength={100}
+              aria-label="Search venues and deals"
             />
             
             <SearchResults

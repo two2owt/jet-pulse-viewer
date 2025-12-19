@@ -148,15 +148,17 @@ export const DeleteAccountDialog = ({ userId }: DeleteAccountDialogProps) => {
               <li>Location history and notifications</li>
             </ul>
             <div className="pt-2">
-              <label className="text-sm font-medium text-foreground">
+              <label htmlFor="delete-confirm-input" className="text-sm font-medium text-foreground">
                 Type <span className="font-bold text-destructive">DELETE</span> to confirm:
               </label>
               <Input
+                id="delete-confirm-input"
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
                 placeholder="DELETE"
                 className="mt-2"
                 disabled={isDeleting}
+                aria-describedby="delete-warning"
               />
             </div>
           </AlertDialogDescription>
