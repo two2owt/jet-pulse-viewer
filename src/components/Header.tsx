@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { SearchResults } from "./SearchResults";
 import { SyncStatusIndicator } from "./SyncStatusIndicator";
+import { Skeleton } from "./ui/skeleton";
 import type { Venue } from "./MapboxHeatmap";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
@@ -31,26 +32,32 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState<string>("");
+  const [displayName, setDisplayName] = useState<string>("JT");
   const [userId, setUserId] = useState<string | undefined>(undefined);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   const { addToSearchHistory } = useSearchHistory(userId);
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('avatar_url, display_name')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile) {
-          setAvatarUrl(profile.avatar_url);
-          setDisplayName(profile.display_name || user.email?.substring(0, 2).toUpperCase() || "JT");
+      setIsProfileLoading(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('avatar_url, display_name')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile) {
+            setAvatarUrl(profile.avatar_url);
+            setDisplayName(profile.display_name || user.email?.substring(0, 2).toUpperCase() || "JT");
+          }
         }
+      } finally {
+        setIsProfileLoading(false);
       }
     };
     fetchProfile();
@@ -144,16 +151,20 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
             />
           </div>
 
-          {/* Avatar */}
-          <Avatar 
-            className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all flex-shrink-0"
-            onClick={() => navigate('/settings')}
-          >
-            <AvatarImage src={avatarUrl || ""} />
-            <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-[9px] sm:text-[10px] md:text-xs">
-              {displayName.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          {/* Avatar - Show skeleton while loading to prevent CLS */}
+          {isProfileLoading ? (
+            <Skeleton className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 rounded-full flex-shrink-0" />
+          ) : (
+            <Avatar 
+              className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all flex-shrink-0"
+              onClick={() => navigate('/settings')}
+            >
+              <AvatarImage src={avatarUrl || ""} />
+              <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-[9px] sm:text-[10px] md:text-xs">
+                {displayName.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          )}
         </div>
       </div>
     </header>
