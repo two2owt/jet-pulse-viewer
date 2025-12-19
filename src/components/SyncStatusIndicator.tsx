@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { RefreshCw, Check, WifiOff, Cloud, Plane, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { Skeleton } from "./ui/skeleton";
 
 interface SyncStatusIndicatorProps {
   isLoading?: boolean;
@@ -11,6 +12,8 @@ interface SyncStatusIndicatorProps {
   showTimestamp?: boolean;
   compact?: boolean;
   cityName?: string;
+  /** Show skeleton loading state before first data load */
+  isInitializing?: boolean;
 }
 
 export const SyncStatusIndicator = ({
@@ -21,6 +24,7 @@ export const SyncStatusIndicator = ({
   showTimestamp = true,
   compact = false,
   cityName = "Charlotte",
+  isInitializing = false,
 }: SyncStatusIndicatorProps) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [timeSinceUpdate, setTimeSinceUpdate] = useState<string>("");
@@ -148,6 +152,18 @@ export const SyncStatusIndicator = ({
 
   // Compact mode rendering - Full width runway with takeoff/landing
   if (compact) {
+    // Show skeleton during initialization to prevent CLS
+    if (isInitializing) {
+      return (
+        <div className={cn("flex items-center w-full", className)}>
+          <div className="flex-1 flex items-center gap-1 sm:gap-1.5 md:gap-2">
+            <Skeleton className="flex-1 h-6 sm:h-7 md:h-8 rounded-full" />
+            <Skeleton className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex-shrink-0" />
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={cn("flex items-center w-full", className)}>
         {/* Offline Status - Compact */}
@@ -278,6 +294,17 @@ export const SyncStatusIndicator = ({
   }
 
 
+  // Show skeleton during initialization for full mode
+  if (isInitializing) {
+    return (
+      <div className={cn("flex flex-col gap-1", className)}>
+        <div className="flex items-center gap-1.5">
+          <Skeleton className="h-5 w-20 rounded-full" />
+          <Skeleton className="h-5 w-5 rounded-full" />
+        </div>
+      </div>
+    );
+  }
 
   // Full mode rendering
   return (
