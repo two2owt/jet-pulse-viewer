@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
           <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
             <!-- Logo -->
             <div style="text-align: center; margin-bottom: 32px;">
-              <img src="https://dafac772-7908-4bdb-873c-58a805d7581e.lovableproject.com/jet-email-logo.png" alt="JET" style="width: 80px; height: auto;" />
+              <img src="https://www.jet-around.com/jet-email-logo.png" alt="JET" style="width: 80px; height: auto;" />
             </div>
             
             <!-- Card -->
