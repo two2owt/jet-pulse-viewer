@@ -414,6 +414,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 bg-card/90 backdrop-blur-sm border-border focus:border-primary transition-colors"
+          aria-label="Search venues, deals, or categories"
         />
       </div>
 
