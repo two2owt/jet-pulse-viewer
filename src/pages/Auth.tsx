@@ -383,7 +383,6 @@ const Auth = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        backgroundColor: 'hsl(0 0% 6%)', // Fallback dark background
       }}
     >
       {/* Animated matte black/grey gradient overlay */}
