@@ -16,10 +16,10 @@ All colors MUST be HSL.
     
     /* Adaptive map UI spacing - device-aware with safe area consideration */
     /* For absolute positioned elements inside map container (no bottom nav consideration needed) */
-    --map-ui-inset-top: max(0.75rem, calc(var(--safe-area-inset-top) + 0.5rem));
-    --map-ui-inset-right: 1rem;
-    --map-ui-inset-bottom: 1rem;
-    --map-ui-inset-left: 1rem;
+    --map-ui-inset-top: max(0.5rem, calc(var(--safe-area-inset-top) + 0.25rem));
+    --map-ui-inset-right: 0.5rem;
+    --map-ui-inset-bottom: 0.5rem;
+    --map-ui-inset-left: 0.5rem;
     
     /* For fixed positioned elements that need to clear bottom nav */
     --map-fixed-bottom: calc(5rem + var(--safe-area-inset-bottom));
