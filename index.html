@@ -210,6 +210,13 @@
           background-color: var(--boot-bg);
           flex-direction: column;
           gap: 1rem;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 9999;
+          transition: opacity 0.3s ease-out;
         ">
           <div style="
             width: 64px;
@@ -246,22 +253,54 @@
             0% { transform: scale(1); opacity: 0.5; }
             100% { transform: scale(1.3); opacity: 0; }
           }
-          /* Fade out initial loader smoothly once React mounts - prevents flash */
-          #root:has(> :not(#initial-loader)) #initial-loader {
+          /* Hide class for JS-based removal - works on all browsers */
+          #initial-loader.hidden {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s ease-out;
-          }
-          /* Remove from DOM after transition */
-          #root:has(> :not(#initial-loader)) #initial-loader {
-            animation: fadeOutLoader 0.2s ease-out forwards;
-          }
-          @keyframes fadeOutLoader {
-            0% { opacity: 1; }
-            100% { opacity: 0; }
           }
         </style>
       </div>
+      <!-- Script to remove loader once React mounts - more reliable than CSS :has() -->
+      <script>
+        (function() {
+          var loader = document.getElementById('initial-loader');
+          if (!loader) return;
+          
+          // Watch for React to mount content
+          var observer = new MutationObserver(function(mutations) {
+            var root = document.getElementById('root');
+            // Check if React has mounted (root has children other than loader)
+            if (root && root.children.length > 1) {
+              loader.classList.add('hidden');
+              // Remove from DOM after transition
+              setTimeout(function() {
+                if (loader.parentNode) {
+                  loader.parentNode.removeChild(loader);
+                }
+              }, 350);
+              observer.disconnect();
+            }
+          });
+          
+          observer.observe(document.getElementById('root'), { 
+            childList: true, 
+            subtree: false 
+          });
+          
+          // Fallback: remove loader after 10 seconds max to prevent infinite loading
+          setTimeout(function() {
+            if (loader.parentNode) {
+              loader.classList.add('hidden');
+              setTimeout(function() {
+                if (loader.parentNode) {
+                  loader.parentNode.removeChild(loader);
+                }
+              }, 350);
+            }
+            observer.disconnect();
+          }, 10000);
+        })();
+      </script>
     </main>
     <script type="module" src="/src/main.tsx"></script>
   </body>
