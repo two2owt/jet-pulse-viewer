@@ -2,7 +2,7 @@
 <html lang="en" class="dark" style="background-color: #0f0f0f !important; color: #fafafa !important; min-height: 100%;">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- Critical CSS - MUST render dark theme before any other CSS loads -->
     <style id="critical-dark-theme">
       :root { color-scheme: dark; }
@@ -203,8 +203,8 @@
           animation: fadeOutLoader 0.2s ease-out forwards;
         }
         @keyframes fadeOutLoader {
-          0% { opacity: 1; }
-          100% { opacity: 0; visibility: hidden; }
+          0% { opacity: 1; pointer-events: auto; }
+          100% { opacity: 0; pointer-events: none; }
         }
       </style>
     </div>
