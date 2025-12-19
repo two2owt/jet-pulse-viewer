@@ -1,5 +1,6 @@
 import { Map, Compass, Bell, Star, Users } from "lucide-react";
 import { useState } from "react";
+import { Skeleton } from "./ui/skeleton";
 
 type NavItem = "map" | "explore" | "notifications" | "favorites" | "social";
 
@@ -7,9 +8,11 @@ interface BottomNavProps {
   activeTab: NavItem;
   onTabChange: (tab: NavItem) => void;
   notificationCount?: number;
+  /** Show skeleton loading state */
+  isLoading?: boolean;
 }
 
-export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: BottomNavProps) => {
+export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoading = false }: BottomNavProps) => {
   const navItems = [
     { id: "map" as NavItem, icon: Map, label: "Map" },
     { id: "explore" as NavItem, icon: Compass, label: "Explore" },
@@ -34,33 +37,48 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3 }: Bot
     >
       <div className="max-w-7xl mx-auto px-1 sm:px-2">
         <div className="flex items-center justify-around">
-          {navItems.map((item) => {
-            const isActive = activeTab === item.id;
-            const Icon = item.icon;
-            
-            return (
-              <button
-                key={item.id}
-                onClick={() => onTabChange(item.id)}
-                className={`relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] touch-manipulation ${
-                  isActive
-                    ? "bg-gradient-primary shadow-glow text-primary-foreground scale-105"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 active:bg-secondary/70 active:text-foreground"
-                }`}
-              >
-                <Icon 
-                  className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300" 
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
-                
-                <span className={`text-[10px] sm:text-xs font-semibold transition-all duration-300 whitespace-nowrap ${
-                  isActive ? "opacity-100" : "opacity-70"
-                }`}>
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
+          {isLoading ? (
+            // Skeleton loading state - matches nav item dimensions
+            <>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className="flex flex-col items-center justify-center gap-0.5 px-3 py-2 min-w-[44px] min-h-[44px]"
+                >
+                  <Skeleton className="w-5 h-5 sm:w-6 sm:h-6 rounded-md" />
+                  <Skeleton className="w-8 h-2.5 sm:h-3 rounded" />
+                </div>
+              ))}
+            </>
+          ) : (
+            navItems.map((item) => {
+              const isActive = activeTab === item.id;
+              const Icon = item.icon;
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onTabChange(item.id)}
+                  className={`relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] touch-manipulation ${
+                    isActive
+                      ? "bg-gradient-primary shadow-glow text-primary-foreground scale-105"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 active:bg-secondary/70 active:text-foreground"
+                  }`}
+                >
+                  <Icon 
+                    className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300" 
+                    strokeWidth={isActive ? 2.5 : 2}
+                  />
+                  
+                  <span className={`text-[10px] sm:text-xs font-semibold transition-all duration-300 whitespace-nowrap ${
+                    isActive ? "opacity-100" : "opacity-70"
+                  }`}>
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })
+          )}
         </div>
       </div>
     </nav>
