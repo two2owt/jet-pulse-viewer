@@ -218,8 +218,14 @@
     <!-- Preload above-fold images -->
     <link rel="preload" href="/pwa-192x192.png" as="image" type="image/png">
     
-    <!-- Preload critical CSS bundle -->
+    <!-- Modulepreload critical JS modules - starts parallel download during HTML parsing -->
     <link rel="modulepreload" href="/src/main.tsx">
+    <link rel="modulepreload" href="/src/App.tsx">
+    <link rel="modulepreload" href="/src/pages/Index.tsx">
+    <link rel="modulepreload" href="/src/integrations/supabase/client.ts">
+    <link rel="modulepreload" href="/src/contexts/AuthContext.tsx">
+    <link rel="modulepreload" href="/src/components/Header.tsx">
+    <link rel="modulepreload" href="/src/components/BottomNav.tsx">
     
     <!-- Defer non-critical Mapbox CSS - load async -->
     <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
