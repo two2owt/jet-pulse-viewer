@@ -100,7 +100,6 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
         // Fixed height prevents CLS during load
         height: 'calc(48px + env(safe-area-inset-top, 0px))',
         minHeight: 'calc(48px + env(safe-area-inset-top, 0px))',
-        contain: 'strict',
         transform: 'translateZ(0)',
       }}
     >
