@@ -9,7 +9,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { Footer } from "@/components/Footer";
 // Use the new JET logo for auth page
-import jetLogo from "@/assets/jet-auth-logo-new.png";
+import jetLogo from "@/assets/jet-auth-logo.png";
 import authBackground from "@/assets/auth-background.webp";
 
 // Enhanced validation schemas
@@ -393,13 +393,13 @@ const Auth = () => {
         <div className="backdrop-blur-xl bg-background/20 border border-border/30 rounded-2xl p-8 shadow-2xl space-y-6">
           {/* Header */}
           <div className="text-center space-y-3">
-            <div className="w-32 h-20 flex items-center justify-center mx-auto">
+            <div className="w-24 h-24 flex items-center justify-center mx-auto">
               <img 
                 src={jetLogo} 
                 alt="JET Logo" 
-                className="w-full h-full object-contain drop-shadow-lg mix-blend-multiply dark:mix-blend-screen dark:invert"
-                width="128"
-                height="80"
+                className="w-full h-full object-contain drop-shadow-lg"
+                width="96"
+                height="96"
                 fetchPriority="high"
                 decoding="async"
               />
