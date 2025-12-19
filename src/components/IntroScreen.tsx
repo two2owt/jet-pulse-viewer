@@ -36,36 +36,22 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
     setTimeout(onComplete, 200);
   };
 
+  if (!isVisible) return null;
+
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-200 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center ${
         isDay ? "bg-white" : "bg-black"
-      } ${isVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+      }`}
       style={{ contain: 'layout style paint' }}
     >
       <img
         src={currentLogo}
         alt="JET Logo"
         className="w-full h-full object-contain"
-        style={{
-          animation: 'introZoomFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-        }}
         fetchPriority="high"
         decoding="sync"
       />
-      
-      <style>{`
-        @keyframes introZoomFade {
-          0% {
-            opacity: 0;
-            transform: scale(0.85);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-      `}</style>
 
       {/* Skip Button */}
       <Button
