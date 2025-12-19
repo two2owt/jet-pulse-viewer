@@ -27,6 +27,8 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   deferLoad?: boolean;
   /** Enable blur-up placeholder effect */
   blurUp?: boolean;
+  /** Aspect ratio to reserve space and prevent CLS (e.g., "16/9", "1/1", "4/3") */
+  aspectRatio?: string;
 }
 
 export const OptimizedImage = memo(({ 
@@ -41,7 +43,9 @@ export const OptimizedImage = memo(({
   quality = 80,
   deferLoad = false,
   blurUp = true,
+  aspectRatio,
   onError,
+  style,
   ...props 
 }: OptimizedImageProps) => {
   const [hasError, setHasError] = useState(false);
@@ -114,10 +118,13 @@ export const OptimizedImage = memo(({
     </>
   );
 
+  // Shared style for aspect ratio support to prevent CLS
+  const containerStyle = aspectRatio ? { aspectRatio, ...style } : style;
+
   // If deferLoad is enabled, wrap in observer
   if (deferLoad) {
     return (
-      <div ref={ref} className={cn("relative overflow-hidden", className)}>
+      <div ref={ref} className={cn("relative overflow-hidden", className)} style={containerStyle}>
         {isVisible ? (
           renderImage(true)
         ) : (
@@ -130,7 +137,7 @@ export const OptimizedImage = memo(({
   // Standard blur-up with placeholder
   if (blurUp) {
     return (
-      <div className={cn("relative overflow-hidden", className)}>
+      <div className={cn("relative overflow-hidden", className)} style={containerStyle}>
         {renderImage(true)}
       </div>
     );
@@ -150,6 +157,7 @@ export const OptimizedImage = memo(({
         isLoaded ? "opacity-100" : "opacity-0",
         className
       )}
+      style={containerStyle}
       onError={handleError}
       onLoad={handleLoad}
       {...props}

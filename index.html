@@ -133,9 +133,19 @@
           0% { transform: scale(1); opacity: 0.5; }
           100% { transform: scale(1.3); opacity: 0; }
         }
-        /* Hide initial loader once React mounts */
+        /* Fade out initial loader smoothly once React mounts - prevents flash */
         #root:has(> :not(#initial-loader)) #initial-loader {
-          display: none !important;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s ease-out;
+        }
+        /* Remove from DOM after transition */
+        #root:has(> :not(#initial-loader)) #initial-loader {
+          animation: fadeOutLoader 0.2s ease-out forwards;
+        }
+        @keyframes fadeOutLoader {
+          0% { opacity: 1; }
+          100% { opacity: 0; visibility: hidden; }
         }
       </style>
     </div>
