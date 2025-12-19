@@ -129,7 +129,7 @@ export default function Social() {
           deals={[]}
           onVenueSelect={() => {}}
         />
-        <div className="main-content page-container">
+        <main className="main-content page-container" role="main">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <EmptyState
               icon={Users}
@@ -139,7 +139,7 @@ export default function Social() {
               onAction={() => navigate("/auth")}
             />
           </div>
-        </div>
+        </main>
         <BottomNav 
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -157,11 +157,11 @@ export default function Social() {
           deals={[]}
           onVenueSelect={() => {}}
         />
-        <div className="main-content page-container">
+        <main className="main-content page-container" role="main">
           <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
             <SocialPageSkeleton />
           </div>
-        </div>
+        </main>
         <BottomNav 
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -180,7 +180,7 @@ export default function Social() {
           deals={[]}
           onVenueSelect={() => {}}
         />
-        <div className="main-content page-container">
+        <main className="main-content page-container" role="main">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <EmptyState
               icon={Crown}
@@ -190,7 +190,7 @@ export default function Social() {
               onAction={() => setShowUpgradePrompt(true)}
             />
           </div>
-        </div>
+        </main>
         <BottomNav 
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -213,7 +213,7 @@ export default function Social() {
         deals={[]}
         onVenueSelect={() => {}}
       />
-      <div className="main-content page-container">
+      <main className="main-content page-container" role="main">
         <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg gap-fluid-xl">
         {/* Pending Requests */}
         {pendingRequests.length > 0 && (
@@ -355,7 +355,7 @@ export default function Social() {
           />
         </div>
         </div>
-      </div>
+      </main>
       
       <BottomNav 
         activeTab={activeTab}
