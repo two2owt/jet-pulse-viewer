@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { ServiceWorkerUpdater } from "@/components/ServiceWorkerUpdater";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLoader } from "@/components/AppLoader";
 
@@ -50,6 +51,7 @@ const App = () => (
           <Sonner />
           <PageTracker />
           <PWAInstallPrompt />
+          <ServiceWorkerUpdater />
           <Suspense fallback={<AppLoader message="Loading" />}>
             <Routes>
               <Route path="/" element={<Index />} />
