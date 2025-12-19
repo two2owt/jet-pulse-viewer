@@ -88,7 +88,7 @@ const queryClient = new QueryClient({
 });
 
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Suspense fallback={<AppLoader message="Starting JET" showProgress />}>
