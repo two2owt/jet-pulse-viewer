@@ -42,7 +42,7 @@
     <link rel="icon" type="image/x-icon" href="https://storage.googleapis.com/gpt-engineer-file-uploads/VEstUAuq09PlUHZ9f7uy5tQrH263/uploads/1765238770676-JET (Website) (2).png">
     <link rel="manifest" href="/manifest.webmanifest" />
     
-    <!-- Resource hints for performance - prioritized -->
+    <!-- Resource hints for performance - prioritized by critical path -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
@@ -50,16 +50,62 @@
     <link rel="preload" href="https://fonts.gstatic.com/s/kanit/v15/nKKZ-Go6G5tXcraBGwCKd6xBDFs.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://fonts.gstatic.com/s/kanit/v15/nKKU-Go6G5tXcr5mOBWzVaF5NQ.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://fonts.gstatic.com/s/kanit/v15/nKKU-Go6G5tXcr5aOhWzVaF5NQ.woff2" as="font" type="font/woff2" crossorigin>
-    <!-- Supabase API preconnect for faster auth and data fetching -->
+    
+    <!-- Supabase API preconnect - all subdomains for auth, REST, realtime, storage -->
     <link rel="preconnect" href="https://zbrscuoqmkdbmdimdnqu.supabase.co" crossorigin>
     <link rel="dns-prefetch" href="https://zbrscuoqmkdbmdimdnqu.supabase.co">
+    <!-- Supabase realtime for live updates -->
+    <link rel="preconnect" href="wss://zbrscuoqmkdbmdimdnqu.supabase.co" crossorigin>
+    <!-- Supabase storage for images -->
+    <link rel="dns-prefetch" href="https://zbrscuoqmkdbmdimdnqu.supabase.co/storage">
     
-    <!-- Mapbox preconnect hints -->
+    <!-- Google Cloud Storage for uploaded images -->
+    <link rel="preconnect" href="https://storage.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://storage.googleapis.com">
+    
+    <!-- Mapbox preconnect hints - prioritized for map rendering -->
     <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
     <link rel="preconnect" href="https://events.mapbox.com" crossorigin>
     <link rel="dns-prefetch" href="https://api.mapbox.com">
     <link rel="dns-prefetch" href="https://tiles.mapbox.com">
     <link rel="dns-prefetch" href="https://events.mapbox.com">
+    <!-- Mapbox tile sources -->
+    <link rel="dns-prefetch" href="https://a.tiles.mapbox.com">
+    <link rel="dns-prefetch" href="https://b.tiles.mapbox.com">
+    
+    <!-- Early API prefetch script - starts critical data fetch before React hydrates -->
+    <script>
+      // Prefetch critical API endpoints to warm up connections and cache
+      (function() {
+        const SUPABASE_URL = 'https://zbrscuoqmkdbmdimdnqu.supabase.co';
+        const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpicnNjdW9xbWtkYm1kaW1kbnF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyMDkwODgsImV4cCI6MjA3ODc4NTA4OH0.LtDrHXcgQF4OrNVpKYXNTX9fdvTsscaMy35jK77qk2c';
+        
+        // Store prefetched data for React to use
+        window.__PREFETCHED_DATA__ = {};
+        
+        // Prefetch active deals (critical for initial render)
+        fetch(SUPABASE_URL + '/rest/v1/deals?active=eq.true&select=*&order=created_at.desc&limit=20', {
+          headers: {
+            'apikey': ANON_KEY,
+            'Authorization': 'Bearer ' + ANON_KEY,
+          },
+          priority: 'high'
+        }).then(r => r.json()).then(data => {
+          window.__PREFETCHED_DATA__.deals = data;
+        }).catch(() => {});
+        
+        // Prefetch neighborhoods
+        fetch(SUPABASE_URL + '/rest/v1/neighborhoods?active=eq.true&select=*', {
+          headers: {
+            'apikey': ANON_KEY,
+            'Authorization': 'Bearer ' + ANON_KEY,
+          },
+          priority: 'low'
+        }).then(r => r.json()).then(data => {
+          window.__PREFETCHED_DATA__.neighborhoods = data;
+        }).catch(() => {});
+      })();
+    </script>
     
     
     <!-- Preload smaller LCP image for faster rendering -->
