@@ -24,9 +24,11 @@ interface Deal {
 
 interface DealCardProps {
   deal: Deal;
+  /** Card index in list - used for lazy loading (index >= 2 defers image loading) */
+  index?: number;
 }
 
-export const DealCard = memo(({ deal }: DealCardProps) => {
+export const DealCard = memo(({ deal, index = 0 }: DealCardProps) => {
   const [user, setUser] = useState<any>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const { canAccessSocialFeatures } = useFeatureAccess();
@@ -116,6 +118,8 @@ export const DealCard = memo(({ deal }: DealCardProps) => {
             sizesConfig={{ mobile: "100vw", tablet: "640px", desktop: "800px" }}
             quality={85}
             aspectRatio="16/10"
+            deferLoad={index >= 2}
+            eager={index === 0}
             onError={(e) => {
               e.currentTarget.style.display = "none";
             }}
