@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
 
-    const appUrl = 'https://dafac772-7908-4bdb-873c-58a805d7581e.lovableproject.com';
+    const appUrl = 'https://jet-around.com';
 
     const html = `
       <!DOCTYPE html>
