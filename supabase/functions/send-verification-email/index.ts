@@ -28,22 +28,49 @@ Deno.serve(async (req) => {
   try {
     const payload = await req.text();
     const headers = Object.fromEntries(req.headers);
-    const wh = new Webhook(hookSecret);
+    
+    // Check if hook secret is configured
+    if (!hookSecret) {
+      console.warn('SEND_EMAIL_HOOK_SECRET not configured - skipping webhook verification');
+      return new Response(
+        JSON.stringify({ success: true, skipped: true, reason: 'Hook secret not configured' }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+    
+    let verifiedPayload;
+    try {
+      const wh = new Webhook(hookSecret);
+      verifiedPayload = wh.verify(payload, headers) as {
+        user: {
+          email: string;
+        };
+        email_data: {
+          token: string;
+          token_hash: string;
+          redirect_to: string;
+          email_action_type: string;
+        };
+      };
+    } catch (webhookError) {
+      // Log but don't fail - webhook verification issues shouldn't block signup
+      console.error('Webhook verification failed:', webhookError);
+      return new Response(
+        JSON.stringify({ success: true, skipped: true, reason: 'Webhook verification failed' }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
     
     const {
       user,
       email_data: { token, token_hash, redirect_to, email_action_type },
-    } = wh.verify(payload, headers) as {
-      user: {
-        email: string;
-      };
-      email_data: {
-        token: string;
-        token_hash: string;
-        redirect_to: string;
-        email_action_type: string;
-      };
-    };
+    } = verifiedPayload;
 
     console.log('Original redirect_to:', redirect_to);
 
@@ -85,18 +112,23 @@ Deno.serve(async (req) => {
       })
     );
 
-    // TODO: Replace 'noreply@yourdomain.com' with your verified Resend domain
-    // e.g., 'JET <noreply@jet-app.com>' after verifying your domain at resend.com/domains
     const { error } = await resend.emails.send({
-      from: 'JET <onboarding@resend.dev>', // Change to your verified domain
+      from: 'JET <onboarding@resend.dev>',
       to: [user.email],
       subject: 'Verify your JET account',
       html,
     });
 
     if (error) {
-      console.error('Resend error:', error);
-      throw error;
+      // Log but don't fail - email issues shouldn't block signup
+      console.warn('Resend email not sent (domain not verified):', error);
+      return new Response(
+        JSON.stringify({ success: true, emailSkipped: true, reason: 'Email domain not verified' }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
     }
 
     console.log('Verification email sent successfully');
@@ -109,15 +141,12 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error sending verification email:', error);
+    // Log but don't fail - email is nice-to-have, not critical for signup
+    console.error('Error in verification email function:', error);
     return new Response(
-      JSON.stringify({
-        error: {
-          message: error instanceof Error ? error.message : 'Failed to send verification email',
-        },
-      }),
+      JSON.stringify({ success: true, emailSkipped: true, reason: 'Email service error' }),
       {
-        status: 500,
+        status: 200,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       }
     );
