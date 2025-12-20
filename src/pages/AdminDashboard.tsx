@@ -6,7 +6,8 @@ import { DealManagement } from "@/components/admin/DealManagement";
 import { UserAnalytics } from "@/components/admin/UserAnalytics";
 import { NeighborhoodManagement } from "@/components/admin/NeighborhoodManagement";
 import { MonetizationToggle } from "@/components/admin/MonetizationToggle";
-import { Loader2, Shield } from "lucide-react";
+import { Loader2, Shield, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function AdminDashboard() {
   const { isAdmin, loading } = useIsAdmin();
@@ -31,17 +32,25 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-y-auto">
       <header className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/settings')}
+              className="shrink-0"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <Shield className="w-6 h-6 text-primary" />
             <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-6 pb-24">
         <Tabs defaultValue="deals" className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="deals">Deals</TabsTrigger>
