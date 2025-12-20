@@ -9,7 +9,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 import { EmptyState } from "@/components/EmptyState";
 import { VirtualGrid } from "@/components/ui/virtual-list";
-import { FavoritesSkeleton } from "@/components/skeletons";
+
 interface Deal {
   id: string;
   title: string;
@@ -118,27 +118,6 @@ export default function Favorites() {
     );
   }
 
-  if (loading) {
-    return (
-      <>
-        <Header 
-          venues={[]}
-          deals={[]}
-          onVenueSelect={() => {}}
-        />
-        <main className="main-content page-container" role="main">
-          <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
-            <FavoritesSkeleton />
-          </div>
-        </main>
-        <BottomNav 
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={0}
-        />
-      </>
-    );
-  }
 
   return (
     <>
