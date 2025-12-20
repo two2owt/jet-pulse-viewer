@@ -76,9 +76,9 @@ Deno.serve(async (req) => {
 
     // Determine the app URL - use redirect_to if valid, otherwise default to Lovable domain
     let appUrl = redirect_to;
-    if (!appUrl || appUrl.includes('localhost')) {
-      // Default to the Lovable preview URL
-      appUrl = 'https://dafac772-7908-4bdb-873c-58a805d7581e.lovableproject.com';
+    if (!appUrl || appUrl.includes('localhost') || appUrl.includes('lovableproject.com')) {
+      // Default to the custom domain
+      appUrl = 'https://jet-around.com';
     }
     
     // Extract base URL properly
