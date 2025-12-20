@@ -16,7 +16,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useConnections } from "@/hooks/useConnections";
 import { User, Camera, Edit2, X, Save, Settings, Heart, Users, Shield, LogOut, Loader2, Instagram, Twitter, Facebook, Linkedin, Video } from "lucide-react";
-
+import { ProfileSkeleton } from "@/components/skeletons";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -358,6 +358,17 @@ export default function Profile() {
         <div className="main-content page-container">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <EmptyState icon={User} title="Sign in to view profile" description="Create an account to access your profile, manage settings, and track your activity" actionLabel="Sign In" onAction={() => navigate("/auth")} />
+          </div>
+        </div>
+        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} notificationCount={0} />
+      </>;
+  }
+  if (isLoading) {
+    return <>
+        <Header venues={[]} deals={[]} onVenueSelect={() => {}} />
+        <div className="main-content page-container">
+          <div className="max-w-4xl mx-auto px-4 py-6">
+            <ProfileSkeleton />
           </div>
         </div>
         <BottomNav activeTab={activeTab} onTabChange={handleTabChange} notificationCount={0} />
