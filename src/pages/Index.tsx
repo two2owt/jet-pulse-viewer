@@ -38,9 +38,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { NotificationSkeleton, NotificationListSkeleton } from "@/components/skeletons/NotificationSkeleton";
-import { MapSkeleton } from "@/components/skeletons/MapSkeleton";
-import { ExploreTabSkeleton } from "@/components/skeletons/ExploreTabSkeleton";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -411,12 +408,6 @@ const Index = () => {
 
             {/* Mapbox Heatmap - Edge to edge */}
             <div className="h-full w-full">
-              {/* Show skeleton while mapbox token is loading OR venues are loading (initial load) */}
-              {(mapboxLoading || (venuesLoading && venues.length === 0)) && (
-                <div className="h-full w-full">
-                  <MapSkeleton phase={mapboxLoading ? "token" : "initializing"} />
-                </div>
-              )}
               {mapboxError && !mapboxLoading && (
                 <div className="h-full flex items-center justify-center bg-card">
                   <div className="text-center space-y-3 p-6">
@@ -439,12 +430,8 @@ const Index = () => {
                 </div>
               )}
               {!mapboxLoading && !mapboxError && mapboxToken && (
-              <Suspense fallback={
-                <div className="h-full w-full">
-                  <MapSkeleton phase="loading" />
-                </div>
-              }>
-                <MapboxHeatmap 
+              <Suspense fallback={null}>
+                <MapboxHeatmap
                   onVenueSelect={handleVenueSelect} 
                   venues={venues} 
                   mapboxToken={mapboxToken}
@@ -490,9 +477,7 @@ const Index = () => {
               <p className="text-fluid-sm text-muted-foreground">Stay updated with nearby deals and events</p>
             </div>
             
-            {notificationsLoading ? (
-              <NotificationListSkeleton count={5} />
-            ) : notifications.length === 0 ? (
+            {notifications.length === 0 ? (
               <div className="text-center py-8 sm:py-10 md:py-12 text-muted-foreground">
                 <p className="text-sm sm:text-base">No notifications yet</p>
                 <p className="text-xs sm:text-sm mt-1 sm:mt-2">Enable location tracking to receive deal alerts</p>
@@ -517,7 +502,7 @@ const Index = () => {
 
         {activeTab === "explore" && (
           <div className="px-fluid-md py-fluid-md">
-            <Suspense fallback={<ExploreTabSkeleton />}>
+            <Suspense fallback={null}>
               <ExploreTab onVenueSelect={handleVenueSelect} />
             </Suspense>
           </div>
