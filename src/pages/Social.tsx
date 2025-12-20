@@ -13,7 +13,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ConnectionProfileDialog } from "@/components/ConnectionProfileDialog";
 import { UpgradePrompt, useFeatureAccess } from "@/components/UpgradePrompt";
 import { VirtualGrid } from "@/components/ui/virtual-list";
-import { SocialPageSkeleton } from "@/components/skeletons";
+
 
 interface Profile {
   id: string;
@@ -149,27 +149,6 @@ export default function Social() {
     );
   }
 
-  if (loading || connectionsLoading || subscriptionLoading) {
-    return (
-      <>
-        <Header 
-          venues={[]}
-          deals={[]}
-          onVenueSelect={() => {}}
-        />
-        <main className="main-content page-container" role="main">
-          <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
-            <SocialPageSkeleton />
-          </div>
-        </main>
-        <BottomNav 
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={0}
-        />
-      </>
-    );
-  }
 
   // Show upgrade prompt for users without JET+ subscription
   if (!canAccessSocialFeatures()) {
