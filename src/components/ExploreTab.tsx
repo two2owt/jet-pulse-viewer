@@ -480,8 +480,6 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
         </Card>
       </div>
 
-      {/* Loading State */}
-      {isLoading && <ExploreTabSkeleton />}
 
       {/* No Results */}
       {!isLoading && filteredDeals.length === 0 && (searchQuery || selectedCategories.length > 0) && (
