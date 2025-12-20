@@ -7,6 +7,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { ServiceWorkerUpdater } from "@/components/ServiceWorkerUpdater";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AppLoader } from "@/components/AppLoader";
 
 // Lazy load pages for better performance with webpack magic comments for prefetching
 const Index = lazy(() => import(/* webpackPrefetch: true */ "./pages/Index"));
@@ -51,7 +52,7 @@ const App = () => (
           <PageTracker />
           <PWAInstallPrompt />
           <ServiceWorkerUpdater />
-          <Suspense fallback={null}>
+          <Suspense fallback={<AppLoader message="Loading" />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Suspense } from "react";
 import App from "./App.tsx";
 import "./index.css";
+import { AppLoader } from "@/components/AppLoader";
 
 // Defer Sentry init until after user interaction - prevents loading 75KB unused JS on initial load
 const initSentryOnInteraction = () => {
@@ -101,7 +102,8 @@ createRoot(document.getElementById("root")!).render(
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Suspense fallback={null}>
+        <Suspense fallback={<AppLoader message="Starting JET" showProgress />}>
+          {/* App handles all routing including admin - no need for duplicate route here */}
           <App />
         </Suspense>
       </BrowserRouter>
