@@ -63,7 +63,17 @@ const charlotteVenues: Venue[] = [
 const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("map");
+  
+  // Initialize activeTab from URL parameter synchronously to prevent flash
+  const getInitialTab = (): "map" | "explore" | "notifications" | "favorites" | "social" => {
+    const searchParams = new URLSearchParams(location.search);
+    const tabParam = searchParams.get('tab');
+    if (tabParam === "explore") return "explore";
+    if (tabParam === "notifications") return "notifications";
+    return "map";
+  };
+  
+  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">(getInitialTab);
   const [mapUIResetKey, setMapUIResetKey] = useState(0); // Increments when switching to map tab to reset collapsed UI
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
@@ -184,28 +194,22 @@ const Index = () => {
     checkOnboarding();
   }, [navigate]);
 
-  // Check URL parameters and update activeTab on mount/navigation
+  // Sync activeTab with URL when navigating back/forward
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tabParam = searchParams.get('tab');
     
-    if (tabParam === "explore") {
-      setActiveTab("explore");
-    } else if (tabParam === "notifications") {
-      setActiveTab("notifications");
-    } else if (tabParam === "map" || (location.pathname === "/" && !tabParam)) {
-      setActiveTab("map");
+    // Only update if we're on the Index page and URL changed (e.g., browser back/forward)
+    if (location.pathname === "/") {
+      if (tabParam === "explore" && activeTab !== "explore") {
+        setActiveTab("explore");
+      } else if (tabParam === "notifications" && activeTab !== "notifications") {
+        setActiveTab("notifications");
+      } else if (!tabParam && activeTab !== "map") {
+        setActiveTab("map");
+      }
     }
   }, [location.search, location.pathname]);
-
-  // Handle favorites and social tab navigation (these go to separate pages)
-  useEffect(() => {
-    if (activeTab === "favorites") {
-      navigate("/favorites");
-    } else if (activeTab === "social") {
-      navigate("/social");
-    }
-  }, [activeTab, navigate]);
 
   // Reset map UI collapsed state when switching to map tab
   useEffect(() => {
@@ -524,13 +528,21 @@ const Index = () => {
       <BottomNav 
         activeTab={activeTab} 
         onTabChange={(tab) => {
-          // For map, explore, and notifications, stay on Index page but update tab
-          if (tab === "map" || tab === "explore" || tab === "notifications") {
+          // For map, explore, and notifications, stay on Index page but update URL
+          if (tab === "map") {
             setActiveTab(tab);
-            // Don't navigate, just update the tab state
-          } else {
-            // For favorites and social, the useEffect will handle navigation
+            // Update URL to remove tab param for map (default)
+            navigate("/", { replace: true });
+          } else if (tab === "explore" || tab === "notifications") {
             setActiveTab(tab);
+            // Update URL with tab parameter
+            navigate(`/?tab=${tab}`, { replace: true });
+          } else if (tab === "favorites") {
+            // Navigate to favorites page
+            navigate("/favorites");
+          } else if (tab === "social") {
+            // Navigate to social page
+            navigate("/social");
           }
         }}
         notificationCount={notifications.filter(n => !n.read).length}
