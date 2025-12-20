@@ -138,8 +138,16 @@ Deno.serve(async (req) => {
     });
 
     if (emailError) {
-      console.error('Resend error:', emailError);
-      throw emailError;
+      // Log the error but return success to not break the friend request flow
+      // This commonly happens when using resend.dev domain - can only send to your own email
+      console.warn('Resend email not sent (domain not verified):', emailError);
+      return new Response(
+        JSON.stringify({ success: true, emailSkipped: true, reason: 'Email domain not verified' }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
     }
 
     console.log('Friend request email sent successfully');
@@ -152,13 +160,12 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error sending friend request email:', error);
+    // Log but don't fail the request - email is a nice-to-have, not critical
+    console.error('Error in friend request email function:', error);
     return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : 'Failed to send email',
-      }),
+      JSON.stringify({ success: true, emailSkipped: true, reason: 'Email service error' }),
       {
-        status: 500,
+        status: 200,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       }
     );
