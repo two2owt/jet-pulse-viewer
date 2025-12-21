@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Slider } from "./ui/slider";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { TimelapseSwipeControl } from "./TimelapseSwipeControl";
-import { MapSkeleton } from "./skeletons";
+
 import { CITIES, type City, getDistanceKm } from "@/types/cities";
 
 // Venue type definition
@@ -1849,25 +1849,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </div>
       )}
       
-      {/* Map Loading Skeleton with phase indicator - fade out smoothly */}
-      {/* Show skeleton until map is fully loaded, not just until initialization completes */}
-      <div 
-        className="absolute inset-0 z-50 pointer-events-none"
-        style={{
-          // Keep visible until map is truly loaded (not just initialized)
-          opacity: !mapLoaded && !mapError ? 1 : 0,
-          transition: 'opacity 0.4s ease-out',
-          // Remove from layout after fade completes
-          visibility: mapLoaded || mapError ? 'hidden' : 'visible',
-          transitionProperty: 'opacity, visibility',
-          transitionDelay: mapLoaded || mapError ? '0s, 0.4s' : '0s, 0s',
-        }}
-      >
-        <MapSkeleton 
-          phase={mapLoaded ? "ready" : tileProgress > 50 ? "loading" : tileProgress > 20 ? "initializing" : "token"} 
-          progress={tileProgress}
-        />
-      </div>
       
       <div 
         ref={mapContainer} 
@@ -1875,22 +1856,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         style={{ 
           width: '100%', 
           height: '100%',
-          // Ensure proper touch handling for different mobile devices
           touchAction: isMobile ? 'manipulation' : 'none',
           WebkitOverflowScrolling: 'touch',
-          // Use opacity instead of display to prevent CLS
-          opacity: mapLoaded ? 1 : 0,
-          // Smooth fade-in transition
-          transition: 'opacity 0.5s ease-out',
           contain: 'strict',
         }}
       />
 
       {/* City Selector with Current Location option - responsive for all devices */}
       <div 
-        className={`absolute z-10 transition-opacity duration-300 ease-out ${
-          mapLoaded ? 'opacity-100' : 'opacity-0'
-        }`}
+        className="absolute z-10"
         style={{
           top: 'var(--map-ui-inset-top)',
           left: 'var(--map-ui-inset-left)',
@@ -1980,9 +1954,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       {/* Map Controls - Top left below city selector, expanded by default */}
       <div 
-        className={`absolute z-10 space-y-1.5 sm:space-y-2 transition-all duration-500 ease-out delay-150 ${
-          mapLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
-        }`}
+        className="absolute z-10 space-y-1.5 sm:space-y-2"
         style={{
           top: isMobile ? 'calc(var(--map-ui-inset-top) + 3.25rem)' : 'calc(var(--map-ui-inset-top) + 3.75rem)',
           left: 'var(--map-ui-inset-left)',
@@ -2048,10 +2020,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             contain: 'layout style paint size',
             contentVisibility: 'auto',
             containIntrinsicSize: '140px 200px',
-            // Use opacity + pointer-events instead of visibility to prevent CLS
-            opacity: mapLoaded && !selectedVenue ? 1 : 0,
-            pointerEvents: mapLoaded && !selectedVenue ? 'auto' : 'none',
-            // Prevent any layout shift by using transform
+            opacity: !selectedVenue ? 1 : 0,
+            pointerEvents: !selectedVenue ? 'auto' : 'none',
             transform: 'translateZ(0)',
             willChange: 'opacity',
           }}
@@ -2330,9 +2300,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {!isMobile && (
         <button
           onClick={() => { triggerHaptic('light'); setControlsCollapsed(!controlsCollapsed); }}
-          className={`absolute z-30 bg-card backdrop-blur-xl rounded-full p-2.5 border border-border shadow-lg transition-all duration-300 hover:bg-card/90 active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation ${
-            mapLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-          }`}
+          className="absolute z-30 bg-card backdrop-blur-xl rounded-full p-2.5 border border-border shadow-lg transition-all duration-300 hover:bg-card/90 active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation"
           style={{
             bottom: 'var(--map-ui-inset-bottom)',
             right: controlsCollapsed 
@@ -2349,20 +2317,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </button>
       )}
 
-      {/* Controls Loading Skeleton - Desktop only */}
-      {!isMobile && !mapLoaded && !controlsCollapsed && (
-        <div 
-          className="absolute z-30 space-y-2 animate-pulse"
-          style={{
-            bottom: 'var(--map-ui-inset-bottom)',
-            right: 'var(--map-ui-inset-right)',
-            width: 'var(--map-control-max-width)',
-          }}
-        >
-          <div className="h-11 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" />
-          <div className="h-11 bg-card/80 backdrop-blur-xl rounded-lg border border-border/50 animate-shimmer" style={{ animationDelay: '150ms' }} />
-        </div>
-      )}
 
       {/* Desktop Density Layer Controls - Bottom right */}
       {!isMobile && (
@@ -2370,9 +2324,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           className={`absolute z-30 space-y-2 transition-all duration-300 ease-out ${
             controlsCollapsed 
               ? 'opacity-0 translate-x-full pointer-events-none' 
-              : mapLoaded 
-                ? 'opacity-100 translate-x-0' 
-                : 'opacity-0 pointer-events-none'
+              : 'opacity-100 translate-x-0'
           }`}
           style={{
             bottom: 'var(--map-ui-inset-bottom)',
