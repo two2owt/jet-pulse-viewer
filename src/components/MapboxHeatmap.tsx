@@ -1850,17 +1850,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       )}
       
       
-      {/* Shimmer overlay while tiles are loading */}
-      {!mapLoaded && (
-        <div 
-          className="absolute inset-0 z-[5] pointer-events-none animate-shimmer"
-          style={{
-            background: 'linear-gradient(90deg, transparent 0%, hsl(var(--muted)/0.3) 50%, transparent 100%)',
-            backgroundSize: '200% 100%',
-          }}
-        />
-      )}
-      
       <div 
         ref={mapContainer} 
         className="absolute inset-0 overflow-hidden"
