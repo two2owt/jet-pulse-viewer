@@ -12,10 +12,8 @@ import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// Lazy load Mapbox ONLY when map tab is active - no eager loading
-const MapboxHeatmap = lazy(() => 
-  import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap }))
-);
+// Direct import for immediate map availability
+import { MapboxHeatmap } from "@/components/MapboxHeatmap";
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
 const ExploreTab = lazy(() => import("@/components/ExploreTab").then(m => ({ default: m.ExploreTab })));
 
@@ -429,8 +427,7 @@ const Index = () => {
                   </div>
                 </div>
               )}
-              <Suspense fallback={null}>
-                <MapboxHeatmap
+              <MapboxHeatmap
                   onVenueSelect={handleVenueSelect} 
                   venues={venues} 
                   mapboxToken={mapboxToken}
@@ -440,7 +437,6 @@ const Index = () => {
                   selectedVenue={selectedVenue}
                   resetUIKey={mapUIResetKey}
                 />
-              </Suspense>
             </div>
 
             {/* Selected Venue Card - Positioned at bottom with optimal spacing */}
