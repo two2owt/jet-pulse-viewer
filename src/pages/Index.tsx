@@ -76,7 +76,7 @@ const Index = () => {
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const [deepLinkedDeal, setDeepLinkedDeal] = useState<any>(null);
-  const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken({ enabled: activeTab === 'map' });
+  const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
   const { getVenueImage } = useVenueImages();
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
   const { isScrapingActive } = useAutoScrapeVenueImages(true);
