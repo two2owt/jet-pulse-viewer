@@ -144,11 +144,16 @@
     <link rel="preload" href="/src/index.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
     
-    <!-- DNS prefetch for non-critical resources (critical preconnects are at top of head) -->
+    <!-- Preconnect to Mapbox for faster map initialization -->
+    <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
+    <link rel="preconnect" href="https://tiles.mapbox.com" crossorigin>
+    <link rel="preconnect" href="https://events.mapbox.com" crossorigin>
+    
+    <!-- Preload Mapbox GL JS library for immediate map availability -->
+    <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.js" as="script" crossorigin>
+    
+    <!-- DNS prefetch for other resources -->
     <link rel="dns-prefetch" href="https://api.mixpanel.com">
-    <link rel="dns-prefetch" href="https://api.mapbox.com">
-    <link rel="dns-prefetch" href="https://tiles.mapbox.com">
-    <link rel="dns-prefetch" href="https://events.mapbox.com">
     <link rel="dns-prefetch" href="https://a.tiles.mapbox.com">
     <link rel="dns-prefetch" href="https://b.tiles.mapbox.com">
     <link rel="dns-prefetch" href="https://storage.googleapis.com">
