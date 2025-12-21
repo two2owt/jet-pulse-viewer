@@ -429,7 +429,6 @@ const Index = () => {
                   </div>
                 </div>
               )}
-              {!mapboxLoading && !mapboxError && mapboxToken && (
               <Suspense fallback={null}>
                 <MapboxHeatmap
                   onVenueSelect={handleVenueSelect} 
@@ -442,7 +441,6 @@ const Index = () => {
                   resetUIKey={mapUIResetKey}
                 />
               </Suspense>
-              )}
             </div>
 
             {/* Selected Venue Card - Positioned at bottom with optimal spacing */}
