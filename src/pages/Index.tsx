@@ -25,7 +25,7 @@ import { useDeals } from "@/hooks/useDeals";
 
 import { useVenueActivity } from "@/hooks/useVenueActivity";
 import { CITIES, type City } from "@/types/cities";
-import { Zap, Navigation, Map as MapIcon, Loader2 } from "lucide-react";
+import { Zap, Navigation, Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
 import jetLogo from "@/assets/jet-logo-256.webp";
 import {
@@ -405,20 +405,31 @@ const Index = () => {
           >
 
             {/* Mapbox Heatmap - Edge to edge */}
-            <div className="h-full w-full">
-              {/* Loading state */}
-              {mapboxLoading && !mapboxToken && (
-                <div className="h-full flex items-center justify-center bg-card/50 backdrop-blur-sm">
-                  <div className="text-center space-y-3 p-6">
-                    <Loader2 className="w-8 h-8 mx-auto text-primary animate-spin" />
-                    <p className="text-sm text-muted-foreground">Loading map...</p>
+            <div className="h-full w-full relative">
+              {/* Loading state - show skeleton immediately */}
+              {(mapboxLoading || (!mapboxToken && !mapboxError)) && (
+                <div className="absolute inset-0 z-10 bg-background">
+                  <div className="h-full flex flex-col items-center justify-center">
+                    <div className="flex flex-col items-center gap-4 p-6">
+                      {/* Animated map icon */}
+                      <div className="relative w-16 h-16">
+                        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+                        <div className="relative w-full h-full rounded-full bg-primary/10 flex items-center justify-center">
+                          <MapIcon className="w-8 h-8 text-primary" />
+                        </div>
+                      </div>
+                      <div className="text-center space-y-1">
+                        <p className="text-sm font-medium text-foreground">Loading map</p>
+                        <p className="text-xs text-muted-foreground">Connecting to map service...</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
               
               {/* Error state */}
               {mapboxError && !mapboxLoading && (
-                <div className="h-full flex items-center justify-center bg-card">
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-background">
                   <div className="text-center space-y-3 p-6">
                     <div className="w-12 h-12 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
                       <MapIcon className="w-6 h-6 text-destructive" />
@@ -439,7 +450,7 @@ const Index = () => {
                 </div>
               )}
               
-              {/* Map - only render when we have a token */}
+              {/* Map - render when we have a token (will show its own loading state) */}
               {mapboxToken && (
                 <MapboxHeatmap
                   onVenueSelect={handleVenueSelect} 

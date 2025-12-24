@@ -598,20 +598,29 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       }
     };
 
-    // Use requestIdleCallback to defer initialization, with fallback to setTimeout
-    let idleId: number | undefined;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    // On mobile, initialize immediately for faster load
+    // On desktop, use requestIdleCallback to avoid blocking main thread
+    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
-    if ('requestIdleCallback' in window) {
-      idleId = requestIdleCallback(initializeMap, { timeout: 100 });
+    if (isMobileDevice) {
+      // Immediate initialization on mobile - no delay
+      // Use queueMicrotask for next tick without blocking
+      queueMicrotask(initializeMap);
+    } else if ('requestIdleCallback' in window) {
+      const idleId = requestIdleCallback(initializeMap, { timeout: 50 });
+      return () => {
+        cancelIdleCallback(idleId);
+        cleanupMap();
+      };
     } else {
-      timeoutId = setTimeout(initializeMap, 0);
+      const timeoutId = setTimeout(initializeMap, 0);
+      return () => {
+        clearTimeout(timeoutId);
+        cleanupMap();
+      };
     }
-
-    return () => {
-      if (idleId !== undefined) cancelIdleCallback(idleId);
-      if (timeoutId !== undefined) clearTimeout(timeoutId);
-      // Cleanup map resources
+    
+    function cleanupMap() {
       setMapLoaded(false);
       setMapError(null);
       if (userMarker.current) {
@@ -621,6 +630,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       dealMarkersRef.current.forEach((marker) => marker.remove());
       map.current?.remove();
       map.current = null;
+    }
+
+    return () => {
+      cleanupMap();
     };
   }, [mapboxToken, retryCount]);
   useEffect(() => {
@@ -1831,6 +1844,56 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         minHeight: isMobile ? '100dvh' : '500px',
       }}
     >
+      {/* Map Initializing State - show while map is loading */}
+      {mapInitializing && !mapError && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-background">
+          <div className="flex flex-col items-center gap-4 p-6">
+            {/* Animated map icon with progress ring */}
+            <div className="relative w-16 h-16">
+              <svg 
+                className="w-full h-full -rotate-90"
+                viewBox="0 0 100 100"
+              >
+                {/* Background ring */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="hsl(var(--muted))"
+                  strokeWidth="6"
+                />
+                {/* Progress arc */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 42}`}
+                  strokeDashoffset={`${2 * Math.PI * 42 * (1 - tileProgress / 100)}`}
+                  style={{ transition: 'stroke-dashoffset 0.3s ease-out' }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <MapPin className="w-6 h-6 text-primary" />
+              </div>
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-sm font-medium text-foreground">Loading map</p>
+              <p className="text-xs text-muted-foreground">
+                {tileProgress < 30 ? 'Initializing...' : tileProgress < 80 ? 'Loading tiles...' : 'Almost ready...'}
+              </p>
+              {tileProgress > 0 && (
+                <p className="text-[10px] text-muted-foreground/70 tabular-nums">{Math.round(tileProgress)}%</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Map Error State with Retry */}
       {mapError && !mapInitializing && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
