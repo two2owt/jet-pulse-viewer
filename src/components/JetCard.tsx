@@ -103,7 +103,10 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
   const activityLevel = getActivityLevel(venue.activity);
 
   return (
-    <div className="bg-card rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-[var(--shadow-card)] transition-all duration-300 hover-scale">
+    <article 
+      className="bg-card rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-[var(--shadow-card)] transition-all duration-300 hover-scale"
+      aria-label={`${venue.name} - ${venue.category} in ${venue.neighborhood}`}
+    >
       {/* Close Button */}
       {onClose && (
         <button
@@ -185,18 +188,20 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
 
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3" role="group" aria-label="Venue actions">
           <Button 
             onClick={handleShare}
             variant="outline"
-            className="w-full border-border/60 hover:border-primary/60 hover:bg-primary/5 font-semibold py-6 rounded-xl transition-all duration-300 hover-scale"
+            className="w-full border-border/60 hover:border-primary/60 hover:bg-primary/5 font-semibold py-6 rounded-xl transition-all duration-300 hover-scale focus-visible:ring-2 focus-visible:ring-primary"
+            aria-label={`Share ${venue.name}`}
           >
-            <Share2 className="w-4 h-4 mr-2" />
+            <Share2 className="w-4 h-4 mr-2" aria-hidden="true" />
             Share
           </Button>
           <Button 
             onClick={handleGetDirections}
-            className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 text-primary-foreground font-semibold py-6 rounded-xl shadow-[var(--shadow-glow)] transition-all duration-300 hover-scale"
+            className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 text-primary-foreground font-semibold py-6 rounded-xl shadow-[var(--shadow-glow)] transition-all duration-300 hover-scale focus-visible:ring-2 focus-visible:ring-primary"
+            aria-label={`Get directions to ${venue.name}`}
           >
             Get Directions
           </Button>
@@ -209,6 +214,6 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
         isOpen={showUpgradePrompt}
         onClose={() => setShowUpgradePrompt(false)}
       />
-    </div>
+    </article>
   );
 });

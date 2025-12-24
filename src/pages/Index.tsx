@@ -406,6 +406,17 @@ const Index = () => {
 
             {/* Mapbox Heatmap - Edge to edge */}
             <div className="h-full w-full">
+              {/* Loading state */}
+              {mapboxLoading && !mapboxToken && (
+                <div className="h-full flex items-center justify-center bg-card/50 backdrop-blur-sm">
+                  <div className="text-center space-y-3 p-6">
+                    <Loader2 className="w-8 h-8 mx-auto text-primary animate-spin" />
+                    <p className="text-sm text-muted-foreground">Loading map...</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Error state */}
               {mapboxError && !mapboxLoading && (
                 <div className="h-full flex items-center justify-center bg-card">
                   <div className="text-center space-y-3 p-6">
@@ -427,7 +438,10 @@ const Index = () => {
                   </div>
                 </div>
               )}
-              <MapboxHeatmap
+              
+              {/* Map - only render when we have a token */}
+              {mapboxToken && (
+                <MapboxHeatmap
                   onVenueSelect={handleVenueSelect} 
                   venues={venues} 
                   mapboxToken={mapboxToken}
@@ -437,6 +451,7 @@ const Index = () => {
                   selectedVenue={selectedVenue}
                   resetUIKey={mapUIResetKey}
                 />
+              )}
             </div>
 
             {/* Selected Venue Card - Positioned at bottom with optimal spacing */}
