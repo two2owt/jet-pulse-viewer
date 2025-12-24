@@ -526,12 +526,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             }
           });
           
-          // Automatically trigger geolocation when map loads
-          if (geolocateControlRef.current) {
-            setTimeout(() => {
-              geolocateControlRef.current?.trigger();
-            }, 500);
-          }
+          // Don't auto-trigger geolocation - let user click the button manually
+          // This prevents the map from flying to incorrect mock locations in preview environments
         });
 
         // Track tile loading progress
