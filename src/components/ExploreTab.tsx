@@ -242,16 +242,23 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
     console.log('Starting filterDeals with', deals.length, 'deals');
     console.log('User location available:', !!userLocation);
     
-    // Apply preference-based filter first if enabled
+    // Apply preference-based filter if enabled - but only if it would leave some results
     if (preferenceFilterEnabled && userPreferences?.categories && userPreferences.categories.length > 0) {
       const beforeFilter = filtered.length;
-      filtered = filtered.filter(deal => {
+      const filteredByPreference = filtered.filter(deal => {
         const dealCategory = dealTypeToCategory[deal.deal_type] || deal.deal_type;
         return userPreferences.categories!.some(cat => 
           cat.toLowerCase() === dealCategory.toLowerCase()
         );
       });
-      console.log(`Preference filter: ${beforeFilter} -> ${filtered.length} deals`);
+      
+      // Only apply preference filter if it leaves some results, otherwise show all
+      if (filteredByPreference.length > 0) {
+        filtered = filteredByPreference;
+        console.log(`Preference filter: ${beforeFilter} -> ${filtered.length} deals`);
+      } else {
+        console.log(`Preference filter would return 0 deals, showing all ${beforeFilter} deals instead`);
+      }
     }
     
     // Apply location-based filter if user location is available
@@ -364,6 +371,11 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
   const handleCloseDealCard = () => {
     setSelectedDeal(null);
   };
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return <ExploreTabSkeleton />;
+  }
 
   return (
     <>
@@ -492,12 +504,28 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
         />
       )}
 
-      {/* No Deals */}
+      {/* No Deals at all */}
       {!isLoading && deals.length === 0 && !searchQuery && selectedCategories.length === 0 && (
         <EmptyState
           icon={TrendingUp}
           title="No active deals right now"
           description="Check back soon for new exclusive offers and trending spots in your area"
+        />
+      )}
+
+      {/* No nearby deals but deals exist elsewhere - show helpful message */}
+      {!isLoading && filteredDeals.length === 0 && deals.length > 0 && !searchQuery && selectedCategories.length === 0 && (
+        <EmptyState
+          icon={MapPin}
+          title="No deals nearby"
+          description={userLocation 
+            ? "There are no deals within your current radius. Try expanding your search area or checking back later."
+            : "Enable location services to see deals near you, or browse all available deals below."}
+          actionLabel={userLocation ? "Disable location filter" : "Show all deals"}
+          onAction={() => {
+            // Show all deals by temporarily clearing location
+            setFilteredDeals(deals);
+          }}
         />
       )}
 

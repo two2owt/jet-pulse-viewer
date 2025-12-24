@@ -24,6 +24,8 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
   return (
     <nav 
       className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50 nav-contained"
+      role="navigation"
+      aria-label="Main navigation"
       style={{
         paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.25rem)',
         paddingLeft: 'env(safe-area-inset-left, 0px)',
@@ -59,7 +61,9 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
                 <button
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
-                  className={`relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] touch-manipulation ${
+                  aria-label={`${item.label}${item.id === 'notifications' && notificationCount > 0 ? `, ${notificationCount} unread` : ''}`}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                     isActive
                       ? "bg-gradient-primary shadow-glow text-primary-foreground scale-105"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 active:bg-secondary/70 active:text-foreground"
@@ -68,6 +72,7 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
                   <Icon 
                     className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300" 
                     strokeWidth={isActive ? 2.5 : 2}
+                    aria-hidden="true"
                   />
                   
                   <span className={`text-[10px] sm:text-xs font-semibold transition-all duration-300 whitespace-nowrap ${

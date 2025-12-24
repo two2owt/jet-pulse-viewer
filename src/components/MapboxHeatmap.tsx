@@ -812,14 +812,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     const glowLayerId = `${layerId}-glow`;
 
     try {
-      // Remove existing layers and source if they exist
-      [glowLayerId, pointLayerId, layerId].forEach(id => {
-        if (map.current?.getLayer(id)) {
-          map.current.removeLayer(id);
+      // Remove existing layers and source if they exist - check style is loaded first
+      if (map.current?.style?.loaded()) {
+        [glowLayerId, pointLayerId, layerId].forEach(id => {
+          if (map.current?.getLayer(id)) {
+            map.current.removeLayer(id);
+          }
+        });
+        if (map.current?.getSource(sourceId)) {
+          map.current.removeSource(sourceId);
         }
-      });
-      if (map.current.getSource(sourceId)) {
-        map.current.removeSource(sourceId);
       }
     } catch (error) {
       console.error('Error removing existing layers:', error);
@@ -998,17 +1000,19 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     const particleLayerId = 'movement-paths-particles';
 
     try {
-      // Remove existing layers and source if they exist
-      [particleLayerId, arrowLayerId, glowLayerId, lineLayerId].forEach(id => {
-        if (map.current?.getLayer(id)) {
-          map.current.removeLayer(id);
+      // Remove existing layers and source if they exist - check style is loaded first
+      if (map.current?.style?.loaded()) {
+        [particleLayerId, arrowLayerId, glowLayerId, lineLayerId].forEach(id => {
+          if (map.current?.getLayer(id)) {
+            map.current.removeLayer(id);
+          }
+        });
+        if (map.current?.getSource(sourceId)) {
+          map.current.removeSource(sourceId);
         }
-      });
-      if (map.current.getSource(sourceId)) {
-        map.current.removeSource(sourceId);
-      }
-      if (map.current.getSource(`${sourceId}-particles`)) {
-        map.current.removeSource(`${sourceId}-particles`);
+        if (map.current?.getSource(`${sourceId}-particles`)) {
+          map.current.removeSource(`${sourceId}-particles`);
+        }
       }
     } catch (error) {
       console.error('Error removing existing movement path layers:', error);
@@ -1633,12 +1637,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     const sourceId = 'venue-heatmap-source';
     const heatmapLayerId = 'venue-heatmap-layer';
 
-    // Remove existing layers and source if they exist
-    if (mapInstance.getLayer(heatmapLayerId)) {
-      mapInstance.removeLayer(heatmapLayerId);
-    }
-    if (mapInstance.getSource(sourceId)) {
-      mapInstance.removeSource(sourceId);
+    // Remove existing layers and source if they exist - check style is loaded first
+    if (mapInstance.style?.loaded()) {
+      if (mapInstance.getLayer(heatmapLayerId)) {
+        mapInstance.removeLayer(heatmapLayerId);
+      }
+      if (mapInstance.getSource(sourceId)) {
+        mapInstance.removeSource(sourceId);
+      }
     }
 
     // Create GeoJSON data from venues with activity as weight
@@ -1724,11 +1730,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     }, 'waterway-label'); // Insert below labels
 
     return () => {
-      if (mapInstance.getLayer(heatmapLayerId)) {
-        mapInstance.removeLayer(heatmapLayerId);
-      }
-      if (mapInstance.getSource(sourceId)) {
-        mapInstance.removeSource(sourceId);
+      // Check style is loaded before cleanup to prevent "getOwnLayer" errors
+      if (mapInstance.style?.loaded()) {
+        if (mapInstance.getLayer(heatmapLayerId)) {
+          mapInstance.removeLayer(heatmapLayerId);
+        }
+        if (mapInstance.getSource(sourceId)) {
+          mapInstance.removeSource(sourceId);
+        }
       }
     };
   }, [venues, mapLoaded]);
