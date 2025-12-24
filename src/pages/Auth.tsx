@@ -83,24 +83,32 @@ const Auth = () => {
       errors.email = emailResult.error.errors[0].message;
     }
     
-    // Validate password for signup and signin
+    // Validate password - strict validation ONLY for signup, basic check for signin
     if (!isForgotPassword) {
-      const passwordResult = passwordSchema.safeParse(password);
-      if (!passwordResult.success) {
-        errors.password = passwordResult.error.errors[0].message;
+      if (isSignUp || isResettingPassword) {
+        // Strict password validation for new passwords
+        const passwordResult = passwordSchema.safeParse(password);
+        if (!passwordResult.success) {
+          errors.password = passwordResult.error.errors[0].message;
+        }
+      } else {
+        // For signin, only check that password is not empty (min length 1)
+        if (!password || password.length === 0) {
+          errors.password = "Password is required";
+        }
       }
       
-      // Validate password confirmation for signup
-      if (isSignUp && password !== confirmPassword) {
+      // Validate password confirmation for signup and password reset
+      if ((isSignUp || isResettingPassword) && password !== confirmPassword) {
         errors.confirmPassword = "Passwords do not match";
       }
       
-      // Validate consent for signup
+      // Validate consent for signup only
       if (isSignUp && !dataProcessingConsent) {
         errors.consent = "You must agree to the Privacy Policy and Terms of Service";
       }
       
-      // Validate location consent for signup
+      // Validate location consent for signup only
       if (isSignUp && !locationConsent) {
         errors.locationConsent = "Location consent is required to receive personalized deals";
       }
@@ -466,7 +474,7 @@ const Auth = () => {
                 {validationErrors.password && (
                   <p className="text-xs text-destructive">{validationErrors.password}</p>
                 )}
-                {isSignUp && !validationErrors.password && (
+                {(isSignUp || isResettingPassword) && !validationErrors.password && (
                   <p className="text-xs text-muted-foreground">
                     Must be 8+ characters with uppercase, lowercase, and number
                   </p>
