@@ -15,7 +15,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collap
 import { TimelapseSwipeControl } from "./TimelapseSwipeControl";
 
 import { CITIES, type City, getDistanceKm } from "@/types/cities";
-import { MapTileCacheButton } from "./MapTileCacheButton";
 
 // Venue type definition
 export interface Venue {
@@ -526,8 +525,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             }
           });
           
-          // Don't auto-trigger geolocation - let user click the button manually
-          // This prevents the map from flying to incorrect mock locations in preview environments
+          // Automatically trigger geolocation when map loads
+          if (geolocateControlRef.current) {
+            setTimeout(() => {
+              geolocateControlRef.current?.trigger();
+            }, 500);
+          }
         });
 
         // Track tile loading progress
@@ -1958,8 +1961,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           maxWidth: isMobile ? 'calc(50vw - 1rem)' : 'var(--map-control-max-width)',
         }}
       >
-        {/* Save Offline Button */}
-        <MapTileCacheButton map={map.current} mapboxToken={mapboxToken} />
         <Collapsible defaultOpen={false}>
           <CollapsibleTrigger asChild>
             <Button

@@ -11,14 +11,14 @@ interface CachedToken {
 
 const getCachedToken = (): string | null => {
   try {
-    const cached = localStorage.getItem(TOKEN_CACHE_KEY);
+    const cached = sessionStorage.getItem(TOKEN_CACHE_KEY);
     if (!cached) return null;
     
     const { token, timestamp }: CachedToken = JSON.parse(cached);
     const isExpired = Date.now() - timestamp > TOKEN_CACHE_DURATION;
     
     if (isExpired) {
-      localStorage.removeItem(TOKEN_CACHE_KEY);
+      sessionStorage.removeItem(TOKEN_CACHE_KEY);
       return null;
     }
     
@@ -31,7 +31,7 @@ const getCachedToken = (): string | null => {
 const setCachedToken = (token: string): void => {
   try {
     const cache: CachedToken = { token, timestamp: Date.now() };
-    localStorage.setItem(TOKEN_CACHE_KEY, JSON.stringify(cache));
+    sessionStorage.setItem(TOKEN_CACHE_KEY, JSON.stringify(cache));
   } catch {
     // Ignore storage errors
   }
