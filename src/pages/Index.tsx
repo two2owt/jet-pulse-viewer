@@ -410,17 +410,17 @@ const Index = () => {
               {(mapboxLoading || (!mapboxToken && !mapboxError)) && (
                 <div className="absolute inset-0 z-10 bg-background">
                   <div className="h-full flex flex-col items-center justify-center">
-                    <div className="flex flex-col items-center gap-4 p-6">
-                      {/* Animated map icon */}
-                      <div className="relative w-16 h-16">
+                    <div className="flex flex-col items-center gap-4 sm:gap-6 p-6 sm:p-8">
+                      {/* Animated map icon - scales up on larger screens */}
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
                         <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
                         <div className="relative w-full h-full rounded-full bg-primary/10 flex items-center justify-center">
-                          <MapIcon className="w-8 h-8 text-primary" />
+                          <MapIcon className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-primary" />
                         </div>
                       </div>
-                      <div className="text-center space-y-1">
-                        <p className="text-sm font-medium text-foreground">Loading map</p>
-                        <p className="text-xs text-muted-foreground">Connecting to map service...</p>
+                      <div className="text-center space-y-1.5 sm:space-y-2">
+                        <p className="text-sm sm:text-base md:text-lg font-medium text-foreground">Loading map</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Connecting to map service...</p>
                       </div>
                     </div>
                   </div>
@@ -430,19 +430,19 @@ const Index = () => {
               {/* Error state */}
               {mapboxError && !mapboxLoading && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-background">
-                  <div className="text-center space-y-3 p-6">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
-                      <MapIcon className="w-6 h-6 text-destructive" />
+                  <div className="text-center space-y-3 sm:space-y-4 p-6 sm:p-8">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
+                      <MapIcon className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-destructive" />
                     </div>
-                    <div className="space-y-1.5">
-                      <p className="text-sm font-medium text-foreground">Unable to load map</p>
-                      <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">{mapboxError}</p>
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <p className="text-sm sm:text-base md:text-lg font-medium text-foreground">Unable to load map</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground max-w-[200px] sm:max-w-[280px] mx-auto">{mapboxError}</p>
                     </div>
                     <Button 
                       variant="outline" 
-                      size="sm"
+                      size="default"
                       onClick={() => window.location.reload()}
-                      className="mt-2"
+                      className="mt-2 sm:mt-3"
                     >
                       Try Again
                     </Button>
