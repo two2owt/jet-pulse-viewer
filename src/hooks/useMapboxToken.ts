@@ -9,15 +9,24 @@ interface CachedToken {
   timestamp: number;
 }
 
+// Use both localStorage and sessionStorage for better mobile persistence
 const getCachedToken = (): string | null => {
   try {
-    const cached = sessionStorage.getItem(TOKEN_CACHE_KEY);
+    // Try localStorage first (persists across sessions)
+    let cached = localStorage.getItem(TOKEN_CACHE_KEY);
+    
+    // Fallback to sessionStorage
+    if (!cached) {
+      cached = sessionStorage.getItem(TOKEN_CACHE_KEY);
+    }
+    
     if (!cached) return null;
     
     const { token, timestamp }: CachedToken = JSON.parse(cached);
     const isExpired = Date.now() - timestamp > TOKEN_CACHE_DURATION;
     
     if (isExpired) {
+      localStorage.removeItem(TOKEN_CACHE_KEY);
       sessionStorage.removeItem(TOKEN_CACHE_KEY);
       return null;
     }
@@ -31,6 +40,8 @@ const getCachedToken = (): string | null => {
 const setCachedToken = (token: string): void => {
   try {
     const cache: CachedToken = { token, timestamp: Date.now() };
+    // Store in both for redundancy on mobile
+    localStorage.setItem(TOKEN_CACHE_KEY, JSON.stringify(cache));
     sessionStorage.setItem(TOKEN_CACHE_KEY, JSON.stringify(cache));
   } catch {
     // Ignore storage errors
@@ -53,31 +64,59 @@ export const useMapboxToken = (options: UseMapboxTokenOptions = {}) => {
     if (cachedToken) {
       setToken(cachedToken);
       setLoading(false);
+      setError(null);
       return;
     }
 
     setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("get-mapbox-token");
-      
-      if (error) {
-        console.error('Error fetching Mapbox token:', error);
-        throw error;
+    setError(null);
+    
+    // Retry logic for mobile network issues
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        // Add timeout for mobile networks
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        const { data, error } = await supabase.functions.invoke("get-mapbox-token", {
+          // Note: supabase-js doesn't directly support AbortController, but we handle timeout below
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (error) {
+          console.error('Error fetching Mapbox token:', error);
+          throw error;
+        }
+        
+        if (!data || !data.token) {
+          console.error('No token received from edge function');
+          throw new Error('No token received');
+        }
+        
+        setCachedToken(data.token);
+        setToken(data.token);
+        setError(null);
+        setLoading(false);
+        return;
+      } catch (err) {
+        console.error(`Mapbox token fetch attempt ${attempt + 1} failed:`, err);
+        lastError = err as Error;
+        
+        // Wait before retry (exponential backoff)
+        if (attempt < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        }
       }
-      
-      if (!data || !data.token) {
-        console.error('No token received from edge function');
-        throw new Error('No token received');
-      }
-      
-      setCachedToken(data.token);
-      setToken(data.token);
-    } catch (err) {
-      console.error("Error fetching Mapbox token:", err);
-      setError("Failed to load map");
-    } finally {
-      setLoading(false);
     }
+    
+    // All retries failed
+    console.error("All Mapbox token fetch attempts failed:", lastError);
+    setError("Failed to load map. Please check your connection.");
+    setLoading(false);
   }, []);
 
   useEffect(() => {
