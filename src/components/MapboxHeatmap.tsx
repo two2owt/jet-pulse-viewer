@@ -382,8 +382,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         const createUserMarker = () => {
           const el = document.createElement('div');
           el.className = 'user-location-marker';
-          el.style.width = '48px';
-          el.style.height = '48px';
+          el.style.width = '52px';
+          el.style.height = '52px';
           el.style.display = 'flex';
           el.style.alignItems = 'center';
           el.style.justifyContent = 'center';
@@ -391,27 +391,29 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           // Note: No CSS transition on transform - Mapbox handles marker positioning
           // and transitions would cause visual lag during map pan/zoom
           
-          // Glassmorphic glow effect behind icon (no visible container edges)
-          const glowRing = document.createElement('div');
-          glowRing.style.position = 'absolute';
-          glowRing.style.width = '100%';
-          glowRing.style.height = '100%';
-          glowRing.style.borderRadius = '50%';
-          glowRing.style.background = 'radial-gradient(circle, rgba(255, 69, 58, 0.25) 0%, rgba(255, 69, 58, 0.08) 50%, transparent 70%)';
-          glowRing.style.backdropFilter = 'blur(8px)';
-          (glowRing.style as any).WebkitBackdropFilter = 'blur(8px)';
-          glowRing.style.zIndex = '0';
+          // Glassmorphic puck container - visible frosted glass circle
+          const glassPuck = document.createElement('div');
+          glassPuck.style.position = 'absolute';
+          glassPuck.style.width = '100%';
+          glassPuck.style.height = '100%';
+          glassPuck.style.borderRadius = '50%';
+          glassPuck.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)';
+          glassPuck.style.backdropFilter = 'blur(12px) saturate(180%)';
+          (glassPuck.style as any).WebkitBackdropFilter = 'blur(12px) saturate(180%)';
+          glassPuck.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+          glassPuck.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 20px rgba(255, 69, 58, 0.3)';
+          glassPuck.style.zIndex = '0';
           
           const img = document.createElement('img');
           img.src = locationTrackerIcon;
-          img.style.width = '65%';
-          img.style.height = '65%';
+          img.style.width = '60%';
+          img.style.height = '60%';
           img.style.objectFit = 'contain';
-          img.style.filter = 'drop-shadow(0 2px 8px rgba(255, 69, 58, 0.5)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3))';
+          img.style.filter = 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4))';
           img.style.position = 'relative';
           img.style.zIndex = '1';
           
-          el.appendChild(glowRing);
+          el.appendChild(glassPuck);
           el.appendChild(img);
           return el;
         };
