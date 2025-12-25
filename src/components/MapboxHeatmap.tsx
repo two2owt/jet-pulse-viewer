@@ -382,8 +382,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         const createUserMarker = () => {
           const el = document.createElement('div');
           el.className = 'user-location-marker';
-          el.style.width = '52px';
-          el.style.height = '52px';
+          el.style.width = '64px';
+          el.style.height = '64px';
           el.style.display = 'flex';
           el.style.alignItems = 'center';
           el.style.justifyContent = 'center';
