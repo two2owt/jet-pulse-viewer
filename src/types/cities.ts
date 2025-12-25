@@ -32,6 +32,35 @@ export function getNearbyCities(userLat: number, userLng: number): City[] {
   return CITIES.filter(city => isWithinMetro(userLat, userLng, city));
 }
 
+// Get the nearest city to user's location using Haversine distance
+export function getNearestCity(userLat: number, userLng: number): City {
+  let nearestCity = CITIES[0];
+  let minDistance = Infinity;
+  
+  CITIES.forEach(city => {
+    const distance = getDistanceKm(userLat, userLng, city.lat, city.lng);
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestCity = city;
+    }
+  });
+  
+  return nearestCity;
+}
+
+// Get cities sorted by distance from user's location (nearest first)
+export function getCitiesSortedByDistance(userLat: number, userLng: number): Array<City & { distanceKm: number }> {
+  return CITIES.map(city => ({
+    ...city,
+    distanceKm: getDistanceKm(userLat, userLng, city.lat, city.lng)
+  })).sort((a, b) => a.distanceKm - b.distanceKm);
+}
+
+// Convert km to miles
+export function kmToMiles(km: number): number {
+  return km * 0.621371;
+}
+
 export const CITIES: City[] = [
   {
     id: "charlotte",
