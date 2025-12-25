@@ -15,6 +15,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collap
 import { TimelapseSwipeControl } from "./TimelapseSwipeControl";
 
 import { CITIES, type City, getDistanceKm, getNearestCity, getCitiesSortedByDistance, kmToMiles } from "@/types/cities";
+import { getCachedReverseGeocode, type GeocodedLocation } from "@/utils/reverseGeocode";
 
 // Venue type definition
 export interface Venue {
@@ -143,7 +144,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   
   // User location state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [detectedCity, setDetectedCity] = useState<City | null>(null); // City detected from user's location
+  const [detectedCity, setDetectedCity] = useState<City | null>(null); // Nearest predefined city for filtering
+  const [detectedLocationName, setDetectedLocationName] = useState<string | null>(null); // Actual city name from reverse geocoding
   const [isUsingCurrentLocation, setIsUsingCurrentLocation] = useState(true); // Default to current location
   
   // Reset UI state when tab changes (resetUIKey increments)
@@ -452,17 +454,27 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         };
         
         // Listen for geolocate events to update city and marker
-        geolocateControl.on('geolocate', (e: any) => {
+        geolocateControl.on('geolocate', async (e: any) => {
           const { longitude, latitude } = e.coords;
           
           // Update user location state
           setUserLocation({ lat: latitude, lng: longitude });
           
-          // Find the nearest city using proper Haversine distance
+          // Find the nearest predefined city using proper Haversine distance (for filtering)
           const nearestCity = getNearestCity(latitude, longitude);
           
-          // Set detected city based on location
+          // Set detected city based on location (used for data filtering)
           setDetectedCity(nearestCity);
+          
+          // Perform reverse geocoding to get actual city/metro name
+          getCachedReverseGeocode(latitude, longitude, mapboxToken).then((geocoded) => {
+            if (geocoded) {
+              setDetectedLocationName(geocoded.fullName);
+            } else {
+              // Fall back to nearest predefined city name
+              setDetectedLocationName(`${nearestCity.name}, ${nearestCity.state}`);
+            }
+          });
           
           // Notify parent of detected city on initial geolocate (auto-select nearest city)
           if (isInitialGeolocate && onNearestCityDetected) {
@@ -2018,10 +2030,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-primary flex-shrink-0" />
               <span className="font-semibold truncate max-w-[100px] sm:max-w-[140px] md:max-w-[180px]">
                 {isUsingCurrentLocation 
-                  ? (detectedCity ? `${detectedCity.name}, ${detectedCity.state}` : "Locating...") 
+                  ? (detectedLocationName || (detectedCity ? `${detectedCity.name}, ${detectedCity.state}` : "Locating..."))
                   : `${selectedCity.name}, ${selectedCity.state}`}
               </span>
-              {isUsingCurrentLocation && detectedCity && (
+              {isUsingCurrentLocation && (detectedLocationName || detectedCity) && (
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-pulse" />
               )}
             </div>
@@ -2030,7 +2042,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             <SelectItem value="current-location">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                {detectedCity ? `${detectedCity.name}, ${detectedCity.state} (Current)` : "Use Current Location"}
+                {detectedLocationName 
+                  ? `${detectedLocationName} (Current)` 
+                  : (detectedCity ? `${detectedCity.name}, ${detectedCity.state} (Current)` : "Use Current Location")}
               </div>
             </SelectItem>
             <div className="h-px bg-border my-1" />
