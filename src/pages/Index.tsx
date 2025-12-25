@@ -220,6 +220,11 @@ const Index = () => {
     });
   };
 
+  // Auto-select nearest city when geolocation detects it on initial load
+  const handleNearestCityDetected = useCallback((city: City) => {
+    setSelectedCity(city);
+  }, []);
+
   const handleVenueSelect = async (venue: Venue | string) => {
     // Handle both Venue object and venue name string
     if (typeof venue === 'string') {
@@ -464,6 +469,7 @@ const Index = () => {
                   mapboxToken={mapboxToken}
                   selectedCity={selectedCity}
                   onCityChange={handleCityChange}
+                  onNearestCityDetected={handleNearestCityDetected}
                   isLoadingVenues={venuesLoading}
                   selectedVenue={selectedVenue}
                   resetUIKey={mapUIResetKey}

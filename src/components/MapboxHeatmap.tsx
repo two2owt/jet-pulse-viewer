@@ -46,6 +46,7 @@ interface MapboxHeatmapProps {
   mapboxToken: string;
   selectedCity: City;
   onCityChange: (city: City) => void;
+  onNearestCityDetected?: (city: City) => void; // Called when geolocation detects nearest city
   isLoadingVenues?: boolean;
   selectedVenue?: Venue | null;
   resetUIKey?: number; // Incremented when tab changes to reset collapsed UI state
@@ -93,7 +94,7 @@ const getPlatformSettings = (isMobile: boolean) => {
   };
 };
 
-export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, isLoadingVenues = false, selectedVenue, resetUIKey }: MapboxHeatmapProps) => {
+export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, onNearestCityDetected, isLoadingVenues = false, selectedVenue, resetUIKey }: MapboxHeatmapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -462,6 +463,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           
           // Set detected city based on location
           setDetectedCity(nearestCity);
+          
+          // Notify parent of detected city on initial geolocate (auto-select nearest city)
+          if (isInitialGeolocate && onNearestCityDetected) {
+            onNearestCityDetected(nearestCity);
+          }
           
           // Only fly to user location on initial load (default behavior)
           // After that, users can pan/zoom freely without being pulled back
