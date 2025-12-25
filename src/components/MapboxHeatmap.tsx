@@ -409,10 +409,10 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           
           const img = document.createElement('img');
           img.src = locationTrackerIcon;
-          img.style.width = '55%';
-          img.style.height = '55%';
+          img.style.width = '70%';
+          img.style.height = '70%';
           img.style.objectFit = 'contain';
-          img.style.filter = 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4))';
+          img.style.filter = 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5))';
           
           glassPuck.appendChild(img);
           el.appendChild(glassPuck);
