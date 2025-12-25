@@ -369,8 +369,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         const createUserMarker = () => {
           const el = document.createElement('div');
           el.className = 'user-location-marker';
-          el.style.width = '40px';
-          el.style.height = '40px';
+          el.style.width = '48px';
+          el.style.height = '48px';
           el.style.display = 'flex';
           el.style.alignItems = 'center';
           el.style.justifyContent = 'center';
@@ -378,14 +378,27 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           // Note: No CSS transition on transform - Mapbox handles marker positioning
           // and transitions would cause visual lag during map pan/zoom
           
-          // Direct image without container - clean paper plane icon
+          // Glassmorphic glow effect behind icon (no visible container edges)
+          const glowRing = document.createElement('div');
+          glowRing.style.position = 'absolute';
+          glowRing.style.width = '100%';
+          glowRing.style.height = '100%';
+          glowRing.style.borderRadius = '50%';
+          glowRing.style.background = 'radial-gradient(circle, rgba(255, 69, 58, 0.25) 0%, rgba(255, 69, 58, 0.08) 50%, transparent 70%)';
+          glowRing.style.backdropFilter = 'blur(8px)';
+          (glowRing.style as any).WebkitBackdropFilter = 'blur(8px)';
+          glowRing.style.zIndex = '0';
+          
           const img = document.createElement('img');
           img.src = locationTrackerIcon;
-          img.style.width = '100%';
-          img.style.height = '100%';
+          img.style.width = '65%';
+          img.style.height = '65%';
           img.style.objectFit = 'contain';
-          img.style.filter = 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4))';
+          img.style.filter = 'drop-shadow(0 2px 8px rgba(255, 69, 58, 0.5)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3))';
+          img.style.position = 'relative';
+          img.style.zIndex = '1';
           
+          el.appendChild(glowRing);
           el.appendChild(img);
           return el;
         };
