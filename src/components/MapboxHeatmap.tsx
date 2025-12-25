@@ -14,7 +14,7 @@ import { Slider } from "./ui/slider";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { TimelapseSwipeControl } from "./TimelapseSwipeControl";
 
-import { CITIES, type City, getDistanceKm } from "@/types/cities";
+import { CITIES, type City, getDistanceKm, getNearestCity, getCitiesSortedByDistance, kmToMiles } from "@/types/cities";
 
 // Venue type definition
 export interface Venue {
@@ -457,21 +457,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           // Update user location state
           setUserLocation({ lat: latitude, lng: longitude });
           
-          // Find the nearest city to detect which metro area user is in
-          let nearestCity = CITIES[0];
-          let minDistance = Infinity;
-          
-          CITIES.forEach(city => {
-            const distance = Math.sqrt(
-              Math.pow(city.lat - latitude, 2) + 
-              Math.pow(city.lng - longitude, 2)
-            );
-            
-            if (distance < minDistance) {
-              minDistance = distance;
-              nearestCity = city;
-            }
-          });
+          // Find the nearest city using proper Haversine distance
+          const nearestCity = getNearestCity(latitude, longitude);
           
           // Set detected city based on location
           setDetectedCity(nearestCity);
@@ -2041,17 +2028,18 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               </div>
             </SelectItem>
             <div className="h-px bg-border my-1" />
-            {CITIES.map((city) => {
-              const distance = userLocation 
-                ? getDistanceKm(userLocation.lat, userLocation.lng, city.lat, city.lng)
-                : null;
+            {(userLocation 
+              ? getCitiesSortedByDistance(userLocation.lat, userLocation.lng)
+              : CITIES.map(c => ({ ...c, distanceKm: 0 }))
+            ).map((city) => {
+              const distanceMiles = userLocation ? kmToMiles(city.distanceKm) : null;
               return (
                 <SelectItem key={city.id} value={city.id}>
                   <div className="flex items-center justify-between w-full gap-3">
                     <span>{city.name}, {city.state}</span>
-                    {distance !== null && (
+                    {distanceMiles !== null && (
                       <span className="text-xs text-muted-foreground">
-                        {distance < 1 ? '<1' : Math.round(distance)} mi
+                        {distanceMiles < 1 ? '<1' : Math.round(distanceMiles)} mi
                       </span>
                     )}
                   </div>
