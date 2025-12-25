@@ -1,7 +1,7 @@
 project_id = "zbrscuoqmkdbmdimdnqu"
 
 [functions.get-mapbox-token]
-verify_jwt = true
+verify_jwt = false
 
 [functions.get-location-density]
 verify_jwt = false
