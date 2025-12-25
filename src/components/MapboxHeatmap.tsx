@@ -397,24 +397,26 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           glassPuck.style.width = '100%';
           glassPuck.style.height = '100%';
           glassPuck.style.borderRadius = '50%';
+          glassPuck.style.overflow = 'hidden';
           glassPuck.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)';
           glassPuck.style.backdropFilter = 'blur(12px) saturate(180%)';
           (glassPuck.style as any).WebkitBackdropFilter = 'blur(12px) saturate(180%)';
           glassPuck.style.border = '1px solid rgba(255, 255, 255, 0.2)';
           glassPuck.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 20px rgba(255, 69, 58, 0.3)';
           glassPuck.style.zIndex = '0';
+          glassPuck.style.display = 'flex';
+          glassPuck.style.alignItems = 'center';
+          glassPuck.style.justifyContent = 'center';
           
           const img = document.createElement('img');
           img.src = locationTrackerIcon;
-          img.style.width = '60%';
-          img.style.height = '60%';
+          img.style.width = '55%';
+          img.style.height = '55%';
           img.style.objectFit = 'contain';
           img.style.filter = 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4))';
-          img.style.position = 'relative';
-          img.style.zIndex = '1';
           
+          glassPuck.appendChild(img);
           el.appendChild(glassPuck);
-          el.appendChild(img);
           return el;
         };
         
