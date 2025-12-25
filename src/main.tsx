@@ -73,11 +73,10 @@ const initNonCritical = async () => {
   await yieldToMain();
   initPrefetching();
   
-  // Register service worker after all critical work is done
+  // Register service worker with lifecycle tracking
   await yieldToMain();
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
-  }
+  const { swTracker } = await import("@/lib/sw-tracker");
+  await swTracker.registerWithTracking();
 };
 
 // Start non-critical initialization after render
