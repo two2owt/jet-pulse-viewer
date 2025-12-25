@@ -53,7 +53,7 @@ async function sendVapidPushNotification(
       dealId: payload.data?.dealId || "",
       venueId: payload.data?.venueId || "",
       venueName: payload.data?.venueName || "",
-      url: payload.data?.url || "https://www.jet-around.com",
+      url: payload.data?.url || "https://jet-around.com",
     },
   });
 
