@@ -382,37 +382,37 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         const createUserMarker = () => {
           const el = document.createElement('div');
           el.className = 'user-location-marker';
-          el.style.width = '24px';
-          el.style.height = '24px';
+          el.style.width = '48px';
+          el.style.height = '48px';
           el.style.display = 'flex';
           el.style.alignItems = 'center';
           el.style.justifyContent = 'center';
           el.style.position = 'relative';
+          // Note: No CSS transition on transform - Mapbox handles marker positioning
+          // and transitions would cause visual lag during map pan/zoom
           
-          // Outer glow ring - glassmorphic effect
+          // Glassmorphic glow effect behind icon (no visible container edges)
           const glowRing = document.createElement('div');
           glowRing.style.position = 'absolute';
           glowRing.style.width = '100%';
           glowRing.style.height = '100%';
           glowRing.style.borderRadius = '50%';
-          glowRing.style.background = 'radial-gradient(circle, rgba(255, 69, 58, 0.3) 0%, rgba(255, 69, 58, 0.1) 60%, transparent 100%)';
-          glowRing.style.backdropFilter = 'blur(4px)';
-          (glowRing.style as any).WebkitBackdropFilter = 'blur(4px)';
-          glowRing.style.animation = 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite';
+          glowRing.style.background = 'radial-gradient(circle, rgba(255, 69, 58, 0.25) 0%, rgba(255, 69, 58, 0.08) 50%, transparent 70%)';
+          glowRing.style.backdropFilter = 'blur(8px)';
+          (glowRing.style as any).WebkitBackdropFilter = 'blur(8px)';
+          glowRing.style.zIndex = '0';
           
-          // Inner solid circle
-          const innerDot = document.createElement('div');
-          innerDot.style.width = '14px';
-          innerDot.style.height = '14px';
-          innerDot.style.borderRadius = '50%';
-          innerDot.style.background = 'linear-gradient(135deg, hsl(24, 100%, 60%) 0%, hsl(24, 100%, 50%) 100%)';
-          innerDot.style.border = '2.5px solid rgba(255, 255, 255, 0.9)';
-          innerDot.style.boxShadow = '0 2px 8px rgba(255, 69, 58, 0.5), 0 1px 3px rgba(0, 0, 0, 0.3)';
-          innerDot.style.position = 'relative';
-          innerDot.style.zIndex = '1';
+          const img = document.createElement('img');
+          img.src = locationTrackerIcon;
+          img.style.width = '65%';
+          img.style.height = '65%';
+          img.style.objectFit = 'contain';
+          img.style.filter = 'drop-shadow(0 2px 8px rgba(255, 69, 58, 0.5)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3))';
+          img.style.position = 'relative';
+          img.style.zIndex = '1';
           
           el.appendChild(glowRing);
-          el.appendChild(innerDot);
+          el.appendChild(img);
           return el;
         };
         
