@@ -72,6 +72,7 @@ const Index = () => {
   const [mapUIResetKey, setMapUIResetKey] = useState(0); // Increments when switching to map tab to reset collapsed UI
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
+  const [detectedLocationName, setDetectedLocationName] = useState<string | null>(null); // Actual city from reverse geocoding
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const [deepLinkedDeal, setDeepLinkedDeal] = useState<any>(null);
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
@@ -225,6 +226,11 @@ const Index = () => {
     setSelectedCity(city);
   }, []);
 
+  // Handle detected location name from reverse geocoding
+  const handleDetectedLocationNameChange = useCallback((name: string | null) => {
+    setDetectedLocationName(name);
+  }, []);
+
   const handleVenueSelect = async (venue: Venue | string) => {
     // Handle both Venue object and venue name string
     if (typeof venue === 'string') {
@@ -366,7 +372,7 @@ const Index = () => {
             refreshDeals();
             refreshVenues();
           }}
-          cityName={`${selectedCity.name}, ${selectedCity.state}`}
+          cityName={detectedLocationName || `${selectedCity.name}, ${selectedCity.state}`}
         />
 
         {/* Offline Banner */}
@@ -470,6 +476,7 @@ const Index = () => {
                   selectedCity={selectedCity}
                   onCityChange={handleCityChange}
                   onNearestCityDetected={handleNearestCityDetected}
+                  onDetectedLocationNameChange={handleDetectedLocationNameChange}
                   isLoadingVenues={venuesLoading}
                   selectedVenue={selectedVenue}
                   resetUIKey={mapUIResetKey}

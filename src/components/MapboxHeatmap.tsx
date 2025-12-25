@@ -48,6 +48,7 @@ interface MapboxHeatmapProps {
   selectedCity: City;
   onCityChange: (city: City) => void;
   onNearestCityDetected?: (city: City) => void; // Called when geolocation detects nearest city
+  onDetectedLocationNameChange?: (name: string | null) => void; // Called when reverse geocoded location name changes
   isLoadingVenues?: boolean;
   selectedVenue?: Venue | null;
   resetUIKey?: number; // Incremented when tab changes to reset collapsed UI state
@@ -95,7 +96,7 @@ const getPlatformSettings = (isMobile: boolean) => {
   };
 };
 
-export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, onNearestCityDetected, isLoadingVenues = false, selectedVenue, resetUIKey }: MapboxHeatmapProps) => {
+export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, onNearestCityDetected, onDetectedLocationNameChange, isLoadingVenues = false, selectedVenue, resetUIKey }: MapboxHeatmapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -147,6 +148,18 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [detectedCity, setDetectedCity] = useState<City | null>(null); // Nearest predefined city for filtering
   const [detectedLocationName, setDetectedLocationName] = useState<string | null>(null); // Actual city name from reverse geocoding
   const [isUsingCurrentLocation, setIsUsingCurrentLocation] = useState(true); // Default to current location
+  
+  // Notify parent when detected location name changes
+  useEffect(() => {
+    if (onDetectedLocationNameChange) {
+      if (isUsingCurrentLocation) {
+        onDetectedLocationNameChange(detectedLocationName);
+      } else {
+        // When manually selecting a city, clear the detected name so parent uses selected city
+        onDetectedLocationNameChange(null);
+      }
+    }
+  }, [detectedLocationName, isUsingCurrentLocation, onDetectedLocationNameChange]);
   
   // Reset UI state when tab changes (resetUIKey increments)
   useEffect(() => {
