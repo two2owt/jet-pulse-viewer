@@ -168,7 +168,9 @@ export default defineConfig(({ mode }) => ({
         runtimeCaching: [
           // Cache static JS/CSS assets with long TTL
           {
-            urlPattern: /^https:\/\/jet-around\.lovable\.app\/assets\/.*\.(js|css)$/i,
+            // Match same-origin Vite build assets on ANY domain (jet-around.com, preview domains, etc.)
+            // Workbox tests against the full request URL string.
+            urlPattern: /\/assets\/.*\.(js|css)$/i,
             handler: "CacheFirst",
             options: {
               cacheName: "static-assets-cache",
