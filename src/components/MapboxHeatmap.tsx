@@ -511,25 +511,48 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           }
         });
 
+        // Helper to finalize map loading state
+        const finalizeMapLoad = () => {
+          if (map.current && mapInitializing) {
+            map.current.resize();
+            setMapLoaded(true);
+            setMapInitializing(false);
+          }
+        };
+
         // Ensure map resizes to container after initialization
         map.current.on('load', () => {
           const loadTime = performance.now() - initStartTime.current;
           console.log(`MapboxHeatmap: Map loaded successfully in ${loadTime.toFixed(2)}ms`);
           
           // Use requestAnimationFrame for smoother initialization
-          requestAnimationFrame(() => {
-            if (map.current) {
-              map.current.resize();
-              setMapLoaded(true);
-              setMapInitializing(false);
-            }
-          });
+          requestAnimationFrame(finalizeMapLoad);
           
           // Automatically trigger geolocation when map loads
           if (geolocateControlRef.current) {
             setTimeout(() => {
               geolocateControlRef.current?.trigger();
             }, 500);
+          }
+        });
+        
+        // Fallback: style.load fires earlier and more reliably on some browsers
+        map.current.once('style.load', () => {
+          console.log('MapboxHeatmap: Style loaded');
+          // Give a short delay then finalize if still initializing
+          setTimeout(() => {
+            if (mapInitializing && map.current) {
+              console.log('MapboxHeatmap: Finalizing via style.load fallback');
+              finalizeMapLoad();
+            }
+          }, 500);
+        });
+        
+        // Fallback: idle event fires when map is completely ready
+        map.current.once('idle', () => {
+          if (mapInitializing && map.current) {
+            console.log('MapboxHeatmap: Finalizing via idle fallback');
+            finalizeMapLoad();
           }
         });
 
@@ -579,11 +602,19 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           }
         });
         
-        // Timeout fallback - if map doesn't load within 30 seconds, show error
+        // Timeout fallback - if map doesn't load within 15 seconds, show error
         const loadTimeout = setTimeout(() => {
           if (!mapLoaded && mapInitializing) {
-            setMapError('Map loading timed out. Please try again.');
-            setMapInitializing(false);
+            // Before showing error, try one more finalization
+            if (map.current) {
+              console.log('MapboxHeatmap: Attempting final load recovery');
+              map.current.resize();
+              setMapLoaded(true);
+              setMapInitializing(false);
+            } else {
+              setMapError('Map loading timed out. Please try again.');
+              setMapInitializing(false);
+            }
           }
         }, 30000);
         
@@ -1846,10 +1877,17 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     >
       {/* Map Initializing State - show while map is loading */}
       {mapInitializing && !mapError && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-background">
+        <div 
+          className="absolute inset-0 z-40 flex items-center justify-center transition-opacity duration-500"
+          style={{ 
+            backgroundColor: '#0a0a0a', // Match dark map background
+            opacity: mapLoaded ? 0 : 1,
+            pointerEvents: mapLoaded ? 'none' : 'auto',
+          }}
+        >
           <div className="flex flex-col items-center gap-4 p-6">
             {/* Animated map icon with progress ring */}
-            <div className="relative w-16 h-16">
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
               <svg 
                 className="w-full h-full -rotate-90"
                 viewBox="0 0 100 100"
@@ -1878,16 +1916,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-primary" />
+                <MapPin className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-primary" />
               </div>
             </div>
             <div className="text-center space-y-1">
-              <p className="text-sm font-medium text-foreground">Loading map</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm sm:text-base md:text-lg font-medium text-foreground">Loading map</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 {tileProgress < 30 ? 'Initializing...' : tileProgress < 80 ? 'Loading tiles...' : 'Almost ready...'}
               </p>
               {tileProgress > 0 && (
-                <p className="text-[10px] text-muted-foreground/70 tabular-nums">{Math.round(tileProgress)}%</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground/70 tabular-nums">{Math.round(tileProgress)}%</p>
               )}
             </div>
           </div>
