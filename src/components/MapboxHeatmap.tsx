@@ -391,19 +391,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           // Note: No CSS transition on transform - Mapbox handles marker positioning
           // and transitions would cause visual lag during map pan/zoom
           
-          // Glassmorphic puck container - visible frosted glass circle
+          // Container for clipping the image within circular bounds
           const glassPuck = document.createElement('div');
           glassPuck.style.position = 'absolute';
           glassPuck.style.width = '100%';
           glassPuck.style.height = '100%';
           glassPuck.style.borderRadius = '50%';
           glassPuck.style.overflow = 'hidden';
-          glassPuck.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)';
-          glassPuck.style.backdropFilter = 'blur(12px) saturate(180%)';
-          (glassPuck.style as any).WebkitBackdropFilter = 'blur(12px) saturate(180%)';
-          glassPuck.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-          glassPuck.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 20px rgba(255, 69, 58, 0.3)';
-          glassPuck.style.zIndex = '0';
           glassPuck.style.display = 'flex';
           glassPuck.style.alignItems = 'center';
           glassPuck.style.justifyContent = 'center';
