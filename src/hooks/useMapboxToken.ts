@@ -9,6 +9,20 @@ interface CachedToken {
   timestamp: number;
 }
 
+const withTimeout = async <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+  let timeoutId: number | undefined;
+
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = window.setTimeout(() => reject(new Error("Request timed out")), ms);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+  }
+};
+
 // Use both localStorage and sessionStorage for better mobile persistence
 const getCachedToken = (): string | null => {
   try {
@@ -77,16 +91,11 @@ export const useMapboxToken = (options: UseMapboxTokenOptions = {}) => {
     
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        // Add timeout for mobile networks
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
-        const { data, error } = await supabase.functions.invoke("get-mapbox-token", {
-          // Note: supabase-js doesn't directly support AbortController, but we handle timeout below
-        });
-        
-        clearTimeout(timeoutId);
-        
+        const { data, error } = await withTimeout(
+          supabase.functions.invoke("get-mapbox-token"),
+          10000
+        );
+
         if (error) {
           console.error('Error fetching Mapbox token:', error);
           throw error;
