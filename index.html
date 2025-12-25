@@ -243,14 +243,16 @@
   <meta name="twitter:description" content="Find trending venues, live events, and exclusive deals in your area with real-time heatmaps. Your guide to what&#39;s happening now in your area.">
 </head>
 
-  <body style="background-color: #ffffff; margin: 0; padding: 0;">
-    <script>
-      // Immediately set correct background based on system preference
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.style.backgroundColor = '#0f0f0f';
-        document.documentElement.style.backgroundColor = '#0f0f0f';
-      }
-    </script>
+  <body style="background-color: #0f0f0f; color: #fafafa; margin: 0; padding: 0;">
+    <!-- Noscript fallback for accessibility -->
+    <noscript>
+      <div style="background-color: #0f0f0f; color: #fafafa; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; font-family: system-ui, -apple-system, sans-serif;">
+        <h1 style="font-size: 24px; margin-bottom: 16px;">JavaScript Required</h1>
+        <p style="font-size: 16px; max-width: 400px; line-height: 1.5; opacity: 0.8;">
+          JET requires JavaScript to display the interactive map and venue information. Please enable JavaScript in your browser settings to continue.
+        </p>
+      </div>
+    </noscript>
     <!-- Skip to main content link for keyboard users -->
     <a href="#main-content" class="skip-link" style="
       position: absolute;
