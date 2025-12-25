@@ -369,8 +369,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         const createUserMarker = () => {
           const el = document.createElement('div');
           el.className = 'user-location-marker';
-          el.style.width = '56px';
-          el.style.height = '56px';
+          el.style.width = '40px';
+          el.style.height = '40px';
           el.style.display = 'flex';
           el.style.alignItems = 'center';
           el.style.justifyContent = 'center';
@@ -378,31 +378,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           // Note: No CSS transition on transform - Mapbox handles marker positioning
           // and transitions would cause visual lag during map pan/zoom
           
-          // Glassmorphic container
-          const glassContainer = document.createElement('div');
-          glassContainer.style.width = '100%';
-          glassContainer.style.height = '100%';
-          glassContainer.style.borderRadius = '50%';
-          glassContainer.style.background = 'linear-gradient(135deg, rgba(255, 69, 58, 0.15), rgba(255, 105, 97, 0.1))';
-          glassContainer.style.backdropFilter = 'blur(12px)';
-          (glassContainer.style as any).WebkitBackdropFilter = 'blur(12px)';
-          glassContainer.style.border = '1.5px solid rgba(255, 255, 255, 0.2)';
-          glassContainer.style.boxShadow = '0 8px 32px 0 rgba(255, 69, 58, 0.37), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1)';
-          glassContainer.style.display = 'flex';
-          glassContainer.style.alignItems = 'center';
-          glassContainer.style.justifyContent = 'center';
-          glassContainer.style.position = 'relative';
-          glassContainer.style.zIndex = '1';
-          
+          // Direct image without container - clean paper plane icon
           const img = document.createElement('img');
           img.src = locationTrackerIcon;
-          img.style.width = '60%';
-          img.style.height = '60%';
+          img.style.width = '100%';
+          img.style.height = '100%';
           img.style.objectFit = 'contain';
-          img.style.filter = 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))';
+          img.style.filter = 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4))';
           
-          glassContainer.appendChild(img);
-          el.appendChild(glassContainer);
+          el.appendChild(img);
           return el;
         };
         
