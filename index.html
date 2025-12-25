@@ -45,7 +45,13 @@
         }
         html { background-color: #0f0f0f !important; }
       }
-      
+
+      @supports (height: 100dvh) {
+        :root {
+          --app-height: 100dvh;
+        }
+      }
+
       /* Critical layout styles */
       *, *::before, *::after { box-sizing: border-box; }
       html, body, #root, main, .app-wrapper {
@@ -88,8 +94,8 @@
       .app-wrapper {
         display: flex;
         flex-direction: column;
-        min-height: 100dvh;
-        height: 100dvh;
+        min-height: var(--app-height, 100vh);
+        height: var(--app-height, 100vh);
         width: 100%;
         position: relative;
         flex: 1;
@@ -99,7 +105,7 @@
         transform: translateZ(0);
         isolation: isolate;
       }
-      
+
       /* Font-face fallback */
       @font-face {
         font-family: 'Kanit Fallback';
@@ -140,10 +146,9 @@
     <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
     <link rel="manifest" href="/manifest.webmanifest" />
     
-    <!-- Async CSS loading - won't block render since critical CSS is inlined above -->
-    <link rel="preload" href="/src/index.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
-    
+    <!-- Stylesheet - let Vite rewrite this to the built CSS file for production -->
+    <link rel="stylesheet" href="/src/index.css" />
+
     <!-- Preconnect to Mapbox for faster map initialization -->
     <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
     <link rel="preconnect" href="https://tiles.mapbox.com" crossorigin>
