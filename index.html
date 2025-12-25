@@ -1,8 +1,14 @@
 <!doctype html>
-<html lang="en" style="min-height: 100%; background-color: #ffffff;">
+<html lang="en" class="dark" style="min-height: 100%; background-color: #0f0f0f;">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Immediate dark mode enforcement - runs before any other scripts -->
+    <script>
+      // Immediately set dark background to prevent flash
+      document.documentElement.style.backgroundColor = '#0f0f0f';
+      document.documentElement.classList.add('dark');
+    </script>
     <!-- Preconnect hints MUST be first - establishes connections before any resource requests -->
     <link rel="preconnect" href="https://zbrscuoqmkdbmdimdnqu.supabase.co" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,39 +17,29 @@
     <style id="critical-css">
       /* Design system CSS variables - CRITICAL for initial render */
       :root {
-        --boot-bg: #ffffff;
-        --boot-fg: #0b0b0c;
-        color-scheme: light;
-        /* Core design tokens */
-        --background: 0 0% 98%;
-        --foreground: 0 0% 10%;
-        --card: 0 0% 100%;
-        --card-foreground: 0 0% 10%;
-        --primary: 24 100% 50%;
+        --boot-bg: #0f0f0f;
+        --boot-fg: #fafafa;
+        color-scheme: dark;
+        /* Core design tokens - dark mode defaults */
+        --background: 0 0% 6%;
+        --foreground: 0 0% 98%;
+        --card: 0 0% 10%;
+        --card-foreground: 0 0% 98%;
+        --primary: 24 100% 60%;
         --primary-foreground: 0 0% 100%;
-        --muted: 0 0% 94%;
-        --muted-foreground: 0 0% 40%;
-        --border: 0 0% 85%;
+        --muted: 0 0% 17%;
+        --muted-foreground: 0 0% 65%;
+        --border: 0 0% 20%;
         --radius: 1rem;
         /* Safe area insets */
         --safe-area-inset-top: env(safe-area-inset-top, 0px);
         --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+        /* Map container defaults */
+        --map-bg: #0a0a0a;
       }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --boot-bg: #0f0f0f;
-          --boot-fg: #fafafa;
-          color-scheme: dark;
-          --background: 0 0% 6%;
-          --foreground: 0 0% 98%;
-          --card: 0 0% 10%;
-          --card-foreground: 0 0% 98%;
-          --primary: 24 100% 60%;
-          --muted: 0 0% 17%;
-          --muted-foreground: 0 0% 65%;
-          --border: 0 0% 20%;
-        }
-        html { background-color: #0f0f0f !important; }
+      /* Map container - immediate dark background to prevent flash */
+      .mapboxgl-map, [class*="mapbox"], .map-container {
+        background-color: var(--map-bg, #0a0a0a) !important;
       }
 
       @supports (height: 100dvh) {
@@ -282,15 +278,9 @@
         z-index: 9999;
       }
     </style>
-    <!-- Main landmark wrapper - persists after React hydration for accessibility -->
-    <main role="main" id="main-content" aria-label="Main content" style="background-color: #ffffff; min-height: 100vh;">
-      <script>
-        // Set main background immediately
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.currentScript.parentElement.style.backgroundColor = '#0f0f0f';
-        }
-      </script>
-      <div id="root" style="background-color: inherit; min-height: 100vh;"></div>
+    <!-- Main landmark wrapper - dark background by default for map-first experience -->
+    <main role="main" id="main-content" aria-label="Main content" style="background-color: #0f0f0f; min-height: 100vh;">
+      <div id="root" style="background-color: #0a0a0a; min-height: 100vh;"></div>
     </main>
     <script type="module" src="/src/main.tsx"></script>
   </body>
