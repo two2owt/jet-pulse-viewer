@@ -143,7 +143,7 @@ const Auth = () => {
         email: email.trim(),
         options: {
           emailRedirectTo: window.location.origin.includes('localhost') 
-            ? 'https://dafac772-7908-4bdb-873c-58a805d7581e.lovableproject.com/verification-success'
+            ? 'https://jet-around.com/verification-success'
             : `${window.location.origin}/verification-success`,
         },
       });
@@ -269,9 +269,9 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        // Use production URL or Lovable preview URL, never localhost
+        // Use production URL, never localhost
         const appUrl = window.location.origin.includes('localhost') 
-          ? 'https://dafac772-7908-4bdb-873c-58a805d7581e.lovableproject.com'
+          ? 'https://jet-around.com'
           : window.location.origin;
         
         const { data: signUpData, error } = await supabase.auth.signUp({
