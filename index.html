@@ -282,7 +282,44 @@
     </style>
     <!-- Main landmark wrapper - dark background by default for map-first experience -->
     <main role="main" id="main-content" aria-label="Main content" style="background-color: #0f0f0f; min-height: 100vh;">
-      <div id="root" style="background-color: #0a0a0a; min-height: 100vh;"></div>
+      <div id="root" style="background-color: #0a0a0a; min-height: 100vh;">
+        <!-- FCP placeholder - visible content for Lighthouse before React hydrates -->
+        <div id="fcp-placeholder" style="
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background-color: #0a0a0a;
+          color: #fafafa;
+          font-family: 'Kanit', system-ui, -apple-system, sans-serif;
+          gap: 16px;
+          padding: 24px;
+        ">
+          <!-- Logo for LCP - preloaded image -->
+          <img 
+            src="/pwa-192x192.png" 
+            alt="JET Logo" 
+            width="80" 
+            height="80"
+            style="opacity: 0.9;"
+          />
+          <!-- Text content for FCP -->
+          <h1 style="
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0;
+            color: #fafafa;
+            letter-spacing: 0.05em;
+          ">JET</h1>
+          <p style="
+            font-size: 14px;
+            color: rgba(250, 250, 250, 0.7);
+            margin: 0;
+            text-align: center;
+          ">Discover what's hot right now</p>
+        </div>
+      </div>
     </main>
     <script type="module" src="/src/main.tsx"></script>
   </body>
