@@ -83,25 +83,40 @@ requestIdleCallback(() => {
   })();
 }, { timeout: 3000 });
 
-// Defer Sentry until user interaction - prevents loading 75KB on initial load
+// Defer Sentry until user interaction - prevents loading ~82KB on initial load
 let sentryLoaded = false;
-const loadSentry = () => {
+const loadSentry = async () => {
   if (sentryLoaded) return;
   sentryLoaded = true;
   
-  window.removeEventListener('click', loadSentry);
-  window.removeEventListener('scroll', loadSentry);
-  window.removeEventListener('keydown', loadSentry);
-  window.removeEventListener('touchstart', loadSentry);
+  // Remove all listeners immediately
+  const events = ['click', 'scroll', 'keydown', 'touchstart', 'mousemove'] as const;
+  events.forEach(event => window.removeEventListener(event, loadSentry));
   
-  import("@/lib/sentry").then(({ initSentry }) => initSentry());
+  // Use requestIdleCallback to avoid blocking any user interaction
+  requestIdleCallback(async () => {
+    const { initSentry } = await import("@/lib/sentry");
+    await initSentry();
+  }, { timeout: 5000 });
 };
 
-window.addEventListener('click', loadSentry, { once: true, passive: true });
-window.addEventListener('scroll', loadSentry, { once: true, passive: true });
-window.addEventListener('keydown', loadSentry, { once: true, passive: true });
-window.addEventListener('touchstart', loadSentry, { once: true, passive: true });
-setTimeout(loadSentry, 15000); // Fallback after 15 seconds
+// Only add listeners after first paint is complete
+if (document.readyState === 'complete') {
+  setupSentryListeners();
+} else {
+  window.addEventListener('load', setupSentryListeners, { once: true });
+}
+
+function setupSentryListeners() {
+  // Wait for first interaction or significant time
+  const events = ['click', 'scroll', 'keydown', 'touchstart', 'mousemove'] as const;
+  events.forEach(event => {
+    window.addEventListener(event, loadSentry, { once: true, passive: true });
+  });
+  
+  // Extended fallback - 30 seconds (was 15s)
+  setTimeout(loadSentry, 30000);
+}
 
 // requestIdleCallback polyfill
 if (!('requestIdleCallback' in window)) {
