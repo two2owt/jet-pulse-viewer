@@ -2373,7 +2373,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* Desktop Controls Toggle Button */}
