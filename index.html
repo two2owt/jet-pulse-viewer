@@ -16,6 +16,9 @@
       /* Design system CSS variables - CRITICAL for initial render */
       :root {
         color-scheme: dark;
+        /* Core design tokens - must match index.css dark mode */
+        --background: 0 0% 6%;
+        --foreground: 0 0% 98%;
         /* Safe area insets */
         --safe-area-inset-top: env(safe-area-inset-top, 0px);
         --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
@@ -247,9 +250,9 @@
         width: auto;
         height: auto;
         padding: 12px 24px;
-        background: var(--boot-bg);
-        color: var(--boot-fg);
-        border: 2px solid var(--boot-fg);
+        background: #0f0f0f;
+        color: #fafafa;
+        border: 2px solid #fafafa;
         border-radius: 8px;
         text-decoration: none;
         font-weight: 600;
