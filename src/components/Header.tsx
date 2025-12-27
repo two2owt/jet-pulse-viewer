@@ -121,16 +121,16 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
             </h1>
           </a>
           
-          {/* Search Bar - Responsive width with better scaling */}
-          <div className="min-w-0 w-[100px] sm:w-[140px] md:w-[180px] lg:w-[220px] xl:w-[280px] relative flex-shrink-0">
-            <Search className="absolute left-2 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 text-muted-foreground pointer-events-none" />
+          {/* Search Bar - Flexible width that fills available space */}
+          <div className="flex-1 min-w-0 max-w-[120px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-[260px] xl:max-w-[320px] relative">
+            <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               placeholder="Search..."
               value={searchQuery}
               onChange={handleSearchChange}
               onFocus={() => searchQuery.trim() && setShowResults(true)}
-              className="w-full pl-7 sm:pl-8 md:pl-9 pr-2 sm:pr-3 h-8 sm:h-9 md:h-10 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-xs sm:text-sm md:text-base text-foreground placeholder:text-muted-foreground"
+              className="w-full pl-8 sm:pl-9 pr-3 h-7 sm:h-8 md:h-9 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-xs sm:text-sm text-foreground placeholder:text-muted-foreground"
               maxLength={100}
               aria-label="Search venues and deals"
             />
