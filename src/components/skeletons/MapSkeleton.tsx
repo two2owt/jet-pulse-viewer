@@ -40,26 +40,6 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
         />
       </div>
       
-      {/* Floating ambient orbs for depth */}
-      <div 
-        className="absolute w-64 h-64 rounded-full opacity-20 blur-3xl"
-        style={{
-          background: 'hsl(var(--primary) / 0.3)',
-          top: '10%',
-          right: '-10%',
-          animation: 'float 6s ease-in-out infinite',
-        }}
-      />
-      <div 
-        className="absolute w-48 h-48 rounded-full opacity-15 blur-3xl"
-        style={{
-          background: 'hsl(var(--accent) / 0.3)',
-          bottom: '20%',
-          left: '-5%',
-          animation: 'float 8s ease-in-out infinite reverse',
-        }}
-      />
-      
       {/* City selector skeleton */}
       <div 
         className="absolute z-10"
