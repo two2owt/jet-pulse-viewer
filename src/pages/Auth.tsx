@@ -44,6 +44,16 @@ const Auth = () => {
   const [dataProcessingConsent, setDataProcessingConsent] = useState(false);
   const [locationConsent, setLocationConsent] = useState(false);
 
+  // Handle URL mode parameter (signin/signup)
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    if (mode === 'signup') {
+      setIsSignUp(true);
+    } else if (mode === 'signin') {
+      setIsSignUp(false);
+    }
+  }, [searchParams]);
+
   // Check if user is coming from password reset email
   useEffect(() => {
     const checkResetMode = async () => {
