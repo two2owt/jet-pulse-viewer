@@ -1,34 +1,7 @@
 {
   "headers": [
     {
-      "source": "/",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/:path((?!assets/).*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/assets/:path*",
+      "source": "/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -37,7 +10,7 @@
       ]
     },
     {
-      "source": "/:path*.js",
+      "source": "/(.*)\\.js",
       "headers": [
         {
           "key": "Cache-Control",
@@ -46,7 +19,7 @@
       ]
     },
     {
-      "source": "/:path*.css",
+      "source": "/(.*)\\.css",
       "headers": [
         {
           "key": "Cache-Control",
@@ -55,7 +28,7 @@
       ]
     },
     {
-      "source": "/:path*.woff2",
+      "source": "/(.*)\\.woff2",
       "headers": [
         {
           "key": "Cache-Control",
@@ -64,7 +37,7 @@
       ]
     },
     {
-      "source": "/:path*.webp",
+      "source": "/(.*)\\.woff",
       "headers": [
         {
           "key": "Cache-Control",
@@ -73,7 +46,7 @@
       ]
     },
     {
-      "source": "/:path*.png",
+      "source": "/(.*)\\.webp",
       "headers": [
         {
           "key": "Cache-Control",
@@ -82,7 +55,7 @@
       ]
     },
     {
-      "source": "/:path*.jpg",
+      "source": "/(.*)\\.png",
       "headers": [
         {
           "key": "Cache-Control",
@@ -91,7 +64,7 @@
       ]
     },
     {
-      "source": "/:path*.jpeg",
+      "source": "/(.*)\\.jpg",
       "headers": [
         {
           "key": "Cache-Control",
@@ -100,7 +73,7 @@
       ]
     },
     {
-      "source": "/:path*.svg",
+      "source": "/(.*)\\.jpeg",
       "headers": [
         {
           "key": "Cache-Control",
@@ -109,7 +82,43 @@
       ]
     },
     {
-      "source": "/:path*.ico",
+      "source": "/(.*)\\.svg",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.ico",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.gif",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.mp4",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.webm",
       "headers": [
         {
           "key": "Cache-Control",
@@ -119,6 +128,15 @@
     },
     {
       "source": "/manifest.webmanifest",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
       "headers": [
         {
           "key": "Cache-Control",
@@ -132,11 +150,37 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
         }
       ]
     },
     {
       "source": "/sw-push.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
       "headers": [
         {
           "key": "Cache-Control",
