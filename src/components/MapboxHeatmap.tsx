@@ -1527,6 +1527,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         will-change: opacity;
         opacity: 0;
         animation: markerFadeIn 0.4s ease-out ${staggerDelay}ms forwards;
+        background: transparent;
       `;
 
       // Determine pulse animation speed based on activity level
@@ -1542,6 +1543,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         height: ${markerHeight}px;
         position: relative;
         transition: transform 0.2s ease;
+        background: transparent;
       `;
 
       // Create animated gradient ring (behind teardrop) - with activity-based color
@@ -1557,13 +1559,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         transform-origin: center center;
-        background: ${color};
+        background: transparent;
+        border: 2px solid ${color};
         opacity: ${pulseOpacity};
         ${shouldAnimate ? `animation: markerRingPulse ${pulseSpeed} ease-in-out infinite;` : ''}
-        box-shadow: 0 0 ${venue.activity >= 80 ? '20px' : '12px'} ${glowColor};
       `;
 
-      // Create glassmorphic teardrop shape with enhanced contrast
+      // Create teardrop shape - simplified without backdrop-filter to avoid rendering artifacts
       const teardropEl = document.createElement('div');
       const isDarkTheme = document.documentElement.classList.contains('dark');
       teardropEl.style.cssText = `
@@ -1573,10 +1575,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         width: ${markerSize}px;
         height: ${markerSize}px;
         background: ${isDarkTheme 
-          ? 'linear-gradient(145deg, rgba(45, 45, 55, 0.95), rgba(25, 25, 35, 0.9))' 
-          : 'linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(240, 240, 245, 0.9))'};
-        backdrop-filter: blur(12px) saturate(180%);
-        -webkit-backdrop-filter: blur(12px) saturate(180%);
+          ? 'linear-gradient(145deg, #3a3a45, #25252d)' 
+          : 'linear-gradient(145deg, #ffffff, #f0f0f5)'};
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         transform-origin: center center;
@@ -1584,11 +1584,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         align-items: center;
         justify-content: center;
         border: 2px solid ${color};
-        box-shadow: 
-          0 6px 24px rgba(0, 0, 0, 0.4),
-          0 2px 8px rgba(0, 0, 0, 0.2),
-          0 0 16px ${glowColor},
-          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.9)'};
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       `;
       
       // Add inner icon/dot to indicate activity level
@@ -1603,61 +1599,26 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         height: ${dotSize}px;
         border-radius: 50%;
         background: ${color};
-        box-shadow: 0 0 8px ${glowColor};
       `;
       teardropEl.appendChild(innerDot);
-      
-      // Add outer glow border for extra visibility
-      const borderWrapper = document.createElement('div');
-      borderWrapper.style.cssText = `
-        position: absolute;
-        top: -2px;
-        left: -2px;
-        width: ${markerSize + 4}px;
-        height: ${markerSize + 4}px;
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        transform-origin: center center;
-        background: linear-gradient(135deg, ${color}, ${color}88);
-        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        padding: 2.5px;
-        pointer-events: none;
-        box-shadow: 0 0 12px ${glowColor};
-      `;
 
       pinEl.appendChild(ringEl);
       pinEl.appendChild(teardropEl);
-      pinEl.appendChild(borderWrapper);
       el.appendChild(pinEl);
 
-      // Hover effects - enhanced glow and scale
+      // Hover effects - scale and enhanced shadow
       el.addEventListener("mouseenter", () => {
         el.style.zIndex = "100";
         pinEl.style.transform = "scale(1.15)";
-        teardropEl.style.boxShadow = `
-          0 8px 32px rgba(0, 0, 0, 0.5),
-          0 4px 16px rgba(0, 0, 0, 0.3),
-          0 0 24px ${glowColor},
-          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.95)'}
-        `;
+        teardropEl.style.boxShadow = `0 6px 16px rgba(0, 0, 0, 0.4)`;
         ringEl.style.opacity = '1';
-        borderWrapper.style.boxShadow = `0 0 20px ${glowColor}`;
       });
 
       el.addEventListener("mouseleave", () => {
         el.style.zIndex = "";
         pinEl.style.transform = "scale(1)";
-        teardropEl.style.boxShadow = `
-          0 6px 24px rgba(0, 0, 0, 0.4),
-          0 2px 8px rgba(0, 0, 0, 0.2),
-          0 0 16px ${glowColor},
-          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.9)'}
-        `;
+        teardropEl.style.boxShadow = `0 4px 12px rgba(0, 0, 0, 0.3)`;
         ringEl.style.opacity = pulseOpacity;
-        borderWrapper.style.boxShadow = `0 0 12px ${glowColor}`;
       });
 
       // Create marker with bottom anchor for teardrop (pin point at GPS location)
