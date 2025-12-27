@@ -611,27 +611,51 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         // Add error handler with retry tracking
         let errorCount = 0;
         const maxErrors = 5;
-        
+
         map.current.on('error', (e) => {
-          console.error('MapboxHeatmap: Map error', e.error);
+          const err: any = (e as any)?.error;
+          const status = err?.status ?? err?.statusCode;
+          const url = err?.url ?? err?.resource ?? err?.request?.url;
+
+          console.error('MapboxHeatmap: Map error', err);
+
+          // If the Mapbox token is URL-restricted, production domains often get 401/403 for api.mapbox.com
+          if ((status === 401 || status === 403) && typeof url === 'string' && url.includes('api.mapbox.com')) {
+            setMapError(
+              'Mapbox token is not authorized for this domain. Update your Mapbox token URL restrictions to include this site.'
+            );
+            setMapInitializing(false);
+            return;
+          }
+
           errorCount++;
-          
+
           // If too many errors occur during loading, show error state
           if (errorCount >= maxErrors && !mapLoaded) {
             setMapError('Failed to load map tiles. Please check your connection.');
             setMapInitializing(false);
           }
         });
-        
-        // Timeout fallback - if map doesn't load within 15 seconds, show error
+
+        // Timeout fallback - if map doesn't load within 30 seconds, show an actionable error
         const loadTimeout = setTimeout(() => {
           if (!mapLoaded && mapInitializing) {
-            // Before showing error, try one more finalization
             if (map.current) {
-              console.log('MapboxHeatmap: Attempting final load recovery');
+              // Final attempt: resize, then verify we truly have a loaded style
               map.current.resize();
-              setMapLoaded(true);
-              setMapInitializing(false);
+
+              const isActuallyLoaded =
+                (map.current as any).loaded?.() === true ||
+                (typeof (map.current as any).isStyleLoaded === 'function' && map.current.isStyleLoaded());
+
+              if (isActuallyLoaded) {
+                finalizeMapLoad();
+              } else {
+                setMapError(
+                  'Map loading timed out. If this only happens on your production domain, your Mapbox token may be URL-restricted.'
+                );
+                setMapInitializing(false);
+              }
             } else {
               setMapError('Map loading timed out. Please try again.');
               setMapInitializing(false);
