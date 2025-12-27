@@ -55,8 +55,11 @@ requestIdleCallback(() => {
   (async () => {
     // Prefetch Mapbox token during idle time
     await yieldToMain();
-    const { prefetchMapboxToken } = await import("@/lib/prefetch");
+    const { prefetchMapboxToken, prefetchRoutes } = await import("@/lib/prefetch");
     prefetchMapboxToken();
+    
+    // Start route prefetching for instant navigation
+    prefetchRoutes();
     
     // Load cache clearing utility for debugging
     import("@/utils/clearMapboxCache");
