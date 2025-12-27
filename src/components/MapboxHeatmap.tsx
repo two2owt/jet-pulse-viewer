@@ -529,7 +529,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           }
         });
 
-        // Helper to finalize map loading state
+        // Helper to finalize map loading state - called as early as possible for fast LCP
         const finalizeMapLoad = () => {
           if (map.current && mapInitializing) {
             map.current.resize();
@@ -543,27 +543,28 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           const loadTime = performance.now() - initStartTime.current;
           console.log(`MapboxHeatmap: Map loaded successfully in ${loadTime.toFixed(2)}ms`);
           
-          // Use requestAnimationFrame for smoother initialization
-          requestAnimationFrame(finalizeMapLoad);
+          // Finalize immediately for fastest LCP
+          finalizeMapLoad();
           
-          // Automatically trigger geolocation when map loads
+          // Trigger geolocation quickly after load
           if (geolocateControlRef.current) {
             setTimeout(() => {
               geolocateControlRef.current?.trigger();
-            }, 500);
+            }, 100);
           }
         });
         
         // Fallback: style.load fires earlier and more reliably on some browsers
+        // Use this for early LCP - finalize immediately when style is ready
         map.current.once('style.load', () => {
           console.log('MapboxHeatmap: Style loaded');
-          // Give a short delay then finalize if still initializing
+          // Finalize quickly if main load hasn't fired yet
           setTimeout(() => {
             if (mapInitializing && map.current) {
               console.log('MapboxHeatmap: Finalizing via style.load fallback');
               finalizeMapLoad();
             }
-          }, 500);
+          }, 100);
         });
         
         // Fallback: idle event fires when map is completely ready
@@ -647,27 +648,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       }
     };
 
-    // On mobile, initialize immediately for faster load
-    // On desktop, use requestIdleCallback to avoid blocking main thread
-    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    // Initialize map immediately using queueMicrotask for fastest startup
+    // This ensures we start init on the next microtask without blocking the current frame
+    queueMicrotask(initializeMap);
     
-    if (isMobileDevice) {
-      // Immediate initialization on mobile - no delay
-      // Use queueMicrotask for next tick without blocking
-      queueMicrotask(initializeMap);
-    } else if ('requestIdleCallback' in window) {
-      const idleId = requestIdleCallback(initializeMap, { timeout: 50 });
-      return () => {
-        cancelIdleCallback(idleId);
-        cleanupMap();
-      };
-    } else {
-      const timeoutId = setTimeout(initializeMap, 0);
-      return () => {
-        clearTimeout(timeoutId);
-        cleanupMap();
-      };
-    }
+    return () => {
+      cleanupMap();
+    };
     
     function cleanupMap() {
       setMapLoaded(false);

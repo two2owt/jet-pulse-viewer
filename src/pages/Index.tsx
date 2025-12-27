@@ -11,8 +11,10 @@ import { glideHaptic, soarHaptic } from "@/lib/haptics";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
-// Lazy load heavy components to reduce initial bundle
-const MapboxHeatmap = lazy(() => import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap })));
+// Eagerly load MapboxHeatmap - it's the main LCP element and shouldn't be lazy
+import { MapboxHeatmap } from "@/components/MapboxHeatmap";
+
+// Lazy load secondary components that aren't immediately visible
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
 const ExploreTab = lazy(() => import("@/components/ExploreTab").then(m => ({ default: m.ExploreTab })));
 
@@ -441,16 +443,12 @@ const Index = () => {
                 </div>
               )}
               
-              {/* Map - lazy loaded to reduce initial bundle by ~447KB */}
-              <Suspense fallback={
-                <div className="absolute inset-0">
-                  <MapSkeleton phase={mapboxLoading ? 'token' : 'loading'} />
-                </div>
-              }>
+              {/* Map - eagerly loaded for fastest LCP */}
+              {mapboxToken ? (
                 <MapboxHeatmap
                   onVenueSelect={handleVenueSelect} 
                   venues={venues} 
-                  mapboxToken={mapboxToken || ""}
+                  mapboxToken={mapboxToken}
                   selectedCity={selectedCity}
                   onCityChange={handleCityChange}
                   onNearestCityDetected={handleNearestCityDetected}
@@ -458,9 +456,11 @@ const Index = () => {
                   isLoadingVenues={venuesLoading}
                   selectedVenue={selectedVenue}
                   resetUIKey={mapUIResetKey}
-                  isTokenLoading={mapboxLoading}
+                  isTokenLoading={false}
                 />
-              </Suspense>
+              ) : (
+                <MapSkeleton phase={mapboxLoading ? 'token' : 'loading'} />
+              )}
             </div>
 
             {/* Selected Venue Card - Positioned above bottom nav */}

@@ -6,11 +6,22 @@ import { useEffect } from "react";
  */
 export const AppShellLoader = () => {
   useEffect(() => {
-    // Hide the static app shell now that React has rendered
-    const shell = document.getElementById('app-shell');
-    if (shell) {
-      shell.classList.add('hidden');
-    }
+    // Hide the static app shell immediately since React has rendered
+    // Use RAF to ensure we're after paint
+    requestAnimationFrame(() => {
+      const shell = document.getElementById('app-shell');
+      if (shell) {
+        // Add transition for smooth fade
+        shell.style.transition = 'opacity 150ms ease-out';
+        shell.style.opacity = '0';
+        
+        // Remove from DOM after fade completes
+        setTimeout(() => {
+          shell.classList.add('hidden');
+          shell.style.display = 'none';
+        }, 150);
+      }
+    });
   }, []);
   
   return null;
