@@ -63,7 +63,6 @@
         display: flex;
         flex-direction: column;
         flex: 1;
-        background-color: hsl(var(--background));
         color: hsl(var(--foreground));
       }
       .app-wrapper {
@@ -74,7 +73,6 @@
         width: 100%;
         position: relative;
         flex: 1;
-        background-color: hsl(var(--background));
         contain: strict;
         overflow: hidden;
         transform: translateZ(0);
@@ -92,7 +90,7 @@
       }
       
       /* Critical utility classes used in initial render */
-      .bg-background { background-color: hsl(var(--background)); }
+      .bg-background { background-color: transparent; }
       .text-foreground { color: hsl(var(--foreground)); }
       .flex { display: flex; }
       .flex-col { flex-direction: column; }
@@ -222,7 +220,7 @@
   <meta name="twitter:description" content="Find trending venues, live events, and exclusive deals in your area with real-time heatmaps. Your guide to what&#39;s happening now in your area.">
 </head>
 
-  <body style="background-color: #0f0f0f; color: #fafafa; margin: 0; padding: 0;">
+  <body style="margin: 0; padding: 0;">
     <!-- Noscript fallback for accessibility -->
     <noscript>
       <div style="background-color: #0f0f0f; color: #fafafa; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; font-family: system-ui, -apple-system, sans-serif;">
