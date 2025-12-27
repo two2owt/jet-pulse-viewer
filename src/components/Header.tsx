@@ -121,8 +121,8 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
             </h1>
           </a>
           
-          {/* Search Bar - Flexible width that fills available space */}
-          <div className="flex-1 min-w-0 max-w-[120px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-[260px] xl:max-w-[320px] relative">
+          {/* Search Bar - Flexible width with vertical padding */}
+          <div className="flex-1 min-w-0 max-w-[120px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-[260px] xl:max-w-[320px] relative py-1.5 sm:py-2">
             <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
@@ -130,7 +130,7 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
               value={searchQuery}
               onChange={handleSearchChange}
               onFocus={() => searchQuery.trim() && setShowResults(true)}
-              className="w-full pl-8 sm:pl-9 pr-3 h-7 sm:h-8 md:h-9 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-xs sm:text-sm text-foreground placeholder:text-muted-foreground"
+              className="w-full pl-8 sm:pl-9 pr-3 h-6 sm:h-7 md:h-8 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-xs sm:text-sm text-foreground placeholder:text-muted-foreground"
               maxLength={100}
               aria-label="Search venues and deals"
             />
