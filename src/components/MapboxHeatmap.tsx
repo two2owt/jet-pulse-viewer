@@ -1930,8 +1930,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </div>
         </div>
       )}
-      
-      
       <div 
         ref={mapContainer} 
         className="absolute inset-0 overflow-hidden map-container"
@@ -2091,20 +2089,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Collapsible>
       </div>
 
-      {/* Mobile Controls - Fixed position with stable dimensions to prevent CLS */}
+      {/* Layer Controls - Fixed position for mobile devices */}
       {isMobile && (
         <div 
-          className="fixed z-50 flex flex-col-reverse gap-2.5 transition-opacity ease-out"
+          className="fixed z-50 flex flex-col-reverse gap-2 sm:gap-2.5 transition-opacity ease-out"
           style={{
             bottom: 'var(--map-fixed-bottom)',
             right: 'var(--map-ui-inset-right)',
-            width: 'var(--map-control-max-width)',
+            width: isMobile ? 'var(--map-control-max-width)' : 'auto',
+            minWidth: isMobile ? undefined : '120px',
             maxHeight: 'calc(100vh - 220px)',
-            // Reserve exact space always - use visibility for CLS prevention
-            minHeight: '180px',
-            contain: 'layout style paint size',
-            contentVisibility: 'auto',
-            containIntrinsicSize: 'var(--map-control-max-width) 180px',
             opacity: !selectedVenue ? 1 : 0,
             pointerEvents: !selectedVenue ? 'auto' : 'none',
             transform: 'translateZ(0)',
@@ -2379,6 +2373,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             </div>
           </div>
         </div>
+      </div>
       )}
 
       {/* Desktop Controls Toggle Button */}
