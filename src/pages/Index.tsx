@@ -6,6 +6,7 @@ import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationCard, type Notification } from "@/components/NotificationCard";
 import { Header } from "@/components/Header";
+import { hideAppShell } from "@/components/AppShellLoader";
 
 import { glideHaptic, soarHaptic } from "@/lib/haptics";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
@@ -18,7 +19,7 @@ import { MapboxHeatmap } from "@/components/MapboxHeatmap";
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
 const ExploreTab = lazy(() => import("@/components/ExploreTab").then(m => ({ default: m.ExploreTab })));
 
-import { useMapboxToken } from "@/hooks/useMapboxToken";
+import { useMapboxToken, getMapboxTokenFromCache } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAutoScrapeVenueImages } from "@/hooks/useAutoScrapeVenueImages";
@@ -42,6 +43,13 @@ import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { MapSkeleton } from "@/components/skeletons/MapSkeleton";
+
+// Check for cached token synchronously BEFORE render to enable fastest path
+const hasCachedToken = getMapboxTokenFromCache() !== null;
+// If we have a cached token, hide the shell immediately
+if (hasCachedToken) {
+  hideAppShell();
+}
 
 // Top 10 most popular venues in Charlotte, NC metropolitan area with real addresses
 const charlotteVenues: Venue[] = [
