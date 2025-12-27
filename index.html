@@ -435,5 +435,84 @@
         });
       });
     </script>
+
+    <!-- Boot watchdog: prevents being stuck on the HTML shell (often due to a stale Service Worker) -->
+    <script>
+      (function () {
+        var shell = document.getElementById('app-shell');
+        var root = document.getElementById('root');
+        if (!shell || !root) return;
+
+        var isHidden = function () {
+          return shell.classList.contains('hidden') || shell.style.display === 'none' || shell.style.opacity === '0';
+        };
+
+        var hideShell = function () {
+          if (isHidden()) return;
+          requestAnimationFrame(function () {
+            shell.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1), transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+            shell.style.opacity = '0';
+            shell.style.transform = 'scale(1.02)';
+            shell.style.pointerEvents = 'none';
+            setTimeout(function () {
+              shell.classList.add('hidden');
+              shell.style.display = 'none';
+            }, 320);
+          });
+        };
+
+        // Hide shell as soon as React mounts anything into #root
+        try {
+          var observer = new MutationObserver(function () {
+            if (root.childElementCount > 0) {
+              hideShell();
+              observer.disconnect();
+            }
+          });
+          observer.observe(root, { childList: true });
+        } catch (e) {
+          // Ignore observer failures
+        }
+
+        // If we're still on the shell after a while, attempt a recovery (stale SW often causes this)
+        setTimeout(function () {
+          if (isHidden()) return;
+          if (root.childElementCount > 0) {
+            hideShell();
+            return;
+          }
+
+          // Update shell copy so it doesn't feel frozen
+          try {
+            var status = document.querySelector('.shell-text');
+            if (status) status.textContent = 'Refreshing…';
+          } catch (e) {}
+
+          // Best-effort: unregister SW + clear caches, then reload
+          Promise.resolve()
+            .then(function () {
+              if (!('serviceWorker' in navigator)) return;
+              return navigator.serviceWorker.getRegistrations().then(function (regs) {
+                return Promise.all(regs.map(function (r) { return r.unregister(); }));
+              });
+            })
+            .then(function () {
+              if (!('caches' in window)) return;
+              return caches.keys().then(function (keys) {
+                return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+              });
+            })
+            .catch(function () {
+              // Ignore recovery errors
+            })
+            .finally(function () {
+              // Cache-bust to avoid reusing a broken cached document
+              var url = new URL(window.location.href);
+              url.searchParams.set('_boot', String(Date.now()));
+              window.location.replace(url.toString());
+            });
+        }, 8000);
+      })();
+    </script>
   </body>
 </html>
