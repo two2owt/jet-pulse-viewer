@@ -2,22 +2,26 @@ import { useState, useEffect, useRef, lazy, Suspense, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { type Venue } from "@/types/venue";
-import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
-import { NotificationCard, type Notification } from "@/components/NotificationCard";
 import { Header } from "@/components/Header";
 import { hideAppShell } from "@/components/AppShellLoader";
-
-import { glideHaptic, soarHaptic } from "@/lib/haptics";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
-// Eagerly load MapboxHeatmap - it's the main LCP element and shouldn't be lazy
-import { MapboxHeatmap } from "@/components/MapboxHeatmap";
+
+// Lazy load MapboxHeatmap - it's heavy (~500KB with mapbox-gl)
+// The MapSkeleton shows while it loads, and we prefetch in main.tsx
+const MapboxHeatmap = lazy(() => 
+  import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap }))
+);
 
 // Lazy load secondary components that aren't immediately visible
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
 const ExploreTab = lazy(() => import("@/components/ExploreTab").then(m => ({ default: m.ExploreTab })));
+
+// Lazy load components used conditionally
+const JetCard = lazy(() => import("@/components/JetCard").then(m => ({ default: m.JetCard })));
+const NotificationCard = lazy(() => import("@/components/NotificationCard").then(m => ({ default: m.NotificationCard })));
 
 import { useMapboxToken, getMapboxTokenFromCache } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
@@ -27,22 +31,18 @@ import { useDeals } from "@/hooks/useDeals";
 
 import { useVenueActivity } from "@/hooks/useVenueActivity";
 import { CITIES, type City } from "@/types/cities";
-import { Zap, Navigation, Map as MapIcon } from "lucide-react";
+import { Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
 import jetLogo from "@/assets/jet-logo-256.webp";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { MapSkeleton } from "@/components/skeletons/MapSkeleton";
+
+// Lazy load Dialog components (only used when venue is selected)
+const DirectionsDialog = lazy(() => import("@/components/DirectionsDialog"));
 
 // Check for cached token synchronously BEFORE render to enable fastest path
 const hasCachedToken = getMapboxTokenFromCache() !== null;
@@ -306,55 +306,15 @@ const Index = () => {
 
   const handleGetDirections = useCallback(async () => {
     if (!selectedVenue) return;
-    await glideHaptic(); // Smooth gliding haptic when opening directions
+    // Dynamic import for haptics to reduce bundle
+    try {
+      const { glideHaptic } = await import("@/lib/haptics");
+      await glideHaptic();
+    } catch {
+      // Haptics not available
+    }
     setShowDirectionsDialog(true);
   }, [selectedVenue]);
-
-  const openDirections = async (app: 'google' | 'apple' | 'waze') => {
-    if (!selectedVenue) return;
-    
-    await soarHaptic(); // Soaring haptic when selecting navigation app
-    
-    const { lat, lng, address, name } = selectedVenue;
-    // Use address if available, otherwise fall back to coordinates
-    const destination = encodeURIComponent(address || name);
-    
-    let url = '';
-    
-    switch (app) {
-      case 'google':
-        // Google Maps - prefer address for better routing
-        if (address) {
-          url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
-        } else {
-          url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${destination}`;
-        }
-        break;
-      case 'apple':
-        // Apple Maps - prefer address for better routing
-        if (address) {
-          url = `http://maps.apple.com/?daddr=${destination}`;
-        } else {
-          url = `http://maps.apple.com/?daddr=${lat},${lng}&q=${destination}`;
-        }
-        break;
-      case 'waze':
-        // Waze - prefer address for better routing
-        if (address) {
-          url = `https://waze.com/ul?q=${destination}&navigate=yes`;
-        } else {
-          url = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes&q=${destination}`;
-        }
-        break;
-    }
-    
-    window.open(url, '_blank');
-    setShowDirectionsDialog(false);
-    
-    toast.success(`Opening ${app === 'google' ? 'Google Maps' : app === 'apple' ? 'Apple Maps' : 'Waze'}`, {
-      description: `Navigate to ${address || name}`
-    });
-  };
 
   return (
     <>
@@ -503,11 +463,13 @@ const Index = () => {
                       <div className="w-10 h-1 bg-muted-foreground/40 rounded-full" />
                     </div>
                   )}
-                  <JetCard 
-                    venue={selectedVenue} 
-                    onGetDirections={handleGetDirections}
-                    onClose={() => setSelectedVenue(null)}
-                  />
+                  <Suspense fallback={<div className="h-32 bg-muted/50 rounded-xl animate-pulse" />}>
+                    <JetCard 
+                      venue={selectedVenue} 
+                      onGetDirections={handleGetDirections}
+                      onClose={() => setSelectedVenue(null)}
+                    />
+                  </Suspense>
                 </div>
               </div>
             )}
@@ -528,19 +490,21 @@ const Index = () => {
                 <p className="text-xs sm:text-sm mt-1 sm:mt-2">Enable location tracking to receive deal alerts</p>
               </div>
             ) : (
-              notifications.map((notification, index) => (
-                <div 
-                  key={notification.id}
-                  className="animate-scale-in"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <NotificationCard 
-                    notification={notification} 
-                    onVenueClick={handleVenueSelect}
-                    onRead={() => markAsRead(notification.id)}
-                  />
-                </div>
-              ))
+              <Suspense fallback={<div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 bg-muted/50 rounded-lg animate-pulse" />)}</div>}>
+                {notifications.map((notification, index) => (
+                  <div 
+                    key={notification.id}
+                    className="animate-scale-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <NotificationCard 
+                      notification={notification} 
+                      onVenueClick={handleVenueSelect}
+                      onRead={() => markAsRead(notification.id)}
+                    />
+                  </div>
+                ))}
+              </Suspense>
             )}
           </div>
         )}
@@ -578,60 +542,14 @@ const Index = () => {
         notificationCount={notifications.filter(n => !n.read).length}
       />
 
-      {/* Directions Dialog */}
-      <Dialog open={showDirectionsDialog} onOpenChange={setShowDirectionsDialog}>
-        <DialogContent className="sm:max-w-md mx-4 sm:mx-0">
-          <DialogHeader>
-            <DialogTitle className="text-base sm:text-lg">Choose Navigation App</DialogTitle>
-            <DialogDescription className="text-xs sm:text-sm">
-              Select your preferred navigation app to get directions to {selectedVenue?.name}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-2 sm:gap-3 py-3 sm:py-4">
-            <Button
-              onClick={() => openDirections('google')}
-              variant="outline"
-              className="h-auto py-3 sm:py-4 justify-start gap-2 sm:gap-3 hover:bg-accent transition-colors"
-            >
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                <MapIcon className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm sm:text-base font-semibold">Google Maps</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Navigate with Google</p>
-              </div>
-            </Button>
-            
-            <Button
-              onClick={() => openDirections('apple')}
-              variant="outline"
-              className="h-auto py-3 sm:py-4 justify-start gap-2 sm:gap-3 hover:bg-accent transition-colors"
-            >
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center flex-shrink-0">
-                <Navigation className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm sm:text-base font-semibold">Apple Maps</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Navigate with Apple</p>
-              </div>
-            </Button>
-            
-            <Button
-              onClick={() => openDirections('waze')}
-              variant="outline"
-              className="h-auto py-3 sm:py-4 justify-start gap-2 sm:gap-3 hover:bg-accent transition-colors"
-            >
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0">
-                <Zap className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm sm:text-base font-semibold">Waze</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Navigate with Waze</p>
-              </div>
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Directions Dialog - Lazy loaded */}
+      <Suspense fallback={null}>
+        <DirectionsDialog
+          open={showDirectionsDialog}
+          onOpenChange={setShowDirectionsDialog}
+          venue={selectedVenue}
+        />
+      </Suspense>
 
       {/* PWA Install Prompt */}
       <PWAInstallPrompt />

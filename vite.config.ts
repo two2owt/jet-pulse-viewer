@@ -45,9 +45,13 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor')) {
             return 'charts';
           }
-          // Mapbox - heavy, load on demand for map view only
+          // Mapbox - heavy (~500KB+), lazy loaded when map is needed
           if (id.includes('mapbox-gl')) {
             return 'mapbox';
+          }
+          // Dialogs - lazy loaded on user interaction
+          if (id.includes('@radix-ui/react-dialog') || id.includes('@radix-ui/react-alert-dialog')) {
+            return 'ui-dialogs';
           }
           // Form handling - needed for auth and settings
           if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
