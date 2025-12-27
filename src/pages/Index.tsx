@@ -44,12 +44,8 @@ import { MapSkeleton, HeaderSkeleton } from "@/components/skeletons";
 // Lazy load Dialog components (only used when venue is selected)
 const DirectionsDialog = lazy(() => import("@/components/DirectionsDialog"));
 
-// Check for cached token synchronously BEFORE render to enable fastest path
+// Check for cached token synchronously to determine if we can skip loading state
 const hasCachedToken = getMapboxTokenFromCache() !== null;
-// If we have a cached token, hide the shell immediately
-if (hasCachedToken) {
-  hideAppShell();
-}
 
 // Top 10 most popular venues in Charlotte, NC metropolitan area with real addresses
 const charlotteVenues: Venue[] = [
