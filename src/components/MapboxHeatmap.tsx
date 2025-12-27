@@ -1896,13 +1896,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
   return (
     <div 
-      className="relative w-full h-full"
+      className="relative w-full h-full bg-[#0d0d12]"
       style={{
         // Use dvh for dynamic viewport height on mobile (handles iOS Safari address bar)
         minHeight: isMobile ? '100dvh' : '500px',
+        // Immediate paint with map-like dark background for fast FCP
+        contain: 'layout style paint',
       }}
     >
-      {/* Map loads directly - no placeholder overlay */}
+      {/* Map container renders immediately as FCP - dark background matches map style */}
 
       {/* Map Error State with Retry */}
       {mapError && !mapInitializing && (
@@ -1932,7 +1934,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       )}
       <div 
         ref={mapContainer} 
-        className="absolute inset-0 overflow-hidden map-container"
+        className="absolute inset-0 overflow-hidden map-container bg-[#0d0d12]"
         style={{ 
           width: '100%', 
           height: '100%',
