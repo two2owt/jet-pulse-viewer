@@ -2091,9 +2091,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       {/* Layer Controls - Fixed position for all devices */}
       <div 
-        className="fixed z-50 flex flex-col-reverse gap-2 sm:gap-2.5 transition-opacity ease-out"
+        className="fixed z-[60] flex flex-col-reverse gap-2 sm:gap-2.5 transition-opacity ease-out"
         style={{
-          bottom: isMobile ? 'var(--map-fixed-bottom)' : 'var(--map-ui-inset-bottom)',
+          bottom: 'var(--map-fixed-bottom)',
           right: 'var(--map-ui-inset-right)',
           width: isMobile ? 'var(--map-control-max-width)' : 'auto',
           minWidth: isMobile ? undefined : '140px',
