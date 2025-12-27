@@ -13,6 +13,9 @@ import("@/lib/prefetch").then(({ prefetchMapboxToken }) => {
   prefetchMapboxToken();
 });
 
+// Load cache clearing utility for debugging (available as window.clearMapboxCache)
+import("@/utils/clearMapboxCache");
+
 // Defer Sentry init until after user interaction - prevents loading 75KB unused JS on initial load
 const initSentryOnInteraction = () => {
   let sentryLoaded = false;
