@@ -39,7 +39,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { OfflineBanner } from "@/components/OfflineBanner";
-import { MapSkeleton } from "@/components/skeletons/MapSkeleton";
+import { MapSkeleton, HeaderSkeleton } from "@/components/skeletons";
 
 // Lazy load Dialog components (only used when venue is selected)
 const DirectionsDialog = lazy(() => import("@/components/DirectionsDialog"));
@@ -331,19 +331,23 @@ const Index = () => {
           isolation: 'isolate',
         }}
       >
-        {/* Header */}
-        <Header 
-          venues={venues}
-          deals={deals}
-          onVenueSelect={handleVenueSelect}
-          isLoading={dealsLoading || venuesLoading}
-          lastUpdated={dealsLastUpdated || venuesLastUpdated}
-          onRefresh={() => {
-            refreshDeals();
-            refreshVenues();
-          }}
-          cityName={detectedLocationName || `${selectedCity.name}, ${selectedCity.state}`}
-        />
+        {/* Header - Show skeleton during initial load before data arrives */}
+        {mapboxLoading && !mapboxToken ? (
+          <HeaderSkeleton />
+        ) : (
+          <Header 
+            venues={venues}
+            deals={deals}
+            onVenueSelect={handleVenueSelect}
+            isLoading={dealsLoading || venuesLoading}
+            lastUpdated={dealsLastUpdated || venuesLastUpdated}
+            onRefresh={() => {
+              refreshDeals();
+              refreshVenues();
+            }}
+            cityName={detectedLocationName || `${selectedCity.name}, ${selectedCity.state}`}
+          />
+        )}
 
         {/* Offline Banner */}
         <OfflineBanner />
