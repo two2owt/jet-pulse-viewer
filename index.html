@@ -86,7 +86,14 @@
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
       }
-      #root { display: contents; }
+      #root {
+        position: relative;
+        min-height: 100vh;
+        min-height: 100dvh;
+        opacity: 0;
+        transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      html.app-ready #root { opacity: 1; }
       
       /* App Shell - Visible immediately for FCP */
       #app-shell {
@@ -96,9 +103,18 @@
         display: flex;
         flex-direction: column;
         background: hsl(var(--background));
+        opacity: 1;
+        transform: scale(1);
+        transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1), transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: opacity, transform;
+      }
+      html.app-ready #app-shell {
+        opacity: 0;
+        transform: scale(1.02);
+        pointer-events: none;
       }
       #app-shell.hidden { display: none; }
-      
+
       .shell-header {
         height: var(--header-height);
         padding: 0 12px;
@@ -444,22 +460,26 @@
         if (!shell || !root) return;
 
         var isHidden = function () {
-          return shell.classList.contains('hidden') || shell.style.display === 'none' || shell.style.opacity === '0';
+          return shell.classList.contains('hidden') || shell.style.display === 'none';
         };
 
+        // Crossfade: fade shell out + fade React in via CSS class
         var hideShell = function () {
           if (isHidden()) return;
-          requestAnimationFrame(function () {
-            shell.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1), transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-            shell.style.opacity = '0';
-            shell.style.transform = 'scale(1.02)';
-            shell.style.pointerEvents = 'none';
-            setTimeout(function () {
-              shell.classList.add('hidden');
-              shell.style.display = 'none';
-            }, 320);
-          });
+          try {
+            document.documentElement.classList.add('app-ready');
+          } catch (e) {}
+          shell.style.pointerEvents = 'none';
+          setTimeout(function () {
+            shell.classList.add('hidden');
+            shell.style.display = 'none';
+          }, 320);
         };
+
+        // Allow React to explicitly signal it's mounted (avoids race with MutationObserver)
+        try {
+          window.addEventListener('jet:react-mounted', hideShell, { once: true });
+        } catch (e) {}
 
         // Hide shell as soon as React mounts anything into #root
         try {
@@ -470,8 +490,15 @@
             }
           });
           observer.observe(root, { childList: true });
+
+          // If React mounted before the observer attached, hide immediately
+          if (root.childElementCount > 0) {
+            hideShell();
+            observer.disconnect();
+          }
         } catch (e) {
           // Ignore observer failures
+          if (root.childElementCount > 0) hideShell();
         }
 
         // If we're still on the shell after a while, attempt a recovery (stale SW often causes this)

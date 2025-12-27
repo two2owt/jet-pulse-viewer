@@ -8,6 +8,19 @@ import App from "./App.tsx";
 import { LoadingFallback } from "./components/LoadingFallback";
 import "./index.css";
 
+// requestIdleCallback polyfill (must run before first usage)
+if (!("requestIdleCallback" in window)) {
+  (window as any).requestIdleCallback = (cb: any, options?: any) => {
+    const start = Date.now();
+    return window.setTimeout(() => {
+      cb({
+        didTimeout: false,
+        timeRemaining: () => Math.max(0, 50 - (Date.now() - start)),
+      });
+    }, options?.timeout || 1);
+  };
+}
+
 // Create QueryClient with optimized defaults - do this synchronously
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -124,17 +137,4 @@ function setupSentryListeners() {
   
   // Extended fallback - 30 seconds (was 15s)
   setTimeout(loadSentry, 30000);
-}
-
-// requestIdleCallback polyfill
-if (!('requestIdleCallback' in window)) {
-  (window as any).requestIdleCallback = (cb: IdleRequestCallback, options?: IdleRequestOptions) => {
-    const start = Date.now();
-    return setTimeout(() => {
-      cb({
-        didTimeout: false,
-        timeRemaining: () => Math.max(0, 50 - (Date.now() - start)),
-      });
-    }, options?.timeout || 1);
-  };
 }
