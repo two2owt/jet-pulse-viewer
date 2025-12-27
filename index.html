@@ -1,11 +1,8 @@
 <!doctype html>
-<html lang="en" class="dark" style="min-height: 100%;">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    <!-- Critical: Immediate dark mode enforcement -->
-    <script>document.documentElement.classList.add('dark');</script>
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0f0f0f" />
@@ -21,242 +18,15 @@
     <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
     <link rel="manifest" href="/manifest.webmanifest" />
     
-    <!-- Preconnect hints - establish early connections -->
+    <!-- Preconnect hints -->
     <link rel="preconnect" href="https://zbrscuoqmkdbmdimdnqu.supabase.co" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
     
-    <!-- DNS prefetch for non-critical resources -->
+    <!-- DNS prefetch -->
     <link rel="dns-prefetch" href="https://tiles.mapbox.com">
     <link rel="dns-prefetch" href="https://events.mapbox.com">
-    <link rel="dns-prefetch" href="https://a.tiles.mapbox.com">
-    <link rel="dns-prefetch" href="https://b.tiles.mapbox.com">
-    
-    <!-- Critical CSS - Inlined for instant FCP -->
-    <style id="critical-css">
-      :root {
-        color-scheme: dark;
-        --background: 0 0% 6%;
-        --foreground: 0 0% 98%;
-        --primary: 24 100% 60%;
-        --card: 0 0% 10%;
-        --muted: 0 0% 17%;
-        --safe-area-inset-top: env(safe-area-inset-top, 0px);
-        --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-      }
-      
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      
-      html, body {
-        height: 100%;
-        width: 100%;
-        overflow-x: hidden;
-        background-color: hsl(0 0% 6%);
-        color: hsl(0 0% 98%);
-        font-family: 'Kanit', system-ui, -apple-system, sans-serif;
-        -webkit-font-smoothing: antialiased;
-      }
-      
-      body {
-        min-height: 100vh;
-        min-height: 100dvh;
-        display: flex;
-        flex-direction: column;
-      }
-      
-      #root {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        min-height: 100%;
-      }
-      
-      /* App shell - visible immediately for FCP */
-      .app-shell {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        min-height: 100dvh;
-        background: hsl(0 0% 6%);
-      }
-      
-      /* Header skeleton */
-      .shell-header {
-        height: 52px;
-        padding: 0 12px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: hsl(0 0% 10%);
-        border-bottom: 1px solid hsl(0 0% 20%);
-        flex-shrink: 0;
-      }
-      
-      .shell-logo {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      
-      .shell-logo-img {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-      }
-      
-      .shell-logo-text {
-        font-size: 20px;
-        font-weight: 600;
-        color: hsl(0 0% 98%);
-        letter-spacing: -0.5px;
-      }
-      
-      .shell-search {
-        flex: 1;
-        max-width: 300px;
-        height: 36px;
-        margin: 0 16px;
-        background: hsl(0 0% 17%);
-        border-radius: 8px;
-      }
-      
-      .shell-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: hsl(0 0% 17%);
-      }
-      
-      /* Main content skeleton */
-      .shell-main {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: hsl(0 0% 8%);
-        position: relative;
-      }
-      
-      .shell-loader {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-      }
-      
-      .shell-spinner {
-        width: 48px;
-        height: 48px;
-        border: 3px solid hsl(0 0% 20%);
-        border-top-color: hsl(24 100% 60%);
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-      }
-      
-      .shell-text {
-        font-size: 14px;
-        color: hsl(0 0% 65%);
-      }
-      
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-      
-      @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-      }
-      
-      .shimmer {
-        background: linear-gradient(90deg, hsl(0 0% 17%) 25%, hsl(0 0% 22%) 50%, hsl(0 0% 17%) 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.5s ease-in-out infinite;
-      }
-      
-      /* Bottom nav skeleton */
-      .shell-nav {
-        height: 60px;
-        padding: 8px 24px;
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-        background: hsl(0 0% 10%);
-        border-top: 1px solid hsl(0 0% 20%);
-        flex-shrink: 0;
-        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-      }
-      
-      .shell-nav-item {
-        width: 48px;
-        height: 40px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-      }
-      
-      .shell-nav-icon {
-        width: 24px;
-        height: 24px;
-        border-radius: 4px;
-        background: hsl(0 0% 17%);
-      }
-      
-      .shell-nav-icon.active {
-        background: hsl(24 100% 60%);
-      }
-      
-      .shell-nav-label {
-        width: 32px;
-        height: 8px;
-        border-radius: 4px;
-        background: hsl(0 0% 17%);
-      }
-      
-      /* Hide shell when React loads */
-      .app-shell.loaded {
-        display: none;
-      }
-      
-      /* Skip link for accessibility */
-      .skip-link {
-        position: absolute;
-        left: -9999px;
-        top: auto;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        z-index: 9999;
-      }
-      
-      .skip-link:focus {
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        width: auto;
-        height: auto;
-        padding: 12px 24px;
-        background: hsl(0 0% 6%);
-        color: hsl(0 0% 98%);
-        border: 2px solid hsl(0 0% 98%);
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-      }
-    </style>
-    
-    <!-- Fonts - loaded async with display swap -->
-    <link rel="preload" href="https://fonts.gstatic.com/s/kanit/v15/nKKZ-Go6G5tXcraBGwCKd6xBDFs.woff2" as="font" type="font/woff2" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-    
-    <!-- Main stylesheet - let Vite handle this -->
-    <link rel="stylesheet" href="/src/index.css" />
-    
-    <!-- Mapbox CSS - deferred loading -->
-    <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" rel="stylesheet"></noscript>
     
     <!-- SEO Meta Tags -->
     <title>JET - Discover What's Hot Right Now</title>
@@ -278,69 +48,204 @@
     <meta name="twitter:title" content="JET - Discover What's Hot Right Now">
     <meta name="twitter:description" content="Find trending venues, live events, and exclusive deals in your area with real-time heatmaps.">
     <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/VEstUAuq09PlUHZ9f7uy5tQrH263/social-images/social-1765238908620-8.png">
+    
+    <!-- Critical CSS - Inlined for instant FCP -->
+    <style>
+      :root { color-scheme: dark; }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { height: 100%; background: #0f0f0f; }
+      body { 
+        height: 100%; 
+        min-height: 100vh;
+        background: #0f0f0f; 
+        color: #fafafa; 
+        font-family: 'Kanit', system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root { display: contents; }
+      
+      /* App Shell - Visible immediately for FCP */
+      #app-shell {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        background: #0f0f0f;
+      }
+      #app-shell.hidden { display: none; }
+      
+      .shell-header {
+        height: 52px;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #1a1a1a;
+        border-bottom: 1px solid #333;
+        flex-shrink: 0;
+      }
+      .shell-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .shell-logo-img {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+      }
+      .shell-logo-text {
+        font-size: 20px;
+        font-weight: 600;
+        color: #fafafa;
+        letter-spacing: -0.5px;
+      }
+      .shell-search {
+        flex: 1;
+        max-width: 300px;
+        height: 36px;
+        margin: 0 16px;
+        background: #2b2b2b;
+        border-radius: 8px;
+      }
+      .shell-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #2b2b2b;
+      }
+      
+      .shell-main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #141414;
+      }
+      .shell-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      .shell-spinner {
+        width: 48px;
+        height: 48px;
+        border: 3px solid #333;
+        border-top-color: #ff6b00;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .shell-text {
+        font-size: 14px;
+        color: #a3a3a3;
+      }
+      
+      .shell-nav {
+        height: 60px;
+        padding: 8px 24px;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        background: #1a1a1a;
+        border-top: 1px solid #333;
+        flex-shrink: 0;
+      }
+      .shell-nav-item {
+        width: 48px;
+        height: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .shell-nav-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        background: #2b2b2b;
+      }
+      .shell-nav-icon.active { background: #ff6b00; }
+      .shell-nav-label {
+        width: 32px;
+        height: 8px;
+        border-radius: 4px;
+        background: #2b2b2b;
+      }
+      
+      /* Skip link */
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        z-index: 10000;
+      }
+      .skip-link:focus {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        padding: 12px 24px;
+        background: #0f0f0f;
+        color: #fafafa;
+        border: 2px solid #fafafa;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+      }
+    </style>
+    
+    <!-- Fonts - async load -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/kanit/v15/nKKZ-Go6G5tXcraBGwCKd6xBDFs.woff2" as="font" type="font/woff2" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- Mapbox CSS - deferred -->
+    <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" rel="stylesheet"></noscript>
   </head>
   
   <body>
-    <!-- Skip to main content link for accessibility -->
+    <!-- Skip link -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
     <!-- Noscript fallback -->
     <noscript>
       <div style="background:#0f0f0f;color:#fafafa;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:system-ui,sans-serif;">
         <h1 style="font-size:24px;margin-bottom:16px;">JavaScript Required</h1>
-        <p style="font-size:16px;max-width:400px;line-height:1.5;opacity:0.8;">JET requires JavaScript to display the interactive map and venue information. Please enable JavaScript in your browser settings.</p>
+        <p style="font-size:16px;max-width:400px;line-height:1.5;opacity:0.8;">JET requires JavaScript to display the interactive map. Please enable JavaScript.</p>
       </div>
     </noscript>
     
-    <!-- App Shell - Visible immediately for FCP, hidden when React loads -->
-    <div class="app-shell" id="app-shell" aria-hidden="true">
+    <!-- App Shell - Shows immediately for FCP -->
+    <div id="app-shell">
       <header class="shell-header">
         <div class="shell-logo">
-          <img src="/jet-logo-96.png" alt="" class="shell-logo-img" width="32" height="32">
+          <img src="/jet-logo-96.png" alt="JET" class="shell-logo-img" width="32" height="32">
           <span class="shell-logo-text">JET</span>
         </div>
-        <div class="shell-search shimmer"></div>
-        <div class="shell-avatar shimmer"></div>
+        <div class="shell-search"></div>
+        <div class="shell-avatar"></div>
       </header>
-      <main class="shell-main">
+      <main class="shell-main" id="main-content">
         <div class="shell-loader">
           <div class="shell-spinner"></div>
           <span class="shell-text">Loading JET...</span>
         </div>
       </main>
       <nav class="shell-nav">
-        <div class="shell-nav-item">
-          <div class="shell-nav-icon active"></div>
-          <div class="shell-nav-label"></div>
-        </div>
-        <div class="shell-nav-item">
-          <div class="shell-nav-icon"></div>
-          <div class="shell-nav-label"></div>
-        </div>
-        <div class="shell-nav-item">
-          <div class="shell-nav-icon"></div>
-          <div class="shell-nav-label"></div>
-        </div>
-        <div class="shell-nav-item">
-          <div class="shell-nav-icon"></div>
-          <div class="shell-nav-label"></div>
-        </div>
+        <div class="shell-nav-item"><div class="shell-nav-icon active"></div><div class="shell-nav-label"></div></div>
+        <div class="shell-nav-item"><div class="shell-nav-icon"></div><div class="shell-nav-label"></div></div>
+        <div class="shell-nav-item"><div class="shell-nav-icon"></div><div class="shell-nav-label"></div></div>
+        <div class="shell-nav-item"><div class="shell-nav-icon"></div><div class="shell-nav-label"></div></div>
       </nav>
     </div>
     
     <!-- React root -->
-    <div id="root" role="main" aria-label="Main content" id="main-content"></div>
+    <div id="root"></div>
     
-    <!-- Main app script -->
+    <!-- Main app script - Vite will transform this -->
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- Hide shell once React hydrates -->
-    <script>
-      // Mark shell as loaded once React takes over
-      window.__hideAppShell = function() {
-        var shell = document.getElementById('app-shell');
-        if (shell) shell.style.display = 'none';
-      };
-    </script>
   </body>
 </html>
