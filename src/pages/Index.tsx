@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { type Venue } from "@/types/venue";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
-import { hideAppShell } from "@/components/AppShellLoader";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
