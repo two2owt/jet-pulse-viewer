@@ -5,114 +5,113 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Suspense } from "react";
 import App from "./App.tsx";
+import { LoadingFallback } from "./components/LoadingFallback";
 import "./index.css";
 
-// Start Mapbox token prefetch immediately - critical for initial map load
-// This runs before React renders so the token is often ready by the time the map mounts
-import("@/lib/prefetch").then(({ prefetchMapboxToken }) => {
-  prefetchMapboxToken();
-});
-
-// Load cache clearing utility for debugging (available as window.clearMapboxCache)
-import("@/utils/clearMapboxCache");
-
-// Defer Sentry init until after user interaction - prevents loading 75KB unused JS on initial load
-const initSentryOnInteraction = () => {
-  let sentryLoaded = false;
-  
-  const loadSentry = () => {
-    if (sentryLoaded) return;
-    sentryLoaded = true;
-    
-    // Remove listeners once loaded
-    window.removeEventListener('click', loadSentry);
-    window.removeEventListener('scroll', loadSentry);
-    window.removeEventListener('keydown', loadSentry);
-    window.removeEventListener('touchstart', loadSentry);
-    
-    import("@/lib/sentry").then(({ initSentry }) => initSentry());
-  };
-  
-  // Load on first user interaction
-  window.addEventListener('click', loadSentry, { once: true, passive: true });
-  window.addEventListener('scroll', loadSentry, { once: true, passive: true });
-  window.addEventListener('keydown', loadSentry, { once: true, passive: true });
-  window.addEventListener('touchstart', loadSentry, { once: true, passive: true });
-  
-  // Fallback: load after 10 seconds if no interaction
-  setTimeout(loadSentry, 10000);
-};
-initSentryOnInteraction();
-
-// Helper to yield to main thread and break up long tasks
-const yieldToMain = (): Promise<void> => {
-  return new Promise((resolve) => {
-    if ('scheduler' in window && 'yield' in (window as any).scheduler) {
-      (window as any).scheduler.yield().then(resolve);
-    } else {
-      // Use multiple frames to ensure browser can render
-      requestAnimationFrame(() => setTimeout(resolve, 0));
-    }
-  });
-};
-
-// Defer non-critical initialization significantly
-const initNonCritical = async () => {
-  // Wait longer for first meaningful paint and user interaction
-  await new Promise<void>((resolve) => {
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => resolve(), { timeout: 8000 });
-    } else {
-      setTimeout(resolve, 5000);
-    }
-  });
-  
-  // Yield before analytics to break up long tasks
-  await yieldToMain();
-  
-  // Import and init analytics lazily in small chunks
-  const { analytics } = await import("@/lib/analytics");
-  await yieldToMain();
-  analytics.init();
-  
-  // Yield again before prefetching Mapbox JS chunk (token already prefetched earlier)
-  await yieldToMain();
-  
-  const { prefetchMapbox } = await import("@/lib/prefetch");
-  await yieldToMain();
-  prefetchMapbox();
-  
-  // Register service worker with lifecycle tracking
-  await yieldToMain();
-  const { swTracker } = await import("@/lib/sw-tracker");
-  await swTracker.registerWithTracking();
-};
-
-// Start non-critical initialization after render
-requestAnimationFrame(() => {
-  initNonCritical();
-});
-
-// Create QueryClient with optimized defaults
+// Create QueryClient with optimized defaults - do this synchronously
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes (was cacheTime)
+      gcTime: 1000 * 60 * 30, // 30 minutes
       refetchOnWindowFocus: false,
       retry: 1,
     },
   },
 });
 
-createRoot(document.getElementById("root")!).render(
-  <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+// Render immediately - critical for FCP
+const root = createRoot(document.getElementById("root")!);
+root.render(
+  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Suspense fallback={<div className="min-h-screen" />}>
+        <Suspense fallback={<LoadingFallback />}>
           <App />
         </Suspense>
       </BrowserRouter>
     </QueryClientProvider>
   </ThemeProvider>
 );
+
+// ========================================
+// DEFERRED NON-CRITICAL INITIALIZATION
+// Everything below runs AFTER React renders
+// ========================================
+
+// Helper to yield to main thread
+const yieldToMain = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if ('scheduler' in window && 'yield' in (window as any).scheduler) {
+      (window as any).scheduler.yield().then(resolve);
+    } else {
+      requestAnimationFrame(() => setTimeout(resolve, 0));
+    }
+  });
+};
+
+// Start non-critical initialization after initial render completes
+requestIdleCallback(() => {
+  (async () => {
+    // Prefetch Mapbox token during idle time
+    await yieldToMain();
+    const { prefetchMapboxToken } = await import("@/lib/prefetch");
+    prefetchMapboxToken();
+    
+    // Load cache clearing utility for debugging
+    import("@/utils/clearMapboxCache");
+    
+    // Wait for more idle time before analytics
+    await new Promise<void>((resolve) => {
+      requestIdleCallback(() => resolve(), { timeout: 5000 });
+    });
+    
+    // Initialize analytics
+    await yieldToMain();
+    const { analytics } = await import("@/lib/analytics");
+    analytics.init();
+    
+    // Prefetch Mapbox JS chunk
+    await yieldToMain();
+    const { prefetchMapbox } = await import("@/lib/prefetch");
+    prefetchMapbox();
+    
+    // Register service worker
+    await yieldToMain();
+    const { swTracker } = await import("@/lib/sw-tracker");
+    await swTracker.registerWithTracking();
+  })();
+}, { timeout: 3000 });
+
+// Defer Sentry until user interaction - prevents loading 75KB on initial load
+let sentryLoaded = false;
+const loadSentry = () => {
+  if (sentryLoaded) return;
+  sentryLoaded = true;
+  
+  window.removeEventListener('click', loadSentry);
+  window.removeEventListener('scroll', loadSentry);
+  window.removeEventListener('keydown', loadSentry);
+  window.removeEventListener('touchstart', loadSentry);
+  
+  import("@/lib/sentry").then(({ initSentry }) => initSentry());
+};
+
+window.addEventListener('click', loadSentry, { once: true, passive: true });
+window.addEventListener('scroll', loadSentry, { once: true, passive: true });
+window.addEventListener('keydown', loadSentry, { once: true, passive: true });
+window.addEventListener('touchstart', loadSentry, { once: true, passive: true });
+setTimeout(loadSentry, 15000); // Fallback after 15 seconds
+
+// requestIdleCallback polyfill
+if (!('requestIdleCallback' in window)) {
+  (window as any).requestIdleCallback = (cb: IdleRequestCallback, options?: IdleRequestOptions) => {
+    const start = Date.now();
+    return setTimeout(() => {
+      cb({
+        didTimeout: false,
+        timeRemaining: () => Math.max(0, 50 - (Date.now() - start)),
+      });
+    }, options?.timeout || 1);
+  };
+}

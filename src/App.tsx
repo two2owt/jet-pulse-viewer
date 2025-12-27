@@ -1,17 +1,18 @@
-import { Suspense, lazy, useEffect, useRef } from "react";
+import { Suspense, lazy, useEffect, useRef, memo } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { ServiceWorkerUpdater } from "@/components/ServiceWorkerUpdater";
+import { AppShellLoader } from "@/components/AppShellLoader";
+import { ContentSkeleton } from "@/components/LoadingFallback";
 import { AuthProvider } from "@/contexts/AuthContext";
 
+// Eager load Index for fastest FCP on main route
+import Index from "./pages/Index";
 
-// Lazy load pages for better performance with webpack magic comments for prefetching
-const Index = lazy(() => import(/* webpackPrefetch: true */ "./pages/Index"));
-const Auth = lazy(() => import(/* webpackPrefetch: true */ "./pages/Auth"));
+// Lazy load other pages - they're not needed immediately
+const Auth = lazy(() => import("./pages/Auth"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -23,7 +24,11 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const VerificationSuccess = lazy(() => import("./pages/VerificationSuccess"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-const PageTracker = () => {
+// Lazy load PWA components - not critical for initial render
+const PWAInstallPrompt = lazy(() => import("@/components/PWAInstallPrompt").then(m => ({ default: m.PWAInstallPrompt })));
+const ServiceWorkerUpdater = lazy(() => import("@/components/ServiceWorkerUpdater").then(m => ({ default: m.ServiceWorkerUpdater })));
+
+const PageTracker = memo(function PageTracker() {
   const location = useLocation();
   const analyticsRef = useRef<typeof import("@/lib/analytics").analytics | null>(null);
   
@@ -40,21 +45,32 @@ const PageTracker = () => {
   }, [location.pathname]);
   
   return null;
-};
+});
 
 const App = () => (
   <ErrorBoundary>
     <AuthProvider>
       <TooltipProvider>
         <div className="app-wrapper">
+          {/* Hide the static HTML shell now that React is rendering */}
+          <AppShellLoader />
+          
           <Toaster />
           <Sonner />
           <PageTracker />
-          <PWAInstallPrompt />
-          <ServiceWorkerUpdater />
+          
+          {/* Lazy load PWA components */}
           <Suspense fallback={null}>
+            <PWAInstallPrompt />
+            <ServiceWorkerUpdater />
+          </Suspense>
+          
+          <Suspense fallback={<ContentSkeleton />}>
             <Routes>
+              {/* Main route - eagerly loaded for fastest render */}
               <Route path="/" element={<Index />} />
+              
+              {/* Other routes - lazy loaded */}
               <Route path="/auth" element={<Auth />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/profile" element={<Profile />} />
@@ -65,7 +81,6 @@ const App = () => (
               <Route path="/verification-success" element={<VerificationSuccess />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
