@@ -12,6 +12,10 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   build: {
+    // Disable modulepreload polyfill - prevents unused JS warnings for lazy chunks
+    modulePreload: {
+      polyfill: false,
+    },
     // Optimize chunk splitting for better caching and reduced unused JS
     rollupOptions: {
       output: {
