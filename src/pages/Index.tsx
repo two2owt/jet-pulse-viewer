@@ -461,14 +461,22 @@ const Index = () => {
             {selectedVenue && (
               <div 
                 ref={jetCardRef} 
-                className="absolute bottom-[calc(1rem+var(--safe-area-inset-bottom))] left-[calc(1rem+var(--safe-area-inset-left))] right-[calc(1rem+var(--safe-area-inset-right))] sm:left-[calc(1.5rem+var(--safe-area-inset-left))] sm:right-[calc(1.5rem+var(--safe-area-inset-right))] md:left-[calc(2rem+var(--safe-area-inset-left))] md:right-[calc(2rem+var(--safe-area-inset-right))] lg:left-[calc(3rem+var(--safe-area-inset-left))] lg:right-[calc(3rem+var(--safe-area-inset-right))] z-[60] animate-fade-in animate-scale-in max-w-2xl mx-auto"
-                style={isMobile ? swipeStyle : undefined}
+                className="absolute z-[60] animate-fade-in animate-scale-in"
+                style={{
+                  bottom: 'calc(var(--map-ui-inset-bottom) + var(--safe-area-inset-bottom))',
+                  left: 'var(--map-ui-inset-left)',
+                  right: 'var(--map-ui-inset-right)',
+                  maxWidth: '720px',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  ...(isMobile ? swipeStyle : {}),
+                }}
                 {...(isMobile ? swipeHandlers : {})}
               >
                 {/* Swipe indicator for mobile */}
                 {isMobile && (
-                  <div className="flex justify-center pb-2">
-                    <div className="w-10 h-1 bg-muted-foreground/40 rounded-full" />
+                  <div className="flex justify-center pb-2.5 sm:pb-3">
+                    <div className="w-12 h-1.5 bg-muted-foreground/40 rounded-full" />
                   </div>
                 )}
                 <JetCard 

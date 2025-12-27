@@ -1632,40 +1632,40 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       // Create popup for the venue with enhanced information
       const addressHTML = venue.address 
-        ? `<p style="margin: 2px 0 6px 0; font-size: 10px; color: rgba(255, 255, 255, 0.6); line-height: 1.3;">${venue.address}</p>`
+        ? `<p style="margin: 4px 0 8px 0; font-size: ${isMobile ? '11px' : '12px'}; color: rgba(255, 255, 255, 0.65); line-height: 1.4;">${venue.address}</p>`
         : '';
         
       const googleRatingHTML = venue.googleRating 
-        ? `<div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
-             <span style="color: #FFD700; font-size: 12px;">★</span>
-             <span style="font-size: 11px; font-weight: 600; color: white;">${venue.googleRating.toFixed(1)}</span>
-             <span style="font-size: 10px; color: rgba(255, 255, 255, 0.6);">(${venue.googleTotalRatings?.toLocaleString() || 0} reviews)</span>
+        ? `<div style="display: flex; align-items: center; gap: 6px; margin-top: 8px;">
+             <span style="color: #FFD700; font-size: ${isMobile ? '14px' : '16px'};">★</span>
+             <span style="font-size: ${isMobile ? '13px' : '14px'}; font-weight: 700; color: white;">${venue.googleRating.toFixed(1)}</span>
+             <span style="font-size: ${isMobile ? '11px' : '12px'}; color: rgba(255, 255, 255, 0.6);">(${venue.googleTotalRatings?.toLocaleString() || 0} reviews)</span>
            </div>`
         : '';
       
       const isOpenHTML = venue.isOpen !== null && venue.isOpen !== undefined
-        ? `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-             <span style="display: inline-flex; align-items: center; gap: 5px;">
-               <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${venue.isOpen ? '#22c55e' : '#ef4444'}; box-shadow: 0 0 6px ${venue.isOpen ? '#22c55e' : '#ef4444'};"></span>
-               <span style="font-size: 11px; font-weight: 600; color: ${venue.isOpen ? '#22c55e' : '#ef4444'};">${venue.isOpen ? 'Open Now' : 'Closed'}</span>
+        ? `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.12);">
+             <span style="display: inline-flex; align-items: center; gap: 6px;">
+               <span style="display: inline-block; width: ${isMobile ? '10px' : '12px'}; height: ${isMobile ? '10px' : '12px'}; border-radius: 50%; background: ${venue.isOpen ? '#22c55e' : '#ef4444'}; box-shadow: 0 0 8px ${venue.isOpen ? '#22c55e' : '#ef4444'};"></span>
+               <span style="font-size: ${isMobile ? '12px' : '14px'}; font-weight: 700; color: ${venue.isOpen ? '#22c55e' : '#ef4444'};">${venue.isOpen ? 'Open Now' : 'Closed'}</span>
              </span>
            </div>`
         : '';
 
       const popup = new mapboxgl.Popup({
-        offset: 25,
+        offset: isMobile ? 20 : 28,
         closeButton: true,
         closeOnClick: true,
-        maxWidth: '260px',
+        maxWidth: isMobile ? '280px' : '320px',
         className: 'venue-popup'
       }).setHTML(`
-        <div style="padding: 10px;">
-          <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 600; color: white;">${venue.name}</h4>
-          <p style="margin: 0 0 4px 0; font-size: 11px; color: rgba(255, 255, 255, 0.7);">${venue.category}</p>
+        <div style="padding: ${isMobile ? '12px' : '16px'};">
+          <h4 style="margin: 0 0 6px 0; font-size: ${isMobile ? '15px' : '17px'}; font-weight: 700; color: white; line-height: 1.3;">${venue.name}</h4>
+          <p style="margin: 0 0 8px 0; font-size: ${isMobile ? '12px' : '13px'}; color: rgba(255, 255, 255, 0.75); font-weight: 500;">${venue.category}</p>
           ${addressHTML}
-          <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
-            <div style="width: 8px; height: 8px; border-radius: 50%; background: ${color};"></div>
-            <span style="font-size: 11px; font-weight: 600; color: white;">${venue.activity}% Active</span>
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <div style="width: ${isMobile ? '10px' : '12px'}; height: ${isMobile ? '10px' : '12px'}; border-radius: 50%; background: ${color}; box-shadow: 0 0 8px ${color};"></div>
+            <span style="font-size: ${isMobile ? '12px' : '14px'}; font-weight: 700; color: white;">${venue.activity}% Active</span>
           </div>
           ${googleRatingHTML}
           ${isOpenHTML}
@@ -2908,32 +2908,66 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           }
         }
         
-        /* Popup styling */
+        /* Popup styling - responsive */
         .mapboxgl-popup-content {
-          background: rgba(20, 20, 30, 0.95) !important;
-          backdrop-filter: blur(10px) !important;
-          border-radius: 12px !important;
-          border: 1px solid rgba(255, 255, 255, 0.1) !important;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+          background: rgba(15, 15, 25, 0.96) !important;
+          backdrop-filter: blur(16px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+          border-radius: 16px !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
           padding: 0 !important;
+          overflow: hidden;
+        }
+        
+        .mapboxgl-popup-close-button {
+          color: rgba(255, 255, 255, 0.7) !important;
+          font-size: 20px !important;
+          padding: 6px 10px !important;
+          right: 4px !important;
+          top: 4px !important;
+          transition: color 0.2s ease !important;
+        }
+        
+        .mapboxgl-popup-close-button:hover {
+          color: white !important;
+          background: rgba(255, 255, 255, 0.1) !important;
+          border-radius: 6px !important;
         }
         
         .mapboxgl-popup-tip {
-          border-top-color: rgba(20, 20, 30, 0.95) !important;
+          border-top-color: rgba(15, 15, 25, 0.96) !important;
         }
         
         .venue-popup .mapboxgl-popup-content {
-          animation: popup-fade-in 0.3s ease-out;
+          animation: popup-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         
         @keyframes popup-fade-in {
           from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-8px) scale(0.96);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
+          }
+        }
+        
+        /* Responsive popup sizing */
+        @media (max-width: 480px) {
+          .mapboxgl-popup-content {
+            border-radius: 14px !important;
+          }
+          .mapboxgl-popup-close-button {
+            font-size: 18px !important;
+            padding: 4px 8px !important;
+          }
+        }
+        
+        @media (min-width: 768px) {
+          .mapboxgl-popup-content {
+            border-radius: 18px !important;
           }
         }
         
