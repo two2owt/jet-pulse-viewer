@@ -379,20 +379,19 @@ const Index = () => {
         <OfflineBanner />
 
       {/* Main Content - Reserve height immediately to prevent CLS */}
-      {/* Header is 48px + safe area, bottom nav is ~56px on mobile */}
       <main 
         role="main"
-        className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4'}`}
+        className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5'}`}
         style={{ 
-          // Fixed dimensions prevent layout shifts - use flex-grow instead of flex-1 class
+          // Fixed dimensions prevent layout shifts
           flex: '1 1 auto',
-          // Calculate height: 100dvh - header (48px + safe-area-top) - bottom nav (56px + safe-area-bottom)
-          minHeight: activeTab === 'map' ? 'calc(100dvh - 48px - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))' : '400px',
-          height: activeTab === 'map' ? 'calc(100dvh - 48px - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))' : 'auto',
+          // Calculate height using CSS variables for responsive header/nav
+          minHeight: activeTab === 'map' ? 'calc(100dvh - var(--header-total-height) - var(--bottom-nav-total-height))' : '400px',
+          height: activeTab === 'map' ? 'calc(100dvh - var(--header-total-height) - var(--bottom-nav-total-height))' : 'auto',
           // Strict size containment prevents content from affecting layout
           contain: 'size layout style paint',
           contentVisibility: 'auto',
-          containIntrinsicSize: activeTab === 'map' ? '100vw calc(100dvh - 104px)' : '100vw 400px',
+          containIntrinsicSize: activeTab === 'map' ? '100vw calc(100dvh - var(--header-total-height) - var(--bottom-nav-total-height))' : '100vw 400px',
           // Create a stable layer
           transform: 'translateZ(0)',
           // Explicit sizing prevents browser recalculation

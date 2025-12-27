@@ -1992,16 +1992,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             }
           }}
         >
-          <SelectTrigger className="w-auto min-w-[120px] text-[9px] sm:text-[10px] md:text-xs lg:text-sm h-7 sm:h-8 md:h-9 lg:h-10 px-2 sm:px-2.5 md:px-3">
-            <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
-              <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-primary flex-shrink-0" />
-              <span className="font-semibold truncate max-w-[100px] sm:max-w-[140px] md:max-w-[180px]">
+          <SelectTrigger className="w-auto min-w-[130px] sm:min-w-[150px] md:min-w-[180px] text-[10px] sm:text-xs md:text-sm lg:text-base h-9 sm:h-10 md:h-11 lg:h-12 px-2.5 sm:px-3 md:px-4 rounded-xl shadow-lg bg-card/95 backdrop-blur-xl border-border">
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5">
+              <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
+              <span className="font-semibold truncate max-w-[100px] sm:max-w-[140px] md:max-w-[200px] lg:max-w-[240px]">
                 {isUsingCurrentLocation 
                   ? (detectedLocationName || (detectedCity ? `${detectedCity.name}, ${detectedCity.state}` : "Locating..."))
                   : `${selectedCity.name}, ${selectedCity.state}`}
               </span>
               {isUsingCurrentLocation && (detectedLocationName || detectedCity) && (
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-pulse" />
+                <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-primary rounded-full animate-pulse" />
               )}
             </div>
           </SelectTrigger>
@@ -2037,13 +2037,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Select>
       </div>
 
-      {/* Map Controls - Top left below city selector, expanded by default */}
+      {/* Map Controls - Top left below city selector */}
       <div 
-        className="absolute z-10 space-y-1.5 sm:space-y-2"
+        className="absolute z-10 space-y-2 sm:space-y-2.5 md:space-y-3"
         style={{
-          top: isMobile ? 'calc(var(--map-ui-inset-top) + 3.25rem)' : 'calc(var(--map-ui-inset-top) + 3.75rem)',
+          top: isMobile ? 'calc(var(--map-ui-inset-top) + 3.5rem)' : 'calc(var(--map-ui-inset-top) + 4rem)',
           left: 'var(--map-ui-inset-left)',
-          maxWidth: isMobile ? 'calc(50vw - 1rem)' : 'var(--map-control-max-width)',
+          maxWidth: isMobile ? 'calc(50vw - 0.75rem)' : 'var(--map-control-max-width)',
         }}
       >
         <Collapsible defaultOpen={false}>
@@ -2051,25 +2051,25 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             <Button
               variant="secondary"
               size="sm"
-              className="bg-card/95 backdrop-blur-xl border border-border text-[9px] sm:text-[10px] md:text-xs shadow-lg h-7 sm:h-8 md:h-9 px-2 sm:px-2.5 md:px-3 transition-all duration-200"
+              className="bg-card/95 backdrop-blur-xl border border-border text-[10px] sm:text-xs md:text-sm shadow-lg h-9 sm:h-10 md:h-11 px-2.5 sm:px-3 md:px-4 rounded-xl transition-all duration-200"
             >
-              <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-0.5 sm:mr-1" />
+              <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 sm:mr-1.5" />
               <span>Map Style</span>
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="mt-1.5 sm:mt-2 overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
-            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-1.5 sm:p-2 shadow-lg space-y-2 sm:space-y-2.5">
+          <CollapsibleContent className="mt-2 sm:mt-2.5 overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 sm:p-2.5 md:p-3 shadow-lg space-y-2.5 sm:space-y-3">
               {/* Map Style Options */}
-              <div className="space-y-1">
-                <span className="text-[8px] sm:text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Base Style</span>
-                <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
+              <div className="space-y-1.5">
+                <span className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium uppercase tracking-wider">Base Style</span>
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                   {(['light', 'dark', 'streets', 'satellite'] as const).map((style) => (
                     <Button
                       key={style}
                       onClick={() => { triggerHaptic('light'); setMapStyle(style); }}
                       variant={mapStyle === style ? "default" : "outline"}
                       size="sm"
-                      className="h-6 sm:h-7 text-[8px] sm:text-[9px] md:text-[10px] px-1 sm:px-1.5 capitalize"
+                      className="h-7 sm:h-8 md:h-9 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2 capitalize"
                     >
                       {style}
                     </Button>
@@ -2082,7 +2082,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 onClick={() => { triggerHaptic('medium'); setShow3DTerrain(!show3DTerrain); }}
                 variant={show3DTerrain ? "default" : "outline"}
                 size="sm"
-                className="w-full h-6 sm:h-7 text-[9px] sm:text-[10px] md:text-xs"
+                className="w-full h-8 sm:h-9 md:h-10 text-[10px] sm:text-xs md:text-sm"
               >
                 {show3DTerrain ? "Disable" : "Enable"} 3D Terrain
               </Button>
@@ -2094,17 +2094,17 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       {/* Mobile Controls - Fixed position with stable dimensions to prevent CLS */}
       {isMobile && (
         <div 
-          className="fixed z-50 flex flex-col-reverse gap-2 transition-opacity ease-out"
+          className="fixed z-50 flex flex-col-reverse gap-2.5 transition-opacity ease-out"
           style={{
             bottom: 'var(--map-fixed-bottom)',
             right: 'var(--map-ui-inset-right)',
             width: 'var(--map-control-max-width)',
-            maxHeight: 'calc(100vh - 200px)',
+            maxHeight: 'calc(100vh - 220px)',
             // Reserve exact space always - use visibility for CLS prevention
-            minHeight: '200px',
+            minHeight: '180px',
             contain: 'layout style paint size',
             contentVisibility: 'auto',
-            containIntrinsicSize: '140px 200px',
+            containIntrinsicSize: 'var(--map-control-max-width) 180px',
             opacity: !selectedVenue ? 1 : 0,
             pointerEvents: !selectedVenue ? 'auto' : 'none',
             transform: 'translateZ(0)',
@@ -2116,13 +2116,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             onClick={() => { triggerHaptic('medium'); setShowMovementPaths(!showMovementPaths); }}
             variant={showMovementPaths ? "default" : "outline"}
             size="sm"
-            className={`w-full h-11 text-xs font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation ${
+            className={`w-full h-12 text-sm font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation ${
               showMovementPaths 
                 ? 'bg-primary text-primary-foreground shadow-primary/30' 
                 : 'bg-card/95 backdrop-blur-xl text-foreground border-border'
             }`}
           >
-            <Route className="w-4 h-4 mr-2" />
+            <Route className="w-4.5 h-4.5 mr-2" />
             {showMovementPaths ? "Paths On" : "Paths Off"}
           </Button>
 
@@ -2140,13 +2140,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             }}
             variant={showDensityLayer ? "default" : "outline"}
             size="sm"
-            className={`w-full h-11 text-xs font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation ${
+            className={`w-full h-12 text-sm font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation ${
               showDensityLayer 
                 ? 'bg-primary text-primary-foreground shadow-primary/30' 
                 : 'bg-card/95 backdrop-blur-xl text-foreground border-border'
             }`}
           >
-            <Layers className="w-4 h-4 mr-2" />
+            <Layers className="w-4.5 h-4.5 mr-2" />
             {showDensityLayer ? "Heat On" : "Heat Off"}
           </Button>
 
@@ -2154,25 +2154,25 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           <div 
             className={`overflow-hidden transition-all duration-200 ${
               showMovementPaths 
-                ? 'max-h-[220px]' 
+                ? 'max-h-[240px]' 
                 : 'max-h-0'
             }`}
             style={{ contain: 'strict' }}
           >
-            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 shadow-lg space-y-2">
-              <div className="flex items-center justify-between text-[10px] font-semibold text-muted-foreground">
+            <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2.5 shadow-lg space-y-2.5">
+              <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
                 <span>Flow Filters</span>
                 {pathsLoading && (
-                  <div className="w-2.5 h-2.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 )}
               </div>
 
               {/* Error UI */}
               {pathsError && (
-                <div className="flex items-center gap-1.5 p-1.5 bg-destructive/10 rounded text-[10px]">
-                  <AlertCircle className="w-3 h-3 text-destructive flex-shrink-0" />
+                <div className="flex items-center gap-2 p-2 bg-destructive/10 rounded-lg text-xs">
+                  <AlertCircle className="w-3.5 h-3.5 text-destructive flex-shrink-0" />
                   <span className="text-destructive truncate">Load failed</span>
-                  <Button onClick={refreshPaths} variant="ghost" size="sm" className="h-5 text-[9px] px-1.5 ml-auto">
+                  <Button onClick={refreshPaths} variant="ghost" size="sm" className="h-6 text-xs px-2 ml-auto">
                     Retry
                   </Button>
                 </div>
