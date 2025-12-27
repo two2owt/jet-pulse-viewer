@@ -52,6 +52,7 @@ interface MapboxHeatmapProps {
   isLoadingVenues?: boolean;
   selectedVenue?: Venue | null;
   resetUIKey?: number; // Incremented when tab changes to reset collapsed UI state
+  isTokenLoading?: boolean; // True while the mapbox token is being fetched
 }
 
 const getActivityColor = (activity: number) => {
@@ -104,7 +105,7 @@ const getPlatformSettings = (isMobile: boolean) => {
   };
 };
 
-export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, onNearestCityDetected, onDetectedLocationNameChange, isLoadingVenues = false, selectedVenue, resetUIKey }: MapboxHeatmapProps) => {
+export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, onNearestCityDetected, onDetectedLocationNameChange, isLoadingVenues = false, selectedVenue, resetUIKey, isTokenLoading = false }: MapboxHeatmapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -1901,8 +1902,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         minHeight: isMobile ? '100dvh' : '500px',
       }}
     >
-      {/* Map Initializing State - show while map is loading */}
-      {mapInitializing && !mapError && (
+      {/* Map Initializing State - show while token is loading OR map is initializing */}
+      {(isTokenLoading || mapInitializing) && !mapError && (
         <div 
           className="absolute inset-0 z-40 flex items-center justify-center transition-opacity duration-500"
           style={{ 
@@ -1927,7 +1928,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   stroke="hsl(var(--muted))"
                   strokeWidth="6"
                 />
-                {/* Progress arc */}
+                {/* Progress arc - animate when token loading, show actual progress otherwise */}
                 <circle
                   cx="50"
                   cy="50"
@@ -1937,8 +1938,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   strokeWidth="6"
                   strokeLinecap="round"
                   strokeDasharray={`${2 * Math.PI * 42}`}
-                  strokeDashoffset={`${2 * Math.PI * 42 * (1 - tileProgress / 100)}`}
-                  style={{ transition: 'stroke-dashoffset 0.3s ease-out' }}
+                  strokeDashoffset={isTokenLoading 
+                    ? `${2 * Math.PI * 42 * 0.75}` // Indeterminate state at 25%
+                    : `${2 * Math.PI * 42 * (1 - tileProgress / 100)}`
+                  }
+                  style={{ 
+                    transition: 'stroke-dashoffset 0.3s ease-out',
+                    animation: isTokenLoading ? 'spin 1.5s linear infinite' : 'none',
+                    transformOrigin: 'center',
+                  }}
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
@@ -1948,9 +1956,11 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             <div className="text-center space-y-1">
               <p className="text-sm sm:text-base md:text-lg font-medium text-foreground">Loading map</p>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                {tileProgress < 30 ? 'Initializing...' : tileProgress < 80 ? 'Loading tiles...' : 'Almost ready...'}
+                {isTokenLoading 
+                  ? 'Connecting...'
+                  : tileProgress < 30 ? 'Initializing...' : tileProgress < 80 ? 'Loading tiles...' : 'Almost ready...'}
               </p>
-              {tileProgress > 0 && (
+              {!isTokenLoading && tileProgress > 0 && (
                 <p className="text-[10px] sm:text-xs text-muted-foreground/70 tabular-nums">{Math.round(tileProgress)}%</p>
               )}
             </div>
