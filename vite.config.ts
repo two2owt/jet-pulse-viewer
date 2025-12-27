@@ -154,10 +154,6 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       // Defer service worker registration to avoid render-blocking
       injectRegister: null,
-      // Use custom service worker that includes push notification handlers
-      srcDir: 'public',
-      filename: 'sw-push.js',
-      strategies: 'injectManifest',
       includeAssets: ["favicon.ico", "robots.txt", "jet-email-logo.png"],
       manifest: {
         name: "JET - Discover What's Hot",
@@ -188,8 +184,78 @@ export default defineConfig(({ mode }) => ({
           },
         ],
       },
-      injectManifest: {
+      workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff,woff2,jpg,jpeg}"],
+        navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/api/, /^\/functions/],
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\.mapbox\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "mapbox-api-cache",
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/tiles\.mapbox\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "mapbox-tiles-cache",
+              expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "supabase-api-cache",
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "google-fonts-stylesheets",
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "google-fonts-webfonts",
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/.*\.(png|jpg|jpeg|webp|gif|svg)$/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "external-images-cache",
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "supabase-storage-cache",
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ].filter(Boolean),

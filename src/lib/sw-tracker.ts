@@ -68,11 +68,19 @@ class ServiceWorkerTracker {
     }
 
     try {
-      // Register the combined service worker (Workbox + Push notifications)
+      // Register main Workbox service worker for caching
       const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
       
       // Track initial registration
       await this.logEvent('registered');
+
+      // Also register push notification service worker
+      try {
+        await navigator.serviceWorker.register('/sw-push.js', { scope: '/' });
+        console.log('[SW Tracker] Push notification SW registered');
+      } catch (pushError) {
+        console.warn('[SW Tracker] Push SW registration failed:', pushError);
+      }
 
       // Listen for updates
       registration.addEventListener('updatefound', () => {
@@ -84,21 +92,17 @@ class ServiceWorkerTracker {
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
-              // New version installed, waiting to activate
               this.logEvent('update_installed_waiting');
             } else {
-              // First install
               this.logEvent('first_install');
             }
           } else if (newWorker.state === 'activated') {
             this.logEvent('update_activated');
           } else if (newWorker.state === 'redundant') {
-            // Worker was replaced or install failed
             this.logEvent('worker_redundant');
           }
         });
 
-        // Track install errors
         newWorker.addEventListener('error', (e) => {
           this.logEvent('install_error', e.message || 'Unknown install error');
         });
@@ -109,7 +113,7 @@ class ServiceWorkerTracker {
         this.logEvent('controller_changed');
       });
 
-      // Listen for SW messages (can include version info)
+      // Listen for SW messages
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'SW_VERSION') {
           this.swVersion = event.data.version;
@@ -117,8 +121,8 @@ class ServiceWorkerTracker {
         }
       });
 
-      // Check for stuck states periodically (every 5 minutes after first check)
-      setTimeout(() => this.checkForStuckState(registration), 30000); // First check after 30s
+      // Check for stuck states
+      setTimeout(() => this.checkForStuckState(registration), 30000);
       setInterval(() => this.checkForStuckState(registration), 5 * 60 * 1000);
 
       return registration;
