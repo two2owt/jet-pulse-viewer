@@ -42,7 +42,9 @@ export default defineConfig(({ mode }) => ({
           // Recharts + D3 - heavy (~200KB), ONLY used in admin dashboard
           // Keep all recharts internals together to avoid circular dependency issues
           // The 'S before initialization' error happens when d3 modules are split incorrectly
-          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor') || id.includes('prop-types') || id.includes('react-smooth') || id.includes('decimal.js')) {
+          // IMPORTANT: Do NOT include prop-types here - it's used by many React components
+          // and including it forces the charts chunk to load early, causing initialization errors
+          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor') || id.includes('react-smooth') || id.includes('decimal.js-light')) {
             return 'charts';
           }
           // Mapbox - heavy (~500KB+), lazy loaded when map is needed
