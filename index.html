@@ -259,29 +259,9 @@
         z-index: 9999;
       }
     </style>
-    <!-- Main landmark wrapper with inline FCP placeholder -->
+    <!-- Main landmark wrapper -->
     <main role="main" id="main-content" aria-label="Main content">
-      <div id="root">
-        <!-- Minimal FCP placeholder - shows instantly, replaced by React hydration -->
-        <div id="fcp-placeholder" style="
-          position: fixed;
-          inset: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #0f0f0f;
-          z-index: 9999;
-        ">
-          <img 
-            src="/jet-logo-96.png" 
-            alt="JET" 
-            width="64" 
-            height="64"
-            style="opacity: 0.9;"
-            fetchpriority="high"
-          >
-        </div>
-      </div>
+      <div id="root"></div>
     </main>
     <script type="module" src="/src/main.tsx"></script>
   </body>
