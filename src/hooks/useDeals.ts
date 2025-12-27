@@ -51,6 +51,20 @@ const dealTypeToCategory: Record<string, string> = {
   'festival': 'Events',
 };
 
+// Cache deals for offline page
+const cacheDealsForOffline = (deals: Deal[]) => {
+  try {
+    const cached = deals.slice(0, 10).map(d => ({
+      title: d.title,
+      venue_name: d.venue_name,
+      deal_type: d.deal_type
+    }));
+    localStorage.setItem('jet-cached-deals', JSON.stringify(cached));
+  } catch (e) {
+    // Ignore storage errors
+  }
+};
+
 export const useDeals = (enablePreferenceFilter: boolean = false) => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
@@ -228,6 +242,9 @@ export const useDeals = (enablePreferenceFilter: boolean = false) => {
       
       const allDeals = data || [];
       setDeals(allDeals);
+      
+      // Cache deals for offline access
+      cacheDealsForOffline(allDeals);
       
       // Apply preference filtering
       const filtered = filterDealsByPreferences(allDeals, userPreferences);
