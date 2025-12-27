@@ -16,30 +16,11 @@ import { TimelapseSwipeControl } from "./TimelapseSwipeControl";
 
 import { CITIES, type City, getDistanceKm, getNearestCity, getCitiesSortedByDistance, kmToMiles } from "@/types/cities";
 import { getCachedReverseGeocode, type GeocodedLocation } from "@/utils/reverseGeocode";
-
-// Venue type definition
-export interface Venue {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  activity: number;
-  category: string;
-  neighborhood: string;
-  imageUrl?: string;
-  address?: string;
-  googleRating?: number | null;
-  googleTotalRatings?: number;
-  googleReviews?: Array<{
-    author: string;
-    rating: number;
-    text: string;
-    time: string | null;
-  }>;
-  isOpen?: boolean | null;
-  openingHours?: string[];
-}
 import locationPuckIcon from "@/assets/location-puck.png";
+
+// Re-export Venue type for backwards compatibility
+export type { Venue } from "@/types/venue";
+import type { Venue } from "@/types/venue";
 
 interface MapboxHeatmapProps {
   onVenueSelect: (venue: Venue) => void;

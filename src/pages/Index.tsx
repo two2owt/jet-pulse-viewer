@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, lazy, Suspense, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { type Venue } from "@/components/MapboxHeatmap";
+import { type Venue } from "@/types/venue";
 import { JetCard } from "@/components/JetCard";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationCard, type Notification } from "@/components/NotificationCard";
@@ -11,9 +11,8 @@ import { glideHaptic, soarHaptic } from "@/lib/haptics";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-// Direct import for immediate map availability
-import { MapboxHeatmap } from "@/components/MapboxHeatmap";
+// Lazy load heavy components to reduce initial bundle
+const MapboxHeatmap = lazy(() => import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap })));
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
 const ExploreTab = lazy(() => import("@/components/ExploreTab").then(m => ({ default: m.ExploreTab })));
 
@@ -40,6 +39,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { MapSkeleton } from "@/components/skeletons/MapSkeleton";
 
 // Top 10 most popular venues in Charlotte, NC metropolitan area with real addresses
 const charlotteVenues: Venue[] = [
@@ -441,20 +441,26 @@ const Index = () => {
                 </div>
               )}
               
-              {/* Map - render immediately, MapboxHeatmap handles its own loading state */}
-              <MapboxHeatmap
-                onVenueSelect={handleVenueSelect} 
-                venues={venues} 
-                mapboxToken={mapboxToken || ""}
-                selectedCity={selectedCity}
-                onCityChange={handleCityChange}
-                onNearestCityDetected={handleNearestCityDetected}
-                onDetectedLocationNameChange={handleDetectedLocationNameChange}
-                isLoadingVenues={venuesLoading}
-                selectedVenue={selectedVenue}
-                resetUIKey={mapUIResetKey}
-                isTokenLoading={mapboxLoading}
-              />
+              {/* Map - lazy loaded to reduce initial bundle by ~447KB */}
+              <Suspense fallback={
+                <div className="absolute inset-0">
+                  <MapSkeleton phase={mapboxLoading ? 'token' : 'loading'} />
+                </div>
+              }>
+                <MapboxHeatmap
+                  onVenueSelect={handleVenueSelect} 
+                  venues={venues} 
+                  mapboxToken={mapboxToken || ""}
+                  selectedCity={selectedCity}
+                  onCityChange={handleCityChange}
+                  onNearestCityDetected={handleNearestCityDetected}
+                  onDetectedLocationNameChange={handleDetectedLocationNameChange}
+                  isLoadingVenues={venuesLoading}
+                  selectedVenue={selectedVenue}
+                  resetUIKey={mapUIResetKey}
+                  isTokenLoading={mapboxLoading}
+                />
+              </Suspense>
             </div>
 
             {/* Selected Venue Card - Positioned above bottom nav */}
