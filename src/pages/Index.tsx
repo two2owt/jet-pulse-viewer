@@ -417,35 +417,11 @@ const Index = () => {
 
             {/* Mapbox Heatmap - Edge to edge */}
             <div className="h-full w-full relative">
-              {/* Loading state - show skeleton immediately */}
-              {(mapboxLoading || (!mapboxToken && !mapboxError)) && (
-                <div 
-                  className="absolute inset-0 z-10"
-                  style={{ backgroundColor: '#0a0a0a' }} // Match dark map background
-                >
-                  <div className="h-full flex flex-col items-center justify-center">
-                    <div className="flex flex-col items-center gap-4 sm:gap-6 p-6 sm:p-8">
-                      {/* Animated map icon - scales up on larger screens */}
-                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
-                        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-                        <div className="relative w-full h-full rounded-full bg-primary/10 flex items-center justify-center">
-                          <MapIcon className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-primary" />
-                        </div>
-                      </div>
-                      <div className="text-center space-y-1.5 sm:space-y-2">
-                        <p className="text-sm sm:text-base md:text-lg font-medium text-foreground">Loading map</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground">Connecting to map service...</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Error state */}
+              {/* Error state - only show if there's a definite error */}
               {mapboxError && !mapboxLoading && (
                 <div 
                   className="absolute inset-0 z-10 flex items-center justify-center"
-                  style={{ backgroundColor: '#0a0a0a' }} // Match dark map background
+                  style={{ backgroundColor: '#0a0a0a' }}
                 >
                   <div className="text-center space-y-3 sm:space-y-4 p-6 sm:p-8">
                     <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
@@ -467,21 +443,20 @@ const Index = () => {
                 </div>
               )}
               
-              {/* Map - render when we have a token (will show its own loading state) */}
-              {mapboxToken && (
-                <MapboxHeatmap
-                  onVenueSelect={handleVenueSelect} 
-                  venues={venues} 
-                  mapboxToken={mapboxToken}
-                  selectedCity={selectedCity}
-                  onCityChange={handleCityChange}
-                  onNearestCityDetected={handleNearestCityDetected}
-                  onDetectedLocationNameChange={handleDetectedLocationNameChange}
-                  isLoadingVenues={venuesLoading}
-                  selectedVenue={selectedVenue}
-                  resetUIKey={mapUIResetKey}
-                />
-              )}
+              {/* Map - render immediately, MapboxHeatmap handles its own loading state */}
+              <MapboxHeatmap
+                onVenueSelect={handleVenueSelect} 
+                venues={venues} 
+                mapboxToken={mapboxToken || ""}
+                selectedCity={selectedCity}
+                onCityChange={handleCityChange}
+                onNearestCityDetected={handleNearestCityDetected}
+                onDetectedLocationNameChange={handleDetectedLocationNameChange}
+                isLoadingVenues={venuesLoading}
+                selectedVenue={selectedVenue}
+                resetUIKey={mapUIResetKey}
+                isTokenLoading={mapboxLoading}
+              />
             </div>
 
             {/* Selected Venue Card - Positioned at bottom with optimal spacing */}
