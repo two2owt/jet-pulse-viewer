@@ -2420,12 +2420,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 setDayFilter(undefined);
               }
             }}
-            variant={showDensityLayer ? "default" : "secondary"}
+            variant={showDensityLayer ? "default" : "outline"}
             size="sm"
-            className="bg-card/95 backdrop-blur-xl border border-border text-xs shadow-lg w-full animate-fade-in min-h-[44px] touch-manipulation"
+            className={`w-full h-12 text-sm font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation ${
+              showDensityLayer 
+                ? 'bg-primary text-primary-foreground shadow-primary/30' 
+                : 'bg-card/95 backdrop-blur-xl text-foreground border-border'
+            }`}
           >
-            <Layers className="w-4 h-4 mr-1.5 flex-shrink-0" />
-            <span>{showDensityLayer ? "Hide" : "Show"} Heat</span>
+            <Layers className="w-4.5 h-4.5 mr-2 flex-shrink-0" />
+            <span>{showDensityLayer ? "Heat On" : "Heat Off"}</span>
           </Button>
 
         {showDensityLayer && (
@@ -2647,16 +2651,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         {/* Movement Paths Toggle - Compact */}
         <Button
           onClick={() => { triggerHaptic('medium'); setShowMovementPaths(!showMovementPaths); }}
-          variant={showMovementPaths ? "default" : "secondary"}
+          variant={showMovementPaths ? "default" : "outline"}
           size="sm"
-          className={`backdrop-blur-xl border shadow-lg w-full animate-fade-in min-h-[44px] touch-manipulation ${
-            isMobile 
-              ? 'bg-card border-border text-foreground text-[11px] font-semibold' 
-              : 'bg-card/95 border-border text-xs'
+          className={`w-full h-12 text-sm font-semibold rounded-xl shadow-lg transition-all duration-200 active:scale-95 touch-manipulation ${
+            showMovementPaths 
+              ? 'bg-primary text-primary-foreground shadow-primary/30' 
+              : 'bg-card/95 backdrop-blur-xl text-foreground border-border'
           }`}
         >
-          <Route className="w-4 h-4 mr-1.5 flex-shrink-0" />
-          <span>{showMovementPaths ? "Hide" : "Show"} Paths</span>
+          <Route className="w-4.5 h-4.5 mr-2 flex-shrink-0" />
+          <span>{showMovementPaths ? "Paths On" : "Paths Off"}</span>
         </Button>
 
         {showMovementPaths && (
