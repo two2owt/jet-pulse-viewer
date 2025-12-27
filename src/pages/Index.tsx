@@ -381,7 +381,7 @@ const Index = () => {
       {/* Main Content - Reserve height immediately to prevent CLS */}
       <main 
         role="main"
-        className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5'}`}
+        className={`${activeTab === 'map' ? 'w-full bg-[#0d0d12]' : 'max-w-7xl mx-auto px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5'}`}
         style={{ 
           // Fixed dimensions prevent layout shifts
           flex: '1 1 auto',
@@ -403,7 +403,7 @@ const Index = () => {
       >
         {activeTab === "map" && (
           <div 
-            className="relative w-full h-full"
+            className="relative w-full h-full bg-[#0d0d12]"
             style={{ 
               height: '100%',
               minHeight: '400px',
@@ -414,8 +414,8 @@ const Index = () => {
             }}
           >
 
-            {/* Mapbox Heatmap - Edge to edge */}
-            <div className="h-full w-full relative">
+            {/* Mapbox Heatmap - Edge to edge with immediate dark background for FCP */}
+            <div className="h-full w-full relative bg-[#0d0d12]">
               {/* Error state - only show if there's a definite error */}
               {mapboxError && !mapboxLoading && (
                 <div 
