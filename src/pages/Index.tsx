@@ -457,13 +457,13 @@ const Index = () => {
               />
             </div>
 
-            {/* Selected Venue Card - Positioned at bottom with optimal spacing */}
+            {/* Selected Venue Card - Positioned above bottom nav */}
             {selectedVenue && (
               <div 
                 ref={jetCardRef} 
-                className="absolute z-[60] animate-fade-in animate-scale-in"
+                className="fixed z-[60] animate-fade-in animate-scale-in"
                 style={{
-                  bottom: 'calc(var(--map-ui-inset-bottom) + var(--safe-area-inset-bottom))',
+                  bottom: 'var(--map-fixed-bottom)',
                   left: 'var(--map-ui-inset-left)',
                   right: 'var(--map-ui-inset-right)',
                   maxWidth: '720px',
