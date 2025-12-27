@@ -280,11 +280,9 @@
         z-index: 9999;
       }
     </style>
-    <!-- Main landmark wrapper - dark background for map-first experience -->
-    <main role="main" id="main-content" aria-label="Main content" style="min-height: 100vh; background-color: #0a0a0a;">
-      <div id="root" style="min-height: 100vh; background-color: #0a0a0a;">
-        <!-- Empty placeholder with dark background - map loading state handles the UI -->
-      </div>
+    <!-- Main landmark wrapper - no placeholder, map renders directly -->
+    <main role="main" id="main-content" aria-label="Main content">
+      <div id="root"></div>
     </main>
     <script type="module" src="/src/main.tsx"></script>
   </body>
