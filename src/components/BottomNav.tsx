@@ -38,22 +38,22 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
       }}
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 h-full flex items-center">
-        <div className="flex items-center justify-around w-full">
-          {isLoading ? (
-            // Skeleton loading state - matches nav item dimensions
-            <>
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px]"
-                >
-                  <Skeleton className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md" />
-                  <Skeleton className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded" />
-                </div>
-              ))}
-            </>
-          ) : (
-            navItems.map((item) => {
+        {isLoading ? (
+          // Skeleton loading state - matches nav item dimensions
+          <div className="flex items-center justify-around w-full animate-fade-in">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px]"
+              >
+                <Skeleton className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md animate-pulse" />
+                <Skeleton className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-around w-full animate-fade-in">
+            {navItems.map((item) => {
               const isActive = activeTab === item.id;
               const Icon = item.icon;
               
@@ -82,9 +82,9 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
                   </span>
                 </button>
               );
-            })
-          )}
-        </div>
+            })}
+          </div>
+        )}
       </div>
     </nav>
   );
