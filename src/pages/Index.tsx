@@ -453,19 +453,27 @@ const Index = () => {
               
               {/* Map - eagerly loaded for fastest LCP */}
               {mapboxToken ? (
-                <MapboxHeatmap
-                  onVenueSelect={handleVenueSelect} 
-                  venues={venues} 
-                  mapboxToken={mapboxToken}
-                  selectedCity={selectedCity}
-                  onCityChange={handleCityChange}
-                  onNearestCityDetected={handleNearestCityDetected}
-                  onDetectedLocationNameChange={handleDetectedLocationNameChange}
-                  isLoadingVenues={venuesLoading}
-                  selectedVenue={selectedVenue}
-                  resetUIKey={mapUIResetKey}
-                  isTokenLoading={false}
-                />
+                <div 
+                  className="h-full w-full animate-fade-in"
+                  style={{
+                    animationDuration: '400ms',
+                    animationTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                >
+                  <MapboxHeatmap
+                    onVenueSelect={handleVenueSelect} 
+                    venues={venues} 
+                    mapboxToken={mapboxToken}
+                    selectedCity={selectedCity}
+                    onCityChange={handleCityChange}
+                    onNearestCityDetected={handleNearestCityDetected}
+                    onDetectedLocationNameChange={handleDetectedLocationNameChange}
+                    isLoadingVenues={venuesLoading}
+                    selectedVenue={selectedVenue}
+                    resetUIKey={mapUIResetKey}
+                    isTokenLoading={false}
+                  />
+                </div>
               ) : (
                 <MapSkeleton phase={mapboxLoading ? 'token' : 'loading'} />
               )}
