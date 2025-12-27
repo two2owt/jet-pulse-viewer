@@ -160,15 +160,54 @@
         align-items: center;
         justify-content: center;
       }
-      /* Map-style grid overlay for visual interest during load */
+      /* Animated gradient background matching MapSkeleton */
+      .shell-main::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom right, hsl(var(--muted) / 0.3), hsl(var(--background)), hsl(var(--muted) / 0.5));
+        animation: shellPulse 2s ease-in-out infinite;
+      }
+      @keyframes shellPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+      }
+      /* Map-style grid overlay matching MapSkeleton opacity */
       .shell-map-grid {
         position: absolute;
         inset: 0;
         background-image: 
-          linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+          linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
+          linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px);
         background-size: 80px 80px;
-        opacity: 0.5;
+        opacity: 0.02;
+      }
+      /* City selector skeleton - matches MapSkeleton top-left UI */
+      .shell-city-selector {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        height: 32px;
+        width: 128px;
+        background: hsl(var(--muted));
+        border-radius: 8px;
+        z-index: 10;
+      }
+      /* Navigation controls skeleton - matches MapSkeleton top-right UI */
+      .shell-map-controls {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        z-index: 10;
+      }
+      .shell-map-control {
+        width: 32px;
+        height: 32px;
+        background: hsl(var(--muted));
+        border-radius: 6px;
       }
       /* JET branding loader */
       .shell-loader {
@@ -177,6 +216,7 @@
         align-items: center;
         gap: 16px;
         z-index: 10;
+        pointer-events: none;
       }
       .shell-brand {
         display: flex;
@@ -184,20 +224,20 @@
         gap: 2px;
       }
       .shell-brand-text {
-        font-size: 40px;
+        font-size: clamp(40px, 8vw, 60px);
         font-weight: 900;
         color: hsl(var(--foreground));
         letter-spacing: -0.02em;
-        font-family: 'Kanit', system-ui, sans-serif;
+        font-family: 'Kanit', 'Kanit Fallback', system-ui, sans-serif;
       }
       .shell-plane {
         position: relative;
-        top: -6px;
+        top: clamp(-4px, -1vw, -8px);
         animation: planeFloat 2s ease-in-out infinite;
       }
       .shell-plane svg {
-        width: 28px;
-        height: 28px;
+        width: clamp(24px, 5vw, 40px);
+        height: clamp(24px, 5vw, 40px);
         fill: hsl(var(--primary));
         stroke: hsl(var(--primary));
         transform: rotate(-12deg);
@@ -206,51 +246,51 @@
         position: absolute;
         top: 50%;
         left: -8px;
-        width: 24px;
+        width: 16px;
         height: 2px;
-        background: linear-gradient(to left, rgba(249, 115, 22, 0.5), transparent);
+        background: linear-gradient(to left, hsl(var(--primary) / 0.5), transparent);
         border-radius: 2px;
         transform-origin: right center;
         animation: trailPulse 1.5s ease-in-out infinite;
         will-change: transform, opacity;
       }
       @keyframes planeFloat {
-        0%, 100% { transform: translateY(0) translateX(0); }
-        25% { transform: translateY(-3px) translateX(1.5px); }
-        50% { transform: translateY(-5px) translateX(3px); }
-        75% { transform: translateY(-2px) translateX(1px); }
+        0%, 100% { transform: translateY(0) translateX(0) rotate(-12deg); }
+        25% { transform: translateY(-4px) translateX(2px) rotate(-8deg); }
+        50% { transform: translateY(-6px) translateX(4px) rotate(-14deg); }
+        75% { transform: translateY(-3px) translateX(1px) rotate(-10deg); }
       }
-      /* GPU-composited: uses transform/opacity instead of width */
       @keyframes trailPulse {
-        0%, 100% { opacity: 0.3; transform: scaleX(0.67); }
-        50% { opacity: 0.6; transform: scaleX(1); }
+        0%, 100% { opacity: 0.3; width: 16px; }
+        50% { opacity: 0.6; width: 24px; }
       }
-      /* Progress bar */
+      /* Progress bar - matching MapSkeleton gradient */
       .shell-progress-container {
-        width: 128px;
+        width: clamp(128px, 30vw, 160px);
         height: 4px;
         background: hsl(var(--muted));
         border-radius: 4px;
         overflow: hidden;
+        margin-top: 8px;
       }
       .shell-progress-bar {
         height: 100%;
-        width: 200%;
-        background: linear-gradient(90deg, hsl(var(--primary)), hsl(320 80% 55%), hsl(var(--primary)), hsl(320 80% 55%), hsl(var(--primary)));
+        width: 60%;
+        background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)));
+        background-size: 200% 100%;
         border-radius: 4px;
-        animation: shimmerBar 1.5s linear infinite;
-        will-change: transform;
+        animation: shimmerBar 2s linear infinite;
       }
-      /* GPU-composited: uses translateX instead of background-position */
       @keyframes shimmerBar {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
       }
       /* Status indicator */
       .shell-status {
         display: flex;
         align-items: center;
         gap: 8px;
+        margin-top: 4px;
       }
       .shell-status-dot {
         width: 6px;
@@ -264,7 +304,7 @@
         50% { opacity: 0.5; transform: scale(0.8); }
       }
       .shell-text {
-        font-size: 13px;
+        font-size: clamp(12px, 2.5vw, 14px);
         color: hsl(var(--muted-foreground));
         font-weight: 500;
         letter-spacing: 0.02em;
@@ -364,8 +404,15 @@
         <div class="shell-avatar"></div>
       </header>
       <main class="shell-main" id="main-content">
-        <!-- Subtle grid pattern -->
+        <!-- Animated gradient background -->
         <div class="shell-map-grid"></div>
+        <!-- City selector skeleton - matches MapSkeleton -->
+        <div class="shell-city-selector"></div>
+        <!-- Navigation controls skeleton - matches MapSkeleton -->
+        <div class="shell-map-controls">
+          <div class="shell-map-control"></div>
+          <div class="shell-map-control"></div>
+        </div>
         <!-- JET branding loader -->
         <div class="shell-loader">
           <div class="shell-brand">
@@ -382,7 +429,7 @@
           </div>
           <div class="shell-status">
             <div class="shell-status-dot"></div>
-            <span class="shell-text">Loading...</span>
+            <span class="shell-text">Loading map...</span>
           </div>
         </div>
       </main>
