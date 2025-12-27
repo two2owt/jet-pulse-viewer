@@ -12,10 +12,9 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   build: {
-    // Disable modulepreload polyfill - prevents unused JS warnings for lazy chunks
-    modulePreload: {
-      polyfill: false,
-    },
+    // Disable modulepreload entirely - prevents unused JS warnings for lazy chunks
+    // This stops Vite from injecting <link rel="modulepreload"> for lazy-loaded chunks
+    modulePreload: false,
     // Optimize chunk splitting for better caching and reduced unused JS
     rollupOptions: {
       output: {
