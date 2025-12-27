@@ -104,7 +104,7 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
 
   return (
     <article 
-      className="bg-card rounded-2xl sm:rounded-3xl overflow-hidden border border-border shadow-[var(--shadow-card)] transition-all duration-300 hover-scale flex flex-col max-h-[calc(100dvh-var(--header-total-height)-var(--bottom-nav-total-height)-2rem)]"
+      className="bg-card rounded-3xl sm:rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-border shadow-[var(--shadow-card)] transition-all duration-300 hover-scale flex flex-col max-h-[calc(100dvh-var(--header-total-height)-var(--bottom-nav-total-height)-2rem)]"
       aria-label={`${venue.name} - ${venue.category} in ${venue.neighborhood}`}
     >
       {/* Close Button */}
