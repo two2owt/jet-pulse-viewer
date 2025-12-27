@@ -50,16 +50,28 @@ export const AppShellLoader = () => {
     // Prepare for smooth transition
     prepareShellTransition();
     
-    // Fallback: if nothing else hides the shell after 5 seconds,
-    // hide it anyway to prevent getting permanently stuck
+    // Hide shell immediately when React app mounts - 
+    // the React components will handle their own loading states
+    // Use a small delay to ensure first paint happens
+    const hideTimeout = setTimeout(() => {
+      if (!isAppShellHidden()) {
+        hideAppShell();
+      }
+    }, 100);
+    
+    // Fallback: if something delays the first timeout,
+    // force hide after 3 seconds to prevent getting stuck
     const maxTimeout = setTimeout(() => {
       if (!isAppShellHidden()) {
         console.warn('AppShellLoader: Force hiding shell after timeout');
         hideAppShell();
       }
-    }, 5000);
+    }, 3000);
     
-    return () => clearTimeout(maxTimeout);
+    return () => {
+      clearTimeout(hideTimeout);
+      clearTimeout(maxTimeout);
+    };
   }, []);
   
   return null;
