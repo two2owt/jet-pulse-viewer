@@ -70,6 +70,104 @@ export const prefetchMapbox = () => {
   }
 };
 
+// ========================================
+// ROUTE PREFETCHING
+// Preload likely navigation destinations for instant transitions
+// ========================================
+
+let routesPrefetched = false;
+
+// Route imports grouped by priority
+const ROUTE_IMPORTS = {
+  // High priority: bottom nav items users are most likely to visit
+  high: [
+    () => import("@/pages/Favorites"),
+    () => import("@/pages/Social"),
+    () => import("@/pages/Profile"),
+  ],
+  // Medium priority: settings, auth
+  medium: [
+    () => import("@/pages/Settings"),
+    () => import("@/pages/Auth"),
+  ],
+  // Low priority: less frequently accessed
+  low: [
+    () => import("@/pages/Onboarding"),
+    () => import("@/pages/PrivacyPolicy"),
+    () => import("@/pages/TermsOfService"),
+  ],
+};
+
+/**
+ * Prefetch a batch of route imports silently
+ */
+const prefetchBatch = (routes: Array<() => Promise<unknown>>) => {
+  routes.forEach((importFn) => {
+    try {
+      importFn().catch(() => {});
+    } catch {
+      // Ignore errors
+    }
+  });
+};
+
+/**
+ * Prefetch route chunks in order of priority
+ * Uses requestIdleCallback to avoid blocking the main thread
+ */
+export const prefetchRoutes = () => {
+  if (routesPrefetched) return;
+  routesPrefetched = true;
+
+  // High priority: after 2s (user likely exploring the map)
+  setTimeout(() => {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => prefetchBatch(ROUTE_IMPORTS.high), { timeout: 3000 });
+    } else {
+      prefetchBatch(ROUTE_IMPORTS.high);
+    }
+  }, 2000);
+
+  // Medium priority: after 5s
+  setTimeout(() => {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => prefetchBatch(ROUTE_IMPORTS.medium), { timeout: 3000 });
+    } else {
+      prefetchBatch(ROUTE_IMPORTS.medium);
+    }
+  }, 5000);
+
+  // Low priority: after 10s
+  setTimeout(() => {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => prefetchBatch(ROUTE_IMPORTS.low), { timeout: 5000 });
+    } else {
+      prefetchBatch(ROUTE_IMPORTS.low);
+    }
+  }, 10000);
+};
+
+/**
+ * Prefetch a specific route on hover/focus for instant navigation
+ * Use this on navigation links for even faster transitions
+ */
+export const createPrefetchHandlers = (routeImport: () => Promise<unknown>) => {
+  let prefetched = false;
+  
+  const prefetch = () => {
+    if (!prefetched) {
+      prefetched = true;
+      routeImport().catch(() => {});
+    }
+  };
+  
+  return {
+    onMouseEnter: prefetch,
+    onFocus: prefetch,
+    onTouchStart: prefetch,
+  };
+};
+
 /**
  * Register prefetch handlers to load resources during idle time
  * Should be called once on app initialization
@@ -84,10 +182,14 @@ export const initPrefetching = () => {
   if (document.readyState === 'complete') {
     // Delay prefetch to after Time to Interactive (~3s on mobile)
     setTimeout(prefetchMapbox, 3000);
+    // Start route prefetching
+    prefetchRoutes();
   } else {
     window.addEventListener('load', () => {
       // Longer delay to let critical rendering and LCP complete
       setTimeout(prefetchMapbox, 3000);
+      // Start route prefetching
+      prefetchRoutes();
     }, { once: true });
   }
 };
