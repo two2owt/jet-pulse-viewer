@@ -195,11 +195,13 @@
         position: absolute;
         top: 50%;
         left: -8px;
-        width: 16px;
+        width: 24px;
         height: 2px;
         background: linear-gradient(to left, rgba(249, 115, 22, 0.5), transparent);
         border-radius: 2px;
+        transform-origin: right center;
         animation: trailPulse 1.5s ease-in-out infinite;
+        will-change: transform, opacity;
       }
       @keyframes planeFloat {
         0%, 100% { transform: translateY(0) translateX(0); }
@@ -207,9 +209,10 @@
         50% { transform: translateY(-5px) translateX(3px); }
         75% { transform: translateY(-2px) translateX(1px); }
       }
+      /* GPU-composited: uses transform/opacity instead of width */
       @keyframes trailPulse {
-        0%, 100% { opacity: 0.3; width: 16px; }
-        50% { opacity: 0.6; width: 24px; }
+        0%, 100% { opacity: 0.3; transform: scaleX(0.67); }
+        50% { opacity: 0.6; transform: scaleX(1); }
       }
       /* Progress bar */
       .shell-progress-container {
@@ -221,15 +224,16 @@
       }
       .shell-progress-bar {
         height: 100%;
-        width: 100%;
-        background: linear-gradient(90deg, hsl(var(--primary)), hsl(320 80% 55%), hsl(var(--primary)));
-        background-size: 200% 100%;
+        width: 200%;
+        background: linear-gradient(90deg, hsl(var(--primary)), hsl(320 80% 55%), hsl(var(--primary)), hsl(320 80% 55%), hsl(var(--primary)));
         border-radius: 4px;
         animation: shimmerBar 1.5s linear infinite;
+        will-change: transform;
       }
+      /* GPU-composited: uses translateX instead of background-position */
       @keyframes shimmerBar {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
       }
       /* Status indicator */
       .shell-status {
