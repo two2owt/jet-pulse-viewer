@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { hideAppShell } from "@/components/AppShellLoader";
 
 const TOKEN_CACHE_KEY = 'mapbox_token_cache';
 const TOKEN_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -77,8 +76,6 @@ export const useMapboxToken = (options: UseMapboxTokenOptions = {}) => {
       setToken(cachedToken);
       setLoading(false);
       setError(null);
-      // Hide app shell immediately since we have the token cached
-      hideAppShell();
       return;
     }
     
@@ -103,13 +100,9 @@ export const useMapboxToken = (options: UseMapboxTokenOptions = {}) => {
       setCachedToken(data.token);
       setToken(data.token);
       setError(null);
-      // Hide app shell now that we have the token
-      hideAppShell();
     } catch (err) {
       console.error('useMapboxToken: Fetch failed:', err);
       setError("Failed to load map. Please check your connection.");
-      // Hide app shell to show error state
-      hideAppShell();
     } finally {
       setLoading(false);
     }

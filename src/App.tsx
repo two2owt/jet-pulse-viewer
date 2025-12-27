@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { AppShellLoader } from "@/components/AppShellLoader";
 import { ContentSkeleton } from "@/components/LoadingFallback";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -52,9 +51,6 @@ const App = () => (
     <AuthProvider>
       <TooltipProvider>
         <div className="app-wrapper">
-          {/* Hide the static HTML shell now that React is rendering */}
-          <AppShellLoader />
-          
           <Toaster />
           <Sonner />
           <PageTracker />
