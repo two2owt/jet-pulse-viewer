@@ -154,6 +154,10 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       // Defer service worker registration to avoid render-blocking
       injectRegister: null,
+      // Use custom service worker that includes push notification handlers
+      srcDir: 'public',
+      filename: 'sw-push.js',
+      strategies: 'injectManifest',
       includeAssets: ["favicon.ico", "robots.txt", "jet-email-logo.png"],
       manifest: {
         name: "JET - Discover What's Hot",
@@ -184,168 +188,8 @@ export default defineConfig(({ mode }) => ({
           },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff,woff2,jpg,jpeg}"],
-        // Precache critical navigation routes
-        navigateFallback: "index.html",
-        navigateFallbackDenylist: [/^\/api/, /^\/functions/],
-        // Skip waiting for faster updates
-        skipWaiting: true,
-        clientsClaim: true,
-        // Clean old caches
-        cleanupOutdatedCaches: true,
-        runtimeCaching: [
-          // Cache static JS/CSS assets with long TTL
-          {
-            // Match same-origin Vite build assets on ANY domain (jet-around.com, preview domains, etc.)
-            // Workbox tests against the full request URL string.
-            urlPattern: /\/assets\/.*\.(js|css)$/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "static-assets-cache",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year (immutable hashed assets)
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          // Cache page navigations with network-first
-          {
-            urlPattern: ({ request }) => request.mode === 'navigate',
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "pages-cache",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24, // 1 day
-              },
-              networkTimeoutSeconds: 3,
-            },
-          },
-          // Cache Supabase API calls with stale-while-revalidate
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "supabase-api-cache",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 5, // 5 minutes
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          // Cache Mapbox tiles and API
-          {
-            urlPattern: /^https:\/\/api\.mapbox\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "mapbox-api-cache",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          // Cache Mapbox vector tiles with larger limit for prefetched tiles
-          {
-            urlPattern: /^https:\/\/tiles\.mapbox\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "mapbox-tiles-cache",
-              expiration: {
-                maxEntries: 500, // Increased for prefetched city tiles
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          // Cache Mapbox style tiles (rendered tiles from styles API)
-          {
-            urlPattern: /^https:\/\/api\.mapbox\.com\/styles\/v1\/mapbox\/.*\/tiles\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "mapbox-style-tiles-cache",
-              expiration: {
-                maxEntries: 300, // For prefetched city tiles
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          // Cache Google Fonts stylesheets
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "google-fonts-stylesheets",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          // Cache Google Fonts webfonts
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-webfonts",
-              expiration: {
-                maxEntries: 20,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          // Cache external images (venue images, etc.)
-          {
-            urlPattern: /^https:\/\/.*\.(png|jpg|jpeg|webp|gif|svg)$/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "external-images-cache",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          // Cache Supabase storage images
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "supabase-storage-cache",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-        ],
       },
     }),
   ].filter(Boolean),

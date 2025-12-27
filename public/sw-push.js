@@ -1,18 +1,125 @@
 // Service Worker for Web Push Notifications (FCM-based) + Offline Support
+// This file is used with vite-plugin-pwa injectManifest strategy
+import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { CacheFirst, StaleWhileRevalidate, NetworkFirst } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+
+// Precache and route assets injected by vite-plugin-pwa
+precacheAndRoute(self.__WB_MANIFEST);
+cleanupOutdatedCaches();
 
 const MAP_TILE_CACHE = 'jet-map-tiles-v1';
-const STATIC_CACHE = 'jet-static-v1';
-const OFFLINE_CACHE = 'jet-offline-v1';
 const MAX_TILE_CACHE_SIZE = 500;
 
-const OFFLINE_PAGE = '/offline.html';
-const OFFLINE_ASSETS = [
-  '/offline.html',
-  '/pwa-192x192.png',
-  '/jet-logo-96.png'
-];
+// Runtime caching for Mapbox API
+registerRoute(
+  /^https:\/\/api\.mapbox\.com\/.*/i,
+  new CacheFirst({
+    cacheName: 'mapbox-api-cache',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  })
+);
 
-// Mapbox tile URL patterns to cache
+// Runtime caching for Mapbox tiles
+registerRoute(
+  /^https:\/\/tiles\.mapbox\.com\/.*/i,
+  new CacheFirst({
+    cacheName: 'mapbox-tiles-cache',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  })
+);
+
+// Runtime caching for Mapbox style tiles
+registerRoute(
+  /^https:\/\/api\.mapbox\.com\/styles\/v1\/mapbox\/.*\/tiles\/.*/i,
+  new CacheFirst({
+    cacheName: 'mapbox-style-tiles-cache',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 30 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  })
+);
+
+// Runtime caching for Supabase API
+registerRoute(
+  /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+  new StaleWhileRevalidate({
+    cacheName: 'supabase-api-cache',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 5 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  })
+);
+
+// Runtime caching for Google Fonts stylesheets
+registerRoute(
+  /^https:\/\/fonts\.googleapis\.com\/.*/i,
+  new StaleWhileRevalidate({
+    cacheName: 'google-fonts-stylesheets',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  })
+);
+
+// Runtime caching for Google Fonts webfonts
+registerRoute(
+  /^https:\/\/fonts\.gstatic\.com\/.*/i,
+  new CacheFirst({
+    cacheName: 'google-fonts-webfonts',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  })
+);
+
+// Runtime caching for external images
+registerRoute(
+  /^https:\/\/.*\.(png|jpg|jpeg|webp|gif|svg)$/i,
+  new CacheFirst({
+    cacheName: 'external-images-cache',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  })
+);
+
+// Runtime caching for Supabase storage
+registerRoute(
+  /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
+  new CacheFirst({
+    cacheName: 'supabase-storage-cache',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  })
+);
+
+// Navigation requests - network first with offline fallback
+import { NavigationRoute, createHandlerBoundToURL } from 'workbox-routing';
+
+// This assumes index.html is precached by Workbox
+const navigationHandler = createHandlerBoundToURL('/index.html');
+const navigationRoute = new NavigationRoute(navigationHandler, {
+  denylist: [/^\/api/, /^\/functions/],
+});
+registerRoute(navigationRoute);
+
+// Legacy Mapbox tile patterns (for manual cache if needed)
 const MAPBOX_TILE_PATTERNS = [
   /^https:\/\/api\.mapbox\.com\/v4\//,
   /^https:\/\/a\.tiles\.mapbox\.com\//,
@@ -28,11 +135,6 @@ function isMapboxTile(url) {
   return MAPBOX_TILE_PATTERNS.some(pattern => pattern.test(url));
 }
 
-function isNavigationRequest(request) {
-  return request.mode === 'navigate' || 
-    (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
-}
-
 async function trimCache(cacheName, maxSize) {
   const cache = await caches.open(cacheName);
   const keys = await cache.keys();
@@ -44,60 +146,6 @@ async function trimCache(cacheName, maxSize) {
     console.log(`[SW] Trimmed ${deleteCount} items from ${cacheName}`);
   }
 }
-
-// Fetch handler
-self.addEventListener('fetch', function(event) {
-  const url = event.request.url;
-  
-  if (event.request.method !== 'GET') return;
-  
-  // Handle navigation requests with offline fallback
-  if (isNavigationRequest(event.request)) {
-    event.respondWith(
-      fetch(event.request)
-        .catch(async () => {
-          console.log('[SW] Navigation failed, serving offline page');
-          const cache = await caches.open(OFFLINE_CACHE);
-          const offlineResponse = await cache.match(OFFLINE_PAGE);
-          return offlineResponse || new Response('Offline', { status: 503 });
-        })
-    );
-    return;
-  }
-  
-  // Handle Mapbox tiles with cache-first strategy
-  if (isMapboxTile(url)) {
-    event.respondWith(
-      caches.open(MAP_TILE_CACHE).then(async (cache) => {
-        const cachedResponse = await cache.match(event.request);
-        
-        if (cachedResponse) {
-          if (navigator.onLine) {
-            fetch(event.request).then(response => {
-              if (response.ok) {
-                cache.put(event.request, response.clone());
-              }
-            }).catch(() => {});
-          }
-          return cachedResponse;
-        }
-        
-        try {
-          const networkResponse = await fetch(event.request);
-          if (networkResponse.ok) {
-            cache.put(event.request, networkResponse.clone());
-            trimCache(MAP_TILE_CACHE, MAX_TILE_CACHE_SIZE);
-          }
-          return networkResponse;
-        } catch (error) {
-          console.log('[SW] Tile fetch failed:', url);
-          return new Response('', { status: 408, statusText: 'Tile unavailable offline' });
-        }
-      })
-    );
-    return;
-  }
-});
 
 self.addEventListener('push', function(event) {
   console.log('[SW] Push event received:', event);
@@ -214,35 +262,16 @@ self.addEventListener('pushsubscriptionchange', function(event) {
   );
 });
 
-// Log service worker activation - delete old caches but preserve map tiles
+// Service worker activation - workbox handles cache cleanup via cleanupOutdatedCaches()
 self.addEventListener('activate', function(event) {
   console.log('[SW] Service worker activated');
-  event.waitUntil(
-    caches.keys().then(function(cacheNames) {
-      return Promise.all(
-        cacheNames.map(function(cacheName) {
-          // Keep map tile cache, delete others
-          if (cacheName !== MAP_TILE_CACHE && cacheName !== STATIC_CACHE) {
-            console.log('[SW] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(function() {
-      return self.clients.claim();
-    })
-  );
+  event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('install', function(event) {
   console.log('[SW] Service worker installed');
-  // Precache offline assets
-  event.waitUntil(
-    caches.open(OFFLINE_CACHE).then(cache => {
-      console.log('[SW] Caching offline assets');
-      return cache.addAll(OFFLINE_ASSETS);
-    })
-  );
+  // Skip waiting to activate immediately
+  self.skipWaiting();
 });
 
 // Listen for skip waiting message from client
