@@ -1902,71 +1902,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         minHeight: isMobile ? '100dvh' : '500px',
       }}
     >
-      {/* Map Initializing State - show while token is loading OR map is initializing */}
-      {(isTokenLoading || mapInitializing) && !mapError && (
-        <div 
-          className="absolute inset-0 z-40 flex items-center justify-center transition-opacity duration-500"
-          style={{ 
-            backgroundColor: '#0a0a0a', // Match dark map background
-            opacity: mapLoaded ? 0 : 1,
-            pointerEvents: mapLoaded ? 'none' : 'auto',
-          }}
-        >
-          <div className="flex flex-col items-center gap-4 p-6">
-            {/* Animated map icon with progress ring */}
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
-              <svg 
-                className="w-full h-full -rotate-90"
-                viewBox="0 0 100 100"
-              >
-                {/* Background ring */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="42"
-                  fill="none"
-                  stroke="hsl(var(--muted))"
-                  strokeWidth="6"
-                />
-                {/* Progress arc - animate when token loading, show actual progress otherwise */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="42"
-                  fill="none"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                  strokeDasharray={`${2 * Math.PI * 42}`}
-                  strokeDashoffset={isTokenLoading 
-                    ? `${2 * Math.PI * 42 * 0.75}` // Indeterminate state at 25%
-                    : `${2 * Math.PI * 42 * (1 - tileProgress / 100)}`
-                  }
-                  style={{ 
-                    transition: 'stroke-dashoffset 0.3s ease-out',
-                    animation: isTokenLoading ? 'spin 1.5s linear infinite' : 'none',
-                    transformOrigin: 'center',
-                  }}
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <MapPin className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-primary" />
-              </div>
-            </div>
-            <div className="text-center space-y-1">
-              <p className="text-sm sm:text-base md:text-lg font-medium text-foreground">Loading map</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                {isTokenLoading 
-                  ? 'Connecting...'
-                  : tileProgress < 30 ? 'Initializing...' : tileProgress < 80 ? 'Loading tiles...' : 'Almost ready...'}
-              </p>
-              {!isTokenLoading && tileProgress > 0 && (
-                <p className="text-[10px] sm:text-xs text-muted-foreground/70 tabular-nums">{Math.round(tileProgress)}%</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Map loads directly - no placeholder overlay */}
 
       {/* Map Error State with Retry */}
       {mapError && !mapInitializing && (
