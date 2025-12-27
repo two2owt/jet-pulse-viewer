@@ -40,8 +40,9 @@ export default defineConfig(({ mode }) => ({
             return 'sentry';
           }
           // Recharts + D3 - heavy (~200KB), ONLY used in admin dashboard
-          // This ensures charts are never loaded for non-admin users
-          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor')) {
+          // Keep all recharts internals together to avoid circular dependency issues
+          // The 'S before initialization' error happens when d3 modules are split incorrectly
+          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor') || id.includes('prop-types') || id.includes('react-smooth') || id.includes('decimal.js')) {
             return 'charts';
           }
           // Mapbox - heavy (~500KB+), lazy loaded when map is needed
