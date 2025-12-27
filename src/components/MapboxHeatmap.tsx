@@ -336,15 +336,17 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           
           map.current.setFog(fogConfig);
 
-          // Add terrain source for 3D terrain support
-          if (!map.current.getSource('mapbox-dem')) {
-            map.current.addSource('mapbox-dem', {
-              type: 'raster-dem',
-              url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-              tileSize: 512,
-              maxzoom: 14,
-            });
-          }
+          // Note: 3D terrain source removed - requires Mapbox account with terrain access
+          // If you have terrain access, uncomment the following:
+          // if (!map.current.getSource('mapbox-dem')) {
+          //   map.current.addSource('mapbox-dem', {
+          //     type: 'raster-dem',
+          //     url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          //     tileSize: 512,
+          //     maxzoom: 14,
+          //   });
+          //   map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+          // }
         });
 
         // Add navigation controls
