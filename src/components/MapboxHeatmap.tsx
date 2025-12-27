@@ -146,6 +146,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [showMovementPaths, setShowMovementPaths] = useState(false);
   const [pathTimeFilter, setPathTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   const [minPathFrequency, setMinPathFrequency] = useState(2);
+  const [isTabVisible, setIsTabVisible] = useState(!document.hidden);
   
   // Controls visibility state - collapsed by default for maximum map visibility
   const [controlsCollapsed, setControlsCollapsed] = useState(true);
@@ -176,6 +177,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       setLegendCollapsed(true);
     }
   }, [resetUIKey]);
+
+  // Track tab visibility to pause animations when hidden (battery optimization)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabVisible(!document.hidden);
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
   
   const { densityData, loading: densityLoading, error: densityError, refresh: refreshDensity } = useLocationDensity({
     timeFilter,
@@ -1338,7 +1348,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     let lastTime = performance.now();
 
     const animateFlow = (currentTime: number) => {
-      if (!map.current || !showMovementPaths) {
+      // Stop animation if not visible, low power mode, or paths disabled
+      if (!map.current || !showMovementPaths || document.hidden || platformSettings.current.hasReducedMotion || platformSettings.current.isLowPowerMode) {
         flowAnimationRef.current = null;
         return;
       }
@@ -1519,6 +1530,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       `;
 
       // Determine pulse animation speed based on activity level
+      // Disable pulse for reduced motion/low power mode
+      const shouldAnimate = platformSettings.current.markerAnimation && isTabVisible;
       const pulseSpeed = venue.activity >= 80 ? '1.5s' : venue.activity >= 60 ? '2.5s' : '4s';
       const pulseOpacity = venue.activity >= 80 ? '0.8' : venue.activity >= 60 ? '0.5' : '0.3';
       
@@ -1532,6 +1545,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       `;
 
       // Create animated gradient ring (behind teardrop) - with activity-based color
+      // Only animate if not in low power/reduced motion mode
       const ringEl = document.createElement('div');
       const ringSize = markerSize + 10;
       ringEl.style.cssText = `
@@ -1545,7 +1559,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         transform-origin: center center;
         background: ${color};
         opacity: ${pulseOpacity};
-        animation: markerRingPulse ${pulseSpeed} ease-in-out infinite;
+        ${shouldAnimate ? `animation: markerRingPulse ${pulseSpeed} ease-in-out infinite;` : ''}
         box-shadow: 0 0 ${venue.activity >= 80 ? '20px' : '12px'} ${glowColor};
       `;
 
@@ -2956,6 +2970,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         
         .heatmap-glow {
           animation: heatmap-pulse 3s ease-in-out infinite;
+        }
+        
+        /* Disable animations for reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+          .heatmap-glow {
+            animation: none;
+          }
         }
         
         .heatmap-glow-0 {
