@@ -2089,22 +2089,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Collapsible>
       </div>
 
-      {/* Layer Controls - Fixed position for mobile devices */}
-      {isMobile && (
-        <div 
-          className="fixed z-50 flex flex-col-reverse gap-2 sm:gap-2.5 transition-opacity ease-out"
-          style={{
-            bottom: 'var(--map-fixed-bottom)',
-            right: 'var(--map-ui-inset-right)',
-            width: isMobile ? 'var(--map-control-max-width)' : 'auto',
-            minWidth: isMobile ? undefined : '120px',
-            maxHeight: 'calc(100vh - 220px)',
-            opacity: !selectedVenue ? 1 : 0,
-            pointerEvents: !selectedVenue ? 'auto' : 'none',
-            transform: 'translateZ(0)',
-            willChange: 'opacity',
-          }}
-        >
+      {/* Layer Controls - Fixed position for all devices */}
+      <div 
+        className="fixed z-50 flex flex-col-reverse gap-2 sm:gap-2.5 transition-opacity ease-out"
+        style={{
+          bottom: isMobile ? 'var(--map-fixed-bottom)' : 'var(--map-ui-inset-bottom)',
+          right: 'var(--map-ui-inset-right)',
+          width: isMobile ? 'var(--map-control-max-width)' : 'auto',
+          minWidth: isMobile ? undefined : '140px',
+          maxHeight: 'calc(100vh - 220px)',
+          opacity: !selectedVenue ? 1 : 0,
+          pointerEvents: !selectedVenue ? 'auto' : 'none',
+          transform: 'translateZ(0)',
+          willChange: 'opacity',
+        }}
+      >
           {/* Paths Button - appears below Heat visually due to flex-col-reverse */}
           <Button
             onClick={() => { triggerHaptic('medium'); setShowMovementPaths(!showMovementPaths); }}
@@ -2370,10 +2369,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   </Select>
                 </div>
               </div>
-            </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Desktop Controls Toggle Button */}
       {!isMobile && (
