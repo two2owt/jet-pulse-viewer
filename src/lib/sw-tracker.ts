@@ -68,6 +68,7 @@ class ServiceWorkerTracker {
     }
 
     try {
+      // Register the combined service worker (Workbox + Push notifications)
       const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
       
       // Track initial registration
