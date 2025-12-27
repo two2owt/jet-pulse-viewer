@@ -104,7 +104,7 @@ export const Header = ({ venues, deals, onVenueSelect, isLoading, lastUpdated, o
         transform: 'translateZ(0)',
       }}
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-full">
           {/* Logo */}
           <a 
