@@ -83,6 +83,11 @@ requestIdleCallback(() => {
     await yieldToMain();
     const { swTracker } = await import("@/lib/sw-tracker");
     await swTracker.registerWithTracking();
+    
+    // Prefetch map tiles for default city (after SW is registered for caching)
+    await yieldToMain();
+    const { initTilePrefetching } = await import("@/lib/tile-prefetch");
+    initTilePrefetching();
   })();
 }, { timeout: 3000 });
 

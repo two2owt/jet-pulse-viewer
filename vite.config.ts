@@ -252,13 +252,29 @@ export default defineConfig(({ mode }) => ({
               },
             },
           },
+          // Cache Mapbox vector tiles with larger limit for prefetched tiles
           {
             urlPattern: /^https:\/\/tiles\.mapbox\.com\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "mapbox-tiles-cache",
               expiration: {
-                maxEntries: 200,
+                maxEntries: 500, // Increased for prefetched city tiles
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          // Cache Mapbox style tiles (rendered tiles from styles API)
+          {
+            urlPattern: /^https:\/\/api\.mapbox\.com\/styles\/v1\/mapbox\/.*\/tiles\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "mapbox-style-tiles-cache",
+              expiration: {
+                maxEntries: 300, // For prefetched city tiles
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
               },
               cacheableResponse: {
