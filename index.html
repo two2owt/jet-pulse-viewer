@@ -201,8 +201,8 @@
     
     <!-- Preload LCP image with high priority -->
     <link rel="preload" href="/src/assets/jet-logo-256.webp" as="image" type="image/webp" fetchpriority="high">
-    <!-- Preload above-fold images -->
-    <link rel="preload" href="/pwa-192x192.png" as="image" type="image/png">
+    <!-- Preload optimized FCP logo -->
+    <link rel="preload" href="/jet-logo-96.png" as="image" type="image/png" fetchpriority="high">
     
     <!-- Modulepreload critical JS modules - starts parallel download during HTML parsing -->
     <link rel="modulepreload" href="/src/main.tsx">
@@ -296,12 +296,13 @@
           gap: 16px;
           padding: 24px;
         ">
-          <!-- Logo for LCP - preloaded image -->
+          <!-- Optimized logo for LCP - properly sized for display -->
           <img 
-            src="/pwa-192x192.png" 
+            src="/jet-logo-96.png" 
             alt="JET Logo" 
             width="80" 
             height="80"
+            fetchpriority="high"
             style="opacity: 0.9;"
           />
           <!-- Text content for FCP -->
