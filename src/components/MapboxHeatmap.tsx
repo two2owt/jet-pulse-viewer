@@ -1709,15 +1709,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     const heatmapLayerId = 'venue-heatmap-layer';
 
     // Remove existing layers and source if they exist - check style is loaded first
-    try {
+    if (mapInstance.style?.loaded()) {
       if (mapInstance.getLayer(heatmapLayerId)) {
         mapInstance.removeLayer(heatmapLayerId);
       }
       if (mapInstance.getSource(sourceId)) {
         mapInstance.removeSource(sourceId);
       }
-    } catch (e) {
-      // Style may not be fully loaded, safe to ignore
     }
 
     // Create GeoJSON data from venues with activity as weight
@@ -1736,99 +1734,81 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       }))
     };
 
-    // Add source only if it doesn't already exist
-    try {
-      if (!mapInstance.getSource(sourceId)) {
-        mapInstance.addSource(sourceId, {
-          type: 'geojson',
-          data: geojsonData
-        });
-      } else {
-        // Update existing source data
-        (mapInstance.getSource(sourceId) as mapboxgl.GeoJSONSource).setData(geojsonData);
-      }
-    } catch (e) {
-      console.warn('Error managing heatmap source:', e);
-      return;
-    }
+    // Add source
+    mapInstance.addSource(sourceId, {
+      type: 'geojson',
+      data: geojsonData
+    });
 
-    // Add heatmap layer that fades out at higher zoom levels (only if it doesn't exist)
-    try {
-      if (!mapInstance.getLayer(heatmapLayerId)) {
-        mapInstance.addLayer({
-          id: heatmapLayerId,
-          type: 'heatmap',
-          source: sourceId,
-          maxzoom: 15,
-          paint: {
-            // Weight based on activity level
-            'heatmap-weight': [
-              'interpolate',
-              ['linear'],
-              ['get', 'activity'],
-              0, 0.1,
-              50, 0.5,
-              80, 0.8,
-              100, 1
-            ],
-            // Intensity increases with zoom
-            'heatmap-intensity': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              8, 0.6,
-              12, 1,
-              15, 1.5
-            ],
-            // Color gradient - matches app theme (orange/red primary)
-            'heatmap-color': [
-              'interpolate',
-              ['linear'],
-              ['heatmap-density'],
-              0, 'rgba(0, 0, 0, 0)',
-              0.1, 'rgba(255, 140, 0, 0.15)',
-              0.3, 'rgba(255, 100, 50, 0.3)',
-              0.5, 'rgba(255, 69, 58, 0.45)',
-              0.7, 'rgba(255, 45, 85, 0.6)',
-              0.9, 'rgba(200, 50, 120, 0.75)',
-              1, 'rgba(150, 50, 150, 0.9)'
-            ],
-            // Radius increases at lower zoom, decreases when zoomed in
-            'heatmap-radius': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              8, 30,
-              12, 20,
-              15, 10
-            ],
-            // Fade out opacity as zoom increases (individual markers take over)
-            'heatmap-opacity': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              10, 0.8,
-              13, 0.4,
-              15, 0
-            ]
-          }
-        }, 'waterway-label'); // Insert below labels
+    // Add heatmap layer that fades out at higher zoom levels
+    mapInstance.addLayer({
+      id: heatmapLayerId,
+      type: 'heatmap',
+      source: sourceId,
+      maxzoom: 15,
+      paint: {
+        // Weight based on activity level
+        'heatmap-weight': [
+          'interpolate',
+          ['linear'],
+          ['get', 'activity'],
+          0, 0.1,
+          50, 0.5,
+          80, 0.8,
+          100, 1
+        ],
+        // Intensity increases with zoom
+        'heatmap-intensity': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          8, 0.6,
+          12, 1,
+          15, 1.5
+        ],
+        // Color gradient - matches app theme (orange/red primary)
+        'heatmap-color': [
+          'interpolate',
+          ['linear'],
+          ['heatmap-density'],
+          0, 'rgba(0, 0, 0, 0)',
+          0.1, 'rgba(255, 140, 0, 0.15)',
+          0.3, 'rgba(255, 100, 50, 0.3)',
+          0.5, 'rgba(255, 69, 58, 0.45)',
+          0.7, 'rgba(255, 45, 85, 0.6)',
+          0.9, 'rgba(200, 50, 120, 0.75)',
+          1, 'rgba(150, 50, 150, 0.9)'
+        ],
+        // Radius increases at lower zoom, decreases when zoomed in
+        'heatmap-radius': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          8, 30,
+          12, 20,
+          15, 10
+        ],
+        // Fade out opacity as zoom increases (individual markers take over)
+        'heatmap-opacity': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          10, 0.8,
+          13, 0.4,
+          15, 0
+        ]
       }
-    } catch (e) {
-      console.warn('Error adding heatmap layer:', e);
-    }
+    }, 'waterway-label'); // Insert below labels
 
     return () => {
-      // Cleanup with try-catch to prevent errors
-      try {
+      // Check style is loaded before cleanup to prevent "getOwnLayer" errors
+      if (mapInstance.style?.loaded()) {
         if (mapInstance.getLayer(heatmapLayerId)) {
           mapInstance.removeLayer(heatmapLayerId);
         }
         if (mapInstance.getSource(sourceId)) {
           mapInstance.removeSource(sourceId);
         }
-      } catch (e) {
-        // Safe to ignore cleanup errors
       }
     };
   }, [venues, mapLoaded]);
