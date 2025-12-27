@@ -55,9 +55,17 @@ interface MapboxHeatmapProps {
 }
 
 const getActivityColor = (activity: number) => {
-  if (activity >= 80) return "hsl(0, 85%, 55%)"; // hot red - matches --hot
-  if (activity >= 60) return "hsl(45, 100%, 55%)"; // warm yellow - matches --warm
-  return "hsl(210, 100%, 55%)"; // cool blue - matches --cool
+  // Brighter, more saturated colors for better visibility on dark map
+  if (activity >= 80) return "hsl(0, 100%, 65%)"; // hot red - bright coral
+  if (activity >= 60) return "hsl(45, 100%, 60%)"; // warm yellow-orange 
+  return "hsl(200, 100%, 65%)"; // cool blue - vibrant sky blue
+};
+
+// Get glow color for markers based on activity
+const getActivityGlow = (activity: number) => {
+  if (activity >= 80) return "rgba(255, 100, 100, 0.6)"; // red glow
+  if (activity >= 60) return "rgba(255, 200, 50, 0.5)"; // warm glow
+  return "rgba(100, 180, 255, 0.5)"; // blue glow
 };
 
 // Platform detection for optimized settings
@@ -1401,20 +1409,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       // Get current zoom level for dynamic sizing
       const currentZoom = mapInstance.getZoom();
     
-    // Improved zoom scaling formula for extreme zoom levels
+    // Improved zoom scaling formula - larger markers for better visibility
     let zoomFactor: number;
     if (currentZoom < 8) {
-      // Very zoomed out - scale down aggressively
-      zoomFactor = Math.max(0.3, currentZoom / 20);
+      // Very zoomed out - moderate size
+      zoomFactor = Math.max(0.5, currentZoom / 16);
     } else if (currentZoom < 12) {
-      // Medium zoom - moderate scaling
-      zoomFactor = 0.4 + ((currentZoom - 8) / 4) * 0.4; // 0.4 to 0.8
+      // Medium zoom - good visibility
+      zoomFactor = 0.6 + ((currentZoom - 8) / 4) * 0.4; // 0.6 to 1.0
     } else {
       // Zoomed in - larger markers
-      zoomFactor = 0.8 + Math.min(0.5, (currentZoom - 12) / 8); // 0.8 to 1.3
+      zoomFactor = 1.0 + Math.min(0.4, (currentZoom - 12) / 10); // 1.0 to 1.4
     }
     
-    const baseSize = 36 * zoomFactor;
+    // Increased base size for better visibility on dark map
+    const baseSize = 42 * zoomFactor;
 
     // Show skeleton markers while loading
     if (isLoadingVenues && venues.length === 0) {
@@ -1487,11 +1496,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         }
       });
 
-      // Adjust size based on proximity - smaller markers to reduce congestion
-      const proximityFactor = nearbyCount > 0 ? Math.max(0.8, 1 - (nearbyCount * 0.05)) : 1;
-      const activitySizeFactor = venue.activity >= 80 ? 1.1 : venue.activity >= 60 ? 1.05 : 1;
-      const markerSize = Math.min(28, baseSize * 0.75) * proximityFactor * activitySizeFactor;
-      const markerHeight = markerSize * 1.4;
+      // Adjust size based on proximity - slightly smaller for clustered areas
+      const proximityFactor = nearbyCount > 0 ? Math.max(0.85, 1 - (nearbyCount * 0.04)) : 1;
+      const activitySizeFactor = venue.activity >= 80 ? 1.15 : venue.activity >= 60 ? 1.08 : 1;
+      // Increased minimum size for better visibility
+      const markerSize = Math.max(32, Math.min(38, baseSize * 0.8)) * proximityFactor * activitySizeFactor;
+      const markerHeight = markerSize * 1.35;
+      const glowColor = getActivityGlow(venue.activity);
 
       // Create teardrop marker element with entrance animation
       const staggerDelay = (index % 30) * 30;
@@ -1520,9 +1531,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         transition: transform 0.2s ease;
       `;
 
-      // Create animated gradient ring (behind teardrop) - centered
+      // Create animated gradient ring (behind teardrop) - with activity-based color
       const ringEl = document.createElement('div');
-      const ringSize = markerSize + 6;
+      const ringSize = markerSize + 10;
       ringEl.style.cssText = `
         position: absolute;
         top: ${(markerSize - ringSize) / 2}px;
@@ -1532,12 +1543,13 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         transform-origin: center center;
-        background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent, var(--primary))));
+        background: ${color};
         opacity: ${pulseOpacity};
         animation: markerRingPulse ${pulseSpeed} ease-in-out infinite;
+        box-shadow: 0 0 ${venue.activity >= 80 ? '20px' : '12px'} ${glowColor};
       `;
 
-      // Create glassmorphic teardrop shape - centered
+      // Create glassmorphic teardrop shape with enhanced contrast
       const teardropEl = document.createElement('div');
       const isDarkTheme = document.documentElement.classList.contains('dark');
       teardropEl.style.cssText = `
@@ -1547,42 +1559,59 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         width: ${markerSize}px;
         height: ${markerSize}px;
         background: ${isDarkTheme 
-          ? 'rgba(30, 30, 35, 0.85)' 
-          : 'rgba(255, 255, 255, 0.9)'};
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+          ? 'linear-gradient(145deg, rgba(45, 45, 55, 0.95), rgba(25, 25, 35, 0.9))' 
+          : 'linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(240, 240, 245, 0.9))'};
+        backdrop-filter: blur(12px) saturate(180%);
+        -webkit-backdrop-filter: blur(12px) saturate(180%);
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         transform-origin: center center;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px solid transparent;
-        background-clip: padding-box;
+        border: 2px solid ${color};
         box-shadow: 
-          0 4px 16px rgba(0, 0, 0, 0.25),
-          0 2px 8px rgba(0, 0, 0, 0.15),
-          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'};
+          0 6px 24px rgba(0, 0, 0, 0.4),
+          0 2px 8px rgba(0, 0, 0, 0.2),
+          0 0 16px ${glowColor},
+          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.9)'};
       `;
       
-      // Add gradient border - centered and aligned with teardrop
+      // Add inner icon/dot to indicate activity level
+      const innerDot = document.createElement('div');
+      const dotSize = markerSize * 0.35;
+      innerDot.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(45deg);
+        width: ${dotSize}px;
+        height: ${dotSize}px;
+        border-radius: 50%;
+        background: ${color};
+        box-shadow: 0 0 8px ${glowColor};
+      `;
+      teardropEl.appendChild(innerDot);
+      
+      // Add outer glow border for extra visibility
       const borderWrapper = document.createElement('div');
       borderWrapper.style.cssText = `
         position: absolute;
-        top: 0;
-        left: 0;
-        width: ${markerSize}px;
-        height: ${markerSize}px;
+        top: -2px;
+        left: -2px;
+        width: ${markerSize + 4}px;
+        height: ${markerSize + 4}px;
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         transform-origin: center center;
-        padding: 2px;
-        background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent, var(--primary))));
+        background: linear-gradient(135deg, ${color}, ${color}88);
         -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
         mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
         -webkit-mask-composite: xor;
         mask-composite: exclude;
+        padding: 2.5px;
         pointer-events: none;
+        box-shadow: 0 0 12px ${glowColor};
       `;
 
       pinEl.appendChild(ringEl);
@@ -1590,27 +1619,31 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       pinEl.appendChild(borderWrapper);
       el.appendChild(pinEl);
 
-      // Hover effects - elegant scale and glow enhancement
+      // Hover effects - enhanced glow and scale
       el.addEventListener("mouseenter", () => {
         el.style.zIndex = "100";
-        pinEl.style.transform = "scale(1.1)";
+        pinEl.style.transform = "scale(1.15)";
         teardropEl.style.boxShadow = `
-          0 6px 24px rgba(0, 0, 0, 0.35),
-          0 3px 12px rgba(0, 0, 0, 0.2),
-          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.9)'}
+          0 8px 32px rgba(0, 0, 0, 0.5),
+          0 4px 16px rgba(0, 0, 0, 0.3),
+          0 0 24px ${glowColor},
+          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.95)'}
         `;
         ringEl.style.opacity = '1';
+        borderWrapper.style.boxShadow = `0 0 20px ${glowColor}`;
       });
 
       el.addEventListener("mouseleave", () => {
         el.style.zIndex = "";
         pinEl.style.transform = "scale(1)";
         teardropEl.style.boxShadow = `
-          0 4px 16px rgba(0, 0, 0, 0.25),
-          0 2px 8px rgba(0, 0, 0, 0.15),
-          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'}
+          0 6px 24px rgba(0, 0, 0, 0.4),
+          0 2px 8px rgba(0, 0, 0, 0.2),
+          0 0 16px ${glowColor},
+          inset 0 1px 2px ${isDarkTheme ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.9)'}
         `;
         ringEl.style.opacity = pulseOpacity;
+        borderWrapper.style.boxShadow = `0 0 12px ${glowColor}`;
       });
 
       // Create marker with bottom anchor for teardrop (pin point at GPS location)
