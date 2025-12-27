@@ -7,6 +7,12 @@ import { Suspense } from "react";
 import App from "./App.tsx";
 import "./index.css";
 
+// Start Mapbox token prefetch immediately - critical for initial map load
+// This runs before React renders so the token is often ready by the time the map mounts
+import("@/lib/prefetch").then(({ prefetchMapboxToken }) => {
+  prefetchMapboxToken();
+});
+
 // Defer Sentry init until after user interaction - prevents loading 75KB unused JS on initial load
 const initSentryOnInteraction = () => {
   let sentryLoaded = false;
@@ -66,12 +72,12 @@ const initNonCritical = async () => {
   await yieldToMain();
   analytics.init();
   
-  // Yield again before prefetching
+  // Yield again before prefetching Mapbox JS chunk (token already prefetched earlier)
   await yieldToMain();
   
-  const { initPrefetching } = await import("@/lib/prefetch");
+  const { prefetchMapbox } = await import("@/lib/prefetch");
   await yieldToMain();
-  initPrefetching();
+  prefetchMapbox();
   
   // Register service worker with lifecycle tracking
   await yieldToMain();
