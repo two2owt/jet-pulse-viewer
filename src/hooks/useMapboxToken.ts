@@ -83,26 +83,56 @@ export const useMapboxToken = (options: UseMapboxTokenOptions = {}) => {
     setLoading(true);
     setError(null);
     
-    try {
-      const { data, error: fetchError } = await supabase.functions.invoke("get-mapbox-token");
+    // Create a race between the fetch and a timeout
+    const fetchWithTimeout = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      try {
+        const { data, error: fetchError } = await supabase.functions.invoke("get-mapbox-token", {
+          // @ts-ignore - abort signal is supported but not in types
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
 
-      if (fetchError) {
-        console.error('useMapboxToken: Error fetching token:', fetchError);
-        throw fetchError;
+        if (fetchError) {
+          console.error('useMapboxToken: Error fetching token:', fetchError);
+          throw fetchError;
+        }
+        
+        if (!data || !data.token) {
+          console.error('useMapboxToken: No token received from edge function');
+          throw new Error('No token received from server');
+        }
+        
+        console.log('useMapboxToken: Successfully fetched token');
+        setCachedToken(data.token);
+        setToken(data.token);
+        setError(null);
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        
+        if (err?.name === 'AbortError') {
+          console.error('useMapboxToken: Request timed out');
+          throw new Error('Request timed out');
+        }
+        throw err;
       }
-      
-      if (!data || !data.token) {
-        console.error('useMapboxToken: No token received from edge function');
-        throw new Error('No token received');
-      }
-      
-      console.log('useMapboxToken: Successfully fetched token');
-      setCachedToken(data.token);
-      setToken(data.token);
-      setError(null);
-    } catch (err) {
+    };
+
+    try {
+      await fetchWithTimeout();
+    } catch (err: any) {
       console.error('useMapboxToken: Fetch failed:', err);
-      setError("Failed to load map. Please check your connection.");
+      const message = err?.message || 'Unknown error';
+      if (message.includes('timed out')) {
+        setError("Map service is taking too long. Please refresh the page.");
+      } else if (message.includes('MAPBOX_PUBLIC_TOKEN not configured')) {
+        setError("Map is not configured. Please contact support.");
+      } else {
+        setError("Failed to load map. Please check your connection.");
+      }
     } finally {
       setLoading(false);
     }
@@ -116,14 +146,15 @@ export const useMapboxToken = (options: UseMapboxTokenOptions = {}) => {
     
     fetchStartedRef.current = true;
     
-    // Set a timeout - if fetch takes too long, show an error instead of infinite loading
+    // Set a backup timeout - if fetch takes too long, show an error instead of infinite loading
+    // This is a safety net in case the fetch promise never resolves
     timeoutRef.current = setTimeout(() => {
       if (loading && !token) {
-        console.error('useMapboxToken: Fetch timeout, still loading after 15 seconds');
+        console.error('useMapboxToken: Backup timeout triggered after 12 seconds');
         setLoading(false);
         setError("Map loading timed out. Please refresh the page.");
       }
-    }, 15000);
+    }, 12000);
     
     fetchToken().finally(() => {
       if (timeoutRef.current) {

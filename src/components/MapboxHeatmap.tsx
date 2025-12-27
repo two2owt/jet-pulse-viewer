@@ -637,7 +637,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           }
         });
 
-        // Timeout fallback - if map doesn't load within 30 seconds, show an actionable error
+        // Timeout fallback - if map doesn't load within 15 seconds, show an actionable error
+        // Reduced from 30s for better UX - users shouldn't wait forever
         const loadTimeout = setTimeout(() => {
           if (!mapLoaded && mapInitializing) {
             if (map.current) {
@@ -649,19 +650,28 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 (typeof (map.current as any).isStyleLoaded === 'function' && map.current.isStyleLoaded());
 
               if (isActuallyLoaded) {
+                console.log('MapboxHeatmap: Map was actually loaded, finalizing');
                 finalizeMapLoad();
               } else {
-                setMapError(
-                  'Map loading timed out. If this only happens on your production domain, your Mapbox token may be URL-restricted.'
-                );
+                console.error('MapboxHeatmap: Map load timeout - checking WebGL support');
+                // Check for WebGL support
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (!gl) {
+                  setMapError('WebGL is not supported or disabled. Please enable it in your browser settings.');
+                } else {
+                  setMapError(
+                    'Map loading timed out. If this only happens on production, check your Mapbox token URL restrictions.'
+                  );
+                }
                 setMapInitializing(false);
               }
             } else {
-              setMapError('Map loading timed out. Please try again.');
+              setMapError('Map failed to initialize. Please refresh and try again.');
               setMapInitializing(false);
             }
           }
-        }, 30000);
+        }, 15000);
         
         map.current.once('load', () => {
           clearTimeout(loadTimeout);
