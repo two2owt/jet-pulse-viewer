@@ -457,33 +457,40 @@ const Index = () => {
               />
             </div>
 
-            {/* Selected Venue Card - Positioned above bottom nav */}
+            {/* Selected Venue Card - Positioned between header and bottom nav */}
             {selectedVenue && (
               <div 
                 ref={jetCardRef} 
-                className="fixed z-[60] animate-fade-in animate-scale-in"
+                className="fixed z-[60] animate-fade-in animate-scale-in overflow-auto"
                 style={{
+                  top: 'var(--header-total-height)',
                   bottom: 'var(--map-fixed-bottom)',
                   left: 'var(--map-ui-inset-left)',
                   right: 'var(--map-ui-inset-right)',
                   maxWidth: '720px',
                   marginLeft: 'auto',
                   marginRight: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-end',
+                  pointerEvents: 'none',
                   ...(isMobile ? swipeStyle : {}),
                 }}
                 {...(isMobile ? swipeHandlers : {})}
               >
-                {/* Swipe indicator for mobile */}
-                {isMobile && (
-                  <div className="flex justify-center pb-2.5 sm:pb-3">
-                    <div className="w-12 h-1.5 bg-muted-foreground/40 rounded-full" />
-                  </div>
-                )}
-                <JetCard 
-                  venue={selectedVenue} 
-                  onGetDirections={handleGetDirections}
-                  onClose={() => setSelectedVenue(null)}
-                />
+                <div className="pointer-events-auto">
+                  {/* Swipe indicator for mobile */}
+                  {isMobile && (
+                    <div className="flex justify-center pb-2.5 sm:pb-3">
+                      <div className="w-12 h-1.5 bg-muted-foreground/40 rounded-full" />
+                    </div>
+                  )}
+                  <JetCard 
+                    venue={selectedVenue} 
+                    onGetDirections={handleGetDirections}
+                    onClose={() => setSelectedVenue(null)}
+                  />
+                </div>
               </div>
             )}
 
