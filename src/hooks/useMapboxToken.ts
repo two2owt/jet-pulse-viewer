@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const TOKEN_CACHE_KEY = 'mapbox_token_cache';
@@ -8,20 +8,6 @@ interface CachedToken {
   token: string;
   timestamp: number;
 }
-
-const withTimeout = async <T,>(promise: Promise<T>, ms: number): Promise<T> => {
-  let timeoutId: number | undefined;
-
-  const timeoutPromise = new Promise<T>((_, reject) => {
-    timeoutId = window.setTimeout(() => reject(new Error("Request timed out")), ms);
-  });
-
-  try {
-    return await Promise.race([promise, timeoutPromise]);
-  } finally {
-    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-  }
-};
 
 // Use both localStorage and sessionStorage for better mobile persistence
 const getCachedToken = (): string | null => {
@@ -68,75 +54,84 @@ interface UseMapboxTokenOptions {
 
 export const useMapboxToken = (options: UseMapboxTokenOptions = {}) => {
   const { enabled = true } = options;
-  const [token, setToken] = useState<string>(() => getCachedToken() || "");
-  const [loading, setLoading] = useState(() => enabled && !getCachedToken());
+  
+  // Initialize synchronously from cache
+  const initialCachedToken = getCachedToken();
+  const [token, setToken] = useState<string>(initialCachedToken || "");
+  const [loading, setLoading] = useState(!initialCachedToken && enabled);
   const [error, setError] = useState<string | null>(null);
+  const fetchStartedRef = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchToken = useCallback(async () => {
     // Check cache first
     const cachedToken = getCachedToken();
     if (cachedToken) {
+      console.log('useMapboxToken: Using cached token');
       setToken(cachedToken);
       setLoading(false);
       setError(null);
       return;
     }
-
+    
+    console.log('useMapboxToken: No cached token, fetching from edge function...');
     setLoading(true);
     setError(null);
     
-    // Retry logic for mobile network issues
-    const maxRetries = 3;
-    let lastError: Error | null = null;
-    
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        const { data, error } = await withTimeout(
-          supabase.functions.invoke("get-mapbox-token"),
-          10000
-        );
+    try {
+      const { data, error: fetchError } = await supabase.functions.invoke("get-mapbox-token");
 
-        if (error) {
-          console.error('Error fetching Mapbox token:', error);
-          throw error;
-        }
-        
-        if (!data || !data.token) {
-          console.error('No token received from edge function');
-          throw new Error('No token received');
-        }
-        
-        setCachedToken(data.token);
-        setToken(data.token);
-        setError(null);
-        setLoading(false);
-        return;
-      } catch (err) {
-        console.error(`Mapbox token fetch attempt ${attempt + 1} failed:`, err);
-        lastError = err as Error;
-        
-        // Wait before retry (exponential backoff)
-        if (attempt < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
-        }
+      if (fetchError) {
+        console.error('useMapboxToken: Error fetching token:', fetchError);
+        throw fetchError;
       }
+      
+      if (!data || !data.token) {
+        console.error('useMapboxToken: No token received from edge function');
+        throw new Error('No token received');
+      }
+      
+      console.log('useMapboxToken: Successfully fetched token');
+      setCachedToken(data.token);
+      setToken(data.token);
+      setError(null);
+    } catch (err) {
+      console.error('useMapboxToken: Fetch failed:', err);
+      setError("Failed to load map. Please check your connection.");
+    } finally {
+      setLoading(false);
     }
-    
-    // All retries failed
-    console.error("All Mapbox token fetch attempts failed:", lastError);
-    setError("Failed to load map. Please check your connection.");
-    setLoading(false);
   }, []);
 
+  // Fetch token on mount if not cached
   useEffect(() => {
-    // Don't fetch if not enabled
     if (!enabled) return;
+    if (token) return; // Already have a token
+    if (fetchStartedRef.current) return; // Already started fetching
     
-    // If we have a cached token, we're already done
-    if (token && !loading) return;
+    fetchStartedRef.current = true;
     
-    fetchToken();
-  }, [fetchToken, token, loading, enabled]);
+    // Set a timeout - if fetch takes too long, show an error instead of infinite loading
+    timeoutRef.current = setTimeout(() => {
+      if (loading && !token) {
+        console.error('useMapboxToken: Fetch timeout, still loading after 15 seconds');
+        setLoading(false);
+        setError("Map loading timed out. Please refresh the page.");
+      }
+    }, 15000);
+    
+    fetchToken().finally(() => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    });
+    
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [enabled, token, fetchToken, loading]);
 
   return { token, loading: enabled ? loading : false, error, refetch: fetchToken };
 };
