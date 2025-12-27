@@ -133,6 +133,20 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    // Transform CSS links to preload for non-blocking render
+    {
+      name: 'css-preload',
+      transformIndexHtml(html: string) {
+        // Only transform in production build
+        if (mode === 'development') return html;
+        // Convert CSS link tags to preload with media="print" hack for non-blocking load
+        return html.replace(
+          /<link rel="stylesheet" crossorigin href="(\/assets\/[^"]+\.css)">/g,
+          '<link rel="preload" as="style" href="$1" onload="this.onload=null;this.rel=\'stylesheet\'">' +
+          '<noscript><link rel="stylesheet" href="$1"></noscript>'
+        );
+      },
+    },
     VitePWA({
       registerType: "autoUpdate",
       // Defer service worker registration to avoid render-blocking

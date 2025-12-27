@@ -346,5 +346,18 @@
     
     <!-- Main app script - Vite will transform this -->
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Defer non-critical stylesheet loading to eliminate render blocking -->
+    <script>
+      // Load main stylesheet after first paint to prevent render blocking
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          var links = document.querySelectorAll('link[rel="preload"][as="style"]');
+          links.forEach(function(link) {
+            link.rel = 'stylesheet';
+          });
+        });
+      });
+    </script>
   </body>
 </html>
