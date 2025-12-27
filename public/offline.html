@@ -5,133 +5,264 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Offline - JET</title>
   <link rel="icon" type="image/png" href="/jet-logo-96.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <style>
+    @font-face {
+      font-family: 'Kanit';
+      font-style: normal;
+      font-weight: 900;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/kanit/v15/nKKS-Go6G5tXcr4-OSWgX6BJNUJy.woff2) format('woff2');
+    }
+    @font-face {
+      font-family: 'Kanit';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/kanit/v15/nKKU-Go6G5tXcr5aOiWgX6BJNUJy.woff2) format('woff2');
+    }
+    @font-face {
+      font-family: 'Kanit';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/kanit/v15/nKKZ-Go6G5tXcraBGwCKd6xBDFs.woff2) format('woff2');
+    }
+    
+    :root {
+      --background: hsl(0 0% 6%);
+      --foreground: hsl(0 0% 98%);
+      --primary: hsl(24 100% 50%);
+      --muted: hsl(0 0% 17%);
+      --muted-foreground: hsl(0 0% 65%);
+      --border: hsl(0 0% 20%);
+      --accent: hsl(320 80% 55%);
+    }
+    
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+      font-family: 'Kanit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--background);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: #fff;
+      color: var(--foreground);
       padding: 24px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
     }
+    
+    /* Subtle grid pattern */
+    .grid-pattern {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 80px 80px;
+      pointer-events: none;
+    }
+    
     .container {
       max-width: 400px;
       width: 100%;
+      z-index: 1;
     }
-    .logo {
-      width: 80px;
-      height: 80px;
+    
+    /* JET Branding */
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
       margin-bottom: 24px;
-      opacity: 0.9;
     }
-    .icon {
-      width: 64px;
-      height: 64px;
-      margin-bottom: 16px;
-      opacity: 0.7;
+    
+    .brand-text {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--foreground);
+      letter-spacing: -0.02em;
     }
+    
+    .brand-plane {
+      position: relative;
+      top: -8px;
+      animation: planeFloat 2s ease-in-out infinite;
+    }
+    
+    .brand-plane svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--primary);
+      stroke: var(--primary);
+      transform: rotate(-12deg);
+    }
+    
+    .brand-trail {
+      position: absolute;
+      top: 50%;
+      left: -8px;
+      width: 16px;
+      height: 2px;
+      background: linear-gradient(to left, hsla(24, 100%, 50%, 0.5), transparent);
+      border-radius: 2px;
+      animation: trailPulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes planeFloat {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      25% { transform: translateY(-3px) translateX(1.5px); }
+      50% { transform: translateY(-5px) translateX(3px); }
+      75% { transform: translateY(-2px) translateX(1px); }
+    }
+    
+    @keyframes trailPulse {
+      0%, 100% { opacity: 0.3; width: 16px; }
+      50% { opacity: 0.6; width: 24px; }
+    }
+    
+    /* Offline icon */
+    .offline-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 16px;
+      opacity: 0.6;
+      color: var(--muted-foreground);
+    }
+    
     h1 {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       font-weight: 600;
-      margin-bottom: 12px;
-      background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      margin-bottom: 8px;
+      color: var(--foreground);
     }
-    p {
-      color: #9ca3af;
-      font-size: 1rem;
+    
+    .subtitle {
+      color: var(--muted-foreground);
+      font-size: 0.875rem;
       line-height: 1.6;
       margin-bottom: 32px;
+      font-weight: 400;
     }
+    
     .cached-content {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: var(--muted);
+      border: 1px solid var(--border);
       border-radius: 16px;
       padding: 20px;
       margin-bottom: 24px;
     }
+    
     .cached-content h2 {
-      font-size: 0.875rem;
-      color: #6b7280;
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 16px;
+      font-weight: 500;
     }
+    
     #cached-deals {
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
+    
     .deal-item {
       background: rgba(255,255,255,0.03);
       border-radius: 12px;
-      padding: 16px;
+      padding: 14px 16px;
       text-align: left;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
     }
+    
     .deal-item h3 {
-      font-size: 1rem;
+      font-size: 0.9375rem;
       font-weight: 500;
       margin-bottom: 4px;
-      color: #fff;
+      color: var(--foreground);
     }
+    
     .deal-item p {
-      font-size: 0.875rem;
-      color: #9ca3af;
+      font-size: 0.8125rem;
+      color: var(--muted-foreground);
       margin: 0;
+      font-weight: 400;
     }
+    
     .no-cache {
-      color: #6b7280;
-      font-size: 0.875rem;
-      padding: 16px;
+      color: var(--muted-foreground);
+      font-size: 0.8125rem;
+      padding: 12px;
+      font-weight: 400;
     }
+    
     .retry-btn {
-      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
       color: white;
       border: none;
       padding: 14px 32px;
       border-radius: 12px;
-      font-size: 1rem;
+      font-size: 0.9375rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 20px hsla(24, 100%, 50%, 0.3);
+      font-family: inherit;
     }
+    
     .retry-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+      box-shadow: 0 6px 24px hsla(24, 100%, 50%, 0.4);
     }
+    
     .retry-btn:active {
       transform: translateY(0);
     }
+    
     .status {
       margin-top: 24px;
       padding: 12px 20px;
-      background: rgba(34, 197, 94, 0.1);
-      border: 1px solid rgba(34, 197, 94, 0.2);
+      background: hsla(142, 71%, 45%, 0.1);
+      border: 1px solid hsla(142, 71%, 45%, 0.2);
       border-radius: 8px;
-      color: #22c55e;
-      font-size: 0.875rem;
+      color: hsl(142 71% 45%);
+      font-size: 0.8125rem;
       display: none;
+      font-weight: 500;
     }
+    
     .status.show { display: block; }
   </style>
 </head>
 <body>
+  <div class="grid-pattern"></div>
+  
   <div class="container">
-    <img src="/pwa-192x192.png" alt="JET" class="logo">
-    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- JET Branding -->
+    <div class="brand">
+      <span class="brand-text">JET</span>
+      <div class="brand-plane">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+        </svg>
+        <div class="brand-trail"></div>
+      </div>
+    </div>
+    
+    <!-- Offline indicator -->
+    <svg class="offline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 5.636a9 9 0 010 12.728m-3.536-3.536a4 4 0 010-5.656m-7.072 7.072a9 9 0 010-12.728m3.536 3.536a4 4 0 010 5.656M12 12h.01"/>
     </svg>
+    
     <h1>You're Offline</h1>
-    <p>No internet connection detected. Check your connection and try again.</p>
+    <p class="subtitle">No internet connection detected. Check your connection and try again.</p>
     
     <div class="cached-content">
       <h2>Recently Viewed</h2>
