@@ -96,7 +96,7 @@ export const Header = ({
   const handleCloseResults = () => {
     setShowResults(false);
   };
-  return <header className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] header-contained" role="banner" style={{
+  return <header className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] header-contained animate-fade-in" role="banner" style={{
     paddingTop: 'var(--safe-area-inset-top)',
     // Use CSS variable for responsive height
     height: 'var(--header-total-height)',
