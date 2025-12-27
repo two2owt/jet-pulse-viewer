@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - JET</title>
+  <link rel="icon" type="image/png" href="/jet-logo-96.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      padding: 24px;
+      text-align: center;
+    }
+    .container {
+      max-width: 400px;
+      width: 100%;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 24px;
+      opacity: 0.9;
+    }
+    .icon {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.7;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    p {
+      color: #9ca3af;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .cached-content {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .cached-content h2 {
+      font-size: 0.875rem;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+    #cached-deals {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .deal-item {
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: left;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .deal-item h3 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+    .deal-item p {
+      font-size: 0.875rem;
+      color: #9ca3af;
+      margin: 0;
+    }
+    .no-cache {
+      color: #6b7280;
+      font-size: 0.875rem;
+      padding: 16px;
+    }
+    .retry-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+    }
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+    .retry-btn:active {
+      transform: translateY(0);
+    }
+    .status {
+      margin-top: 24px;
+      padding: 12px 20px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      border-radius: 8px;
+      color: #22c55e;
+      font-size: 0.875rem;
+      display: none;
+    }
+    .status.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="/pwa-192x192.png" alt="JET" class="logo">
+    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 5.636a9 9 0 010 12.728m-3.536-3.536a4 4 0 010-5.656m-7.072 7.072a9 9 0 010-12.728m3.536 3.536a4 4 0 010 5.656M12 12h.01"/>
+    </svg>
+    <h1>You're Offline</h1>
+    <p>No internet connection detected. Check your connection and try again.</p>
+    
+    <div class="cached-content">
+      <h2>Recently Viewed</h2>
+      <div id="cached-deals">
+        <div class="no-cache">Loading cached content...</div>
+      </div>
+    </div>
+    
+    <button class="retry-btn" onclick="retryConnection()">Try Again</button>
+    <div class="status" id="status">Back online! Redirecting...</div>
+  </div>
+
+  <script>
+    // Load cached deals from localStorage
+    function loadCachedDeals() {
+      const container = document.getElementById('cached-deals');
+      try {
+        const cached = localStorage.getItem('jet-cached-deals');
+        if (cached) {
+          const deals = JSON.parse(cached);
+          if (deals && deals.length > 0) {
+            container.innerHTML = deals.slice(0, 5).map(deal => `
+              <div class="deal-item">
+                <h3>${escapeHtml(deal.title)}</h3>
+                <p>${escapeHtml(deal.venue_name)}</p>
+              </div>
+            `).join('');
+            return;
+          }
+        }
+        container.innerHTML = '<div class="no-cache">No cached deals available</div>';
+      } catch (e) {
+        container.innerHTML = '<div class="no-cache">No cached deals available</div>';
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function retryConnection() {
+      if (navigator.onLine) {
+        showOnlineStatus();
+      } else {
+        window.location.reload();
+      }
+    }
+
+    function showOnlineStatus() {
+      const status = document.getElementById('status');
+      status.classList.add('show');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    }
+
+    // Listen for online event
+    window.addEventListener('online', showOnlineStatus);
+
+    // Load cached content on page load
+    loadCachedDeals();
+  </script>
+</body>
+</html>

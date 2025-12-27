@@ -1,8 +1,16 @@
-// Service Worker for Web Push Notifications (FCM-based) + Offline Map Caching
+// Service Worker for Web Push Notifications (FCM-based) + Offline Support
 
 const MAP_TILE_CACHE = 'jet-map-tiles-v1';
 const STATIC_CACHE = 'jet-static-v1';
-const MAX_TILE_CACHE_SIZE = 500; // Maximum number of tiles to cache
+const OFFLINE_CACHE = 'jet-offline-v1';
+const MAX_TILE_CACHE_SIZE = 500;
+
+const OFFLINE_PAGE = '/offline.html';
+const OFFLINE_ASSETS = [
+  '/offline.html',
+  '/pwa-192x192.png',
+  '/jet-logo-96.png'
+];
 
 // Mapbox tile URL patterns to cache
 const MAPBOX_TILE_PATTERNS = [
@@ -16,12 +24,15 @@ const MAPBOX_TILE_PATTERNS = [
   /^https:\/\/api\.mapbox\.com\/sprites\//,
 ];
 
-// Check if URL is a Mapbox tile
 function isMapboxTile(url) {
   return MAPBOX_TILE_PATTERNS.some(pattern => pattern.test(url));
 }
 
-// Trim cache to max size (LRU-style)
+function isNavigationRequest(request) {
+  return request.mode === 'navigate' || 
+    (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
+}
+
 async function trimCache(cacheName, maxSize) {
   const cache = await caches.open(cacheName);
   const keys = await cache.keys();
@@ -34,12 +45,25 @@ async function trimCache(cacheName, maxSize) {
   }
 }
 
-// Fetch handler for caching map tiles
+// Fetch handler
 self.addEventListener('fetch', function(event) {
   const url = event.request.url;
   
-  // Only handle GET requests
   if (event.request.method !== 'GET') return;
+  
+  // Handle navigation requests with offline fallback
+  if (isNavigationRequest(event.request)) {
+    event.respondWith(
+      fetch(event.request)
+        .catch(async () => {
+          console.log('[SW] Navigation failed, serving offline page');
+          const cache = await caches.open(OFFLINE_CACHE);
+          const offlineResponse = await cache.match(OFFLINE_PAGE);
+          return offlineResponse || new Response('Offline', { status: 503 });
+        })
+    );
+    return;
+  }
   
   // Handle Mapbox tiles with cache-first strategy
   if (isMapboxTile(url)) {
@@ -48,7 +72,6 @@ self.addEventListener('fetch', function(event) {
         const cachedResponse = await cache.match(event.request);
         
         if (cachedResponse) {
-          // Return cached tile immediately, update in background if online
           if (navigator.onLine) {
             fetch(event.request).then(response => {
               if (response.ok) {
@@ -59,18 +82,15 @@ self.addEventListener('fetch', function(event) {
           return cachedResponse;
         }
         
-        // No cache, try network
         try {
           const networkResponse = await fetch(event.request);
           if (networkResponse.ok) {
             cache.put(event.request, networkResponse.clone());
-            // Trim cache periodically
             trimCache(MAP_TILE_CACHE, MAX_TILE_CACHE_SIZE);
           }
           return networkResponse;
         } catch (error) {
-          console.log('[SW] Tile fetch failed, no cache available:', url);
-          // Return a transparent tile placeholder for failed requests
+          console.log('[SW] Tile fetch failed:', url);
           return new Response('', { status: 408, statusText: 'Tile unavailable offline' });
         }
       })
@@ -216,7 +236,13 @@ self.addEventListener('activate', function(event) {
 
 self.addEventListener('install', function(event) {
   console.log('[SW] Service worker installed');
-  // Don't skip waiting automatically - let the user decide when to update
+  // Precache offline assets
+  event.waitUntil(
+    caches.open(OFFLINE_CACHE).then(cache => {
+      console.log('[SW] Caching offline assets');
+      return cache.addAll(OFFLINE_ASSETS);
+    })
+  );
 });
 
 // Listen for skip waiting message from client
