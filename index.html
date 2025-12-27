@@ -57,6 +57,16 @@
     
     <!-- Critical CSS - Inlined for instant FCP -->
     <style>
+      /* Fallback font face - prevents FOUT while web font loads */
+      @font-face {
+        font-family: 'Kanit Fallback';
+        src: local('Arial'), local('Helvetica Neue'), local('sans-serif');
+        font-display: swap;
+        ascent-override: 95%;
+        descent-override: 26%;
+        line-gap-override: 0%;
+        size-adjust: 105%;
+      }
       /* Critical CSS variables for dark mode */
       :root {
         color-scheme: dark;
@@ -81,7 +91,8 @@
         min-height: 100dvh;
         background: hsl(var(--background)); 
         color: hsl(var(--foreground)); 
-        font-family: 'Kanit', system-ui, -apple-system, sans-serif;
+        /* Use fallback font first for instant LCP, swap to Kanit when loaded */
+        font-family: 'Kanit', 'Kanit Fallback', system-ui, -apple-system, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
@@ -312,8 +323,10 @@
       }
     </style>
     
-    <!-- Fonts - Use Google Fonts CSS API for reliable font loading -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;900&display=swap">
+    <!-- Fonts - Non-blocking pattern: load as print, swap to screen after load -->
+    <!-- This eliminates the 760ms render-blocking delay from PageSpeed Insights -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;900&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;900&display=swap"></noscript>
     
     <!-- Mapbox CSS - deferred -->
     <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
