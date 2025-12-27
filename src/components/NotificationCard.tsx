@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { MapPin, Clock, Gift, TrendingUp } from "lucide-react";
 
 export interface Notification {
@@ -17,7 +18,7 @@ interface NotificationCardProps {
   onRead?: () => void;
 }
 
-export const NotificationCard = ({ notification, onVenueClick, onRead }: NotificationCardProps) => {
+export const NotificationCard = memo(({ notification, onVenueClick, onRead }: NotificationCardProps) => {
   const handleClick = () => {
     if (notification.venue && onVenueClick) {
       onVenueClick(notification.venue);
@@ -84,4 +85,6 @@ export const NotificationCard = ({ notification, onVenueClick, onRead }: Notific
       </div>
     </div>
   );
-};
+});
+
+NotificationCard.displayName = "NotificationCard";

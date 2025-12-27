@@ -214,12 +214,12 @@ const Index = () => {
     }
   }, [activeTab]);
 
-  const handleCityChange = (city: City) => {
+  const handleCityChange = useCallback((city: City) => {
     setSelectedCity(city);
     toast.success(`Switched to ${city.name}, ${city.state}`, {
       description: "Finding deals in your area"
     });
-  };
+  }, []);
 
   // Auto-select nearest city when geolocation detects it on initial load
   const handleNearestCityDetected = useCallback((city: City) => {
@@ -231,7 +231,7 @@ const Index = () => {
     setDetectedLocationName(name);
   }, []);
 
-  const handleVenueSelect = async (venue: Venue | string) => {
+  const handleVenueSelect = useCallback(async (venue: Venue | string) => {
     // Handle both Venue object and venue name string
     if (typeof venue === 'string') {
       // Find the venue by name in real venues or mock venues
@@ -292,13 +292,13 @@ const Index = () => {
         });
       }, 100);
     }
-  };
+  }, [venues, getVenueImage]);
 
-  const handleGetDirections = async () => {
+  const handleGetDirections = useCallback(async () => {
     if (!selectedVenue) return;
     await glideHaptic(); // Smooth gliding haptic when opening directions
     setShowDirectionsDialog(true);
-  };
+  }, [selectedVenue]);
 
   const openDirections = async (app: 'google' | 'apple' | 'waze') => {
     if (!selectedVenue) return;
