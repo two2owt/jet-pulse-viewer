@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="JET" />
     
     <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="https://storage.googleapis.com/gpt-engineer-file-uploads/VEstUAuq09PlUHZ9f7uy5tQrH263/uploads/1766843297208-JET (Website) (2).png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
     <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
     <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
@@ -35,7 +35,7 @@
     <link rel="dns-prefetch" href="https://www.google-analytics.com">
     
     <!-- SEO Meta Tags -->
-    <title>JET - Discover What's Hot Right Now</title>
+    <title>JET - Discover What&#39;s Hot Right Now</title>
     <meta name="description" content="Find trending venues, live events, and exclusive deals in your area with real-time heatmaps. Your guide to what's happening now.">
     <meta name="author" content="JET" />
     <meta name="keywords" content="Charlotte nightlife, CLT events, Charlotte bars, restaurants near me, things to do Charlotte">
@@ -44,16 +44,16 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://jet-around.com" />
-    <meta property="og:title" content="JET - Discover What's Hot Right Now">
-    <meta property="og:description" content="Find trending venues, live events, and exclusive deals in your area with real-time heatmaps.">
-    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/VEstUAuq09PlUHZ9f7uy5tQrH263/social-images/social-1765238908620-8.png">
+    
+    
+    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/VEstUAuq09PlUHZ9f7uy5tQrH263/social-images/social-1766843327210-JET Mobile White.jpg">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@JETaround" />
-    <meta name="twitter:title" content="JET - Discover What's Hot Right Now">
-    <meta name="twitter:description" content="Find trending venues, live events, and exclusive deals in your area with real-time heatmaps.">
-    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/VEstUAuq09PlUHZ9f7uy5tQrH263/social-images/social-1765238908620-8.png">
+    
+    
+    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/VEstUAuq09PlUHZ9f7uy5tQrH263/social-images/social-1766843327210-JET Mobile White.jpg">
     
     <!-- Critical CSS - Inlined for instant FCP -->
     <style>
@@ -86,14 +86,7 @@
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
       }
-      #root {
-        position: relative;
-        min-height: 100vh;
-        min-height: 100dvh;
-        opacity: 0;
-        transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      html.app-ready #root { opacity: 1; }
+      #root { display: contents; }
       
       /* App Shell - Visible immediately for FCP */
       #app-shell {
@@ -103,18 +96,9 @@
         display: flex;
         flex-direction: column;
         background: hsl(var(--background));
-        opacity: 1;
-        transform: scale(1);
-        transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1), transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
-        will-change: opacity, transform;
-      }
-      html.app-ready #app-shell {
-        opacity: 0;
-        transform: scale(1.02);
-        pointer-events: none;
       }
       #app-shell.hidden { display: none; }
-
+      
       .shell-header {
         height: var(--header-height);
         padding: 0 12px;
@@ -374,7 +358,11 @@
     <!-- Mapbox CSS - deferred -->
     <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" rel="stylesheet"></noscript>
-  </head>
+    <meta property="og:title" content="JET - Discover What&#39;s Hot Right Now">
+  <meta name="twitter:title" content="JET - Discover What&#39;s Hot Right Now">
+  <meta property="og:description" content="Find trending venues, live events, and exclusive deals in your area with real-time heatmaps. Your guide to what&#39;s happening now.">
+  <meta name="twitter:description" content="Find trending venues, live events, and exclusive deals in your area with real-time heatmaps. Your guide to what&#39;s happening now.">
+</head>
   
   <body>
     <!-- Skip link -->
@@ -460,26 +448,22 @@
         if (!shell || !root) return;
 
         var isHidden = function () {
-          return shell.classList.contains('hidden') || shell.style.display === 'none';
+          return shell.classList.contains('hidden') || shell.style.display === 'none' || shell.style.opacity === '0';
         };
 
-        // Crossfade: fade shell out + fade React in via CSS class
         var hideShell = function () {
           if (isHidden()) return;
-          try {
-            document.documentElement.classList.add('app-ready');
-          } catch (e) {}
-          shell.style.pointerEvents = 'none';
-          setTimeout(function () {
-            shell.classList.add('hidden');
-            shell.style.display = 'none';
-          }, 320);
+          requestAnimationFrame(function () {
+            shell.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1), transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+            shell.style.opacity = '0';
+            shell.style.transform = 'scale(1.02)';
+            shell.style.pointerEvents = 'none';
+            setTimeout(function () {
+              shell.classList.add('hidden');
+              shell.style.display = 'none';
+            }, 320);
+          });
         };
-
-        // Allow React to explicitly signal it's mounted (avoids race with MutationObserver)
-        try {
-          window.addEventListener('jet:react-mounted', hideShell, { once: true });
-        } catch (e) {}
 
         // Hide shell as soon as React mounts anything into #root
         try {
@@ -490,15 +474,8 @@
             }
           });
           observer.observe(root, { childList: true });
-
-          // If React mounted before the observer attached, hide immediately
-          if (root.childElementCount > 0) {
-            hideShell();
-            observer.disconnect();
-          }
         } catch (e) {
           // Ignore observer failures
-          if (root.childElementCount > 0) hideShell();
         }
 
         // If we're still on the shell after a while, attempt a recovery (stale SW often causes this)
