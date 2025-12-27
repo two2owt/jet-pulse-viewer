@@ -420,8 +420,7 @@ const Index = () => {
               {/* Error state - only show if there's a definite error */}
               {mapboxError && !mapboxLoading && (
                 <div 
-                  className="absolute inset-0 z-10 flex items-center justify-center"
-                  style={{ backgroundColor: '#0a0a0a' }}
+                  className="absolute inset-0 z-10 flex items-center justify-center bg-background"
                 >
                   <div className="text-center space-y-3 sm:space-y-4 p-6 sm:p-8">
                     <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
