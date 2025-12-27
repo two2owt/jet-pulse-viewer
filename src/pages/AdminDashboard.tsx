@@ -1,13 +1,15 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DealManagement } from "@/components/admin/DealManagement";
-import { UserAnalytics } from "@/components/admin/UserAnalytics";
-import { NeighborhoodManagement } from "@/components/admin/NeighborhoodManagement";
-import { MonetizationToggle } from "@/components/admin/MonetizationToggle";
 import { Loader2, Shield, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+// Lazy load admin components to reduce initial bundle - especially UserAnalytics which pulls in recharts (~200KB)
+const DealManagement = lazy(() => import("@/components/admin/DealManagement").then(m => ({ default: m.DealManagement })));
+const UserAnalytics = lazy(() => import("@/components/admin/UserAnalytics").then(m => ({ default: m.UserAnalytics })));
+const NeighborhoodManagement = lazy(() => import("@/components/admin/NeighborhoodManagement").then(m => ({ default: m.NeighborhoodManagement })));
+const MonetizationToggle = lazy(() => import("@/components/admin/MonetizationToggle").then(m => ({ default: m.MonetizationToggle })));
 
 export default function AdminDashboard() {
   const { isAdmin, loading } = useIsAdmin();
@@ -60,20 +62,28 @@ export default function AdminDashboard() {
           </TabsList>
 
           <TabsContent value="deals">
-            <DealManagement />
+            <Suspense fallback={<div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+              <DealManagement />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="analytics">
-            <UserAnalytics />
+            <Suspense fallback={<div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+              <UserAnalytics />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="neighborhoods">
-            <NeighborhoodManagement />
+            <Suspense fallback={<div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+              <NeighborhoodManagement />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="settings">
             <div className="space-y-6">
-              <MonetizationToggle />
+              <Suspense fallback={<div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+                <MonetizationToggle />
+              </Suspense>
             </div>
           </TabsContent>
         </Tabs>

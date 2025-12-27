@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Core React - always needed
+          // Core React - always needed, load first
           if (id.includes('react-dom') || id.includes('react/') || id.includes('/react/')) {
             return 'vendor-react';
           }
@@ -28,67 +28,75 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('@tanstack/react-query')) {
             return 'vendor-query';
           }
-          // Supabase - split into separate chunk
+          // Supabase - split into separate chunk, needed early for auth
           if (id.includes('@supabase/supabase-js') || id.includes('@supabase/')) {
             return 'supabase';
           }
-          // Sentry - error monitoring, load deferred
+          // Sentry - error monitoring, deferred loading (loaded on user interaction)
           if (id.includes('@sentry/')) {
             return 'sentry';
           }
-          // Sonner/toast - deferred loading
-          if (id.includes('sonner')) {
-            return 'toasts';
+          // Recharts + D3 - heavy (~200KB), ONLY used in admin dashboard
+          // This ensures charts are never loaded for non-admin users
+          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor')) {
+            return 'charts';
           }
-          // Mapbox - heavy, load on demand
+          // Mapbox - heavy, load on demand for map view only
           if (id.includes('mapbox-gl')) {
             return 'mapbox';
           }
-          // Split Radix UI into smaller chunks by usage frequency
-          if (id.includes('@radix-ui/react-dialog') || id.includes('@radix-ui/react-alert-dialog')) {
-            return 'ui-dialogs';
+          // Form handling - needed for auth and settings
+          if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+            return 'forms';
           }
-          if (id.includes('@radix-ui/react-select') || id.includes('@radix-ui/react-dropdown-menu')) {
-            return 'ui-menus';
-          }
-          if (id.includes('@radix-ui/react-tooltip') || id.includes('@radix-ui/react-popover')) {
-            return 'ui-overlays';
-          }
-          if (id.includes('@radix-ui/react-tabs') || id.includes('@radix-ui/react-accordion')) {
-            return 'ui-panels';
-          }
-          if (id.includes('@radix-ui/react-switch') || id.includes('@radix-ui/react-checkbox') || id.includes('@radix-ui/react-radio-group')) {
-            return 'ui-inputs';
-          }
-          if (id.includes('@radix-ui/react-toast')) {
+          // Sonner/toast - frequently used but can defer
+          if (id.includes('sonner')) {
             return 'toasts';
           }
-          if (id.includes('@radix-ui')) {
-            return 'ui-core';
-          }
-          // Recharts - charts, load on demand
-          if (id.includes('recharts') || id.includes('d3-')) {
-            return 'charts';
-          }
-          // Date utilities
+          // Date utilities - used across the app
           if (id.includes('date-fns')) {
             return 'date-utils';
           }
-          // Lucide icons - split from main bundle
+          // Lucide icons - split from main bundle (tree-shaken but still notable)
           if (id.includes('lucide-react')) {
             return 'icons';
           }
-          // Form handling
-          if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
-            return 'forms';
+          // Next-themes - small but separate for clarity
+          if (id.includes('next-themes')) {
+            return 'theme';
           }
           // Framer motion / animations
           if (id.includes('framer-motion')) {
             return 'animations';
           }
-          // Next-themes - theme management
-          if (id.includes('next-themes')) {
-            return 'theme';
+          // Split Radix UI into smaller chunks by usage frequency
+          // Dialogs - used for modals, confirmations (common)
+          if (id.includes('@radix-ui/react-dialog') || id.includes('@radix-ui/react-alert-dialog')) {
+            return 'ui-dialogs';
+          }
+          // Menus - dropdowns, selects (common)
+          if (id.includes('@radix-ui/react-select') || id.includes('@radix-ui/react-dropdown-menu')) {
+            return 'ui-menus';
+          }
+          // Overlays - tooltips, popovers (common)
+          if (id.includes('@radix-ui/react-tooltip') || id.includes('@radix-ui/react-popover')) {
+            return 'ui-overlays';
+          }
+          // Panels - tabs, accordion (common)
+          if (id.includes('@radix-ui/react-tabs') || id.includes('@radix-ui/react-accordion')) {
+            return 'ui-panels';
+          }
+          // Form inputs - switch, checkbox, radio (settings/forms)
+          if (id.includes('@radix-ui/react-switch') || id.includes('@radix-ui/react-checkbox') || id.includes('@radix-ui/react-radio-group')) {
+            return 'ui-inputs';
+          }
+          // Toast radix - group with sonner
+          if (id.includes('@radix-ui/react-toast')) {
+            return 'toasts';
+          }
+          // Other Radix UI components
+          if (id.includes('@radix-ui')) {
+            return 'ui-core';
           }
         },
       },
