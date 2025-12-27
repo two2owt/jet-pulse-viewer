@@ -522,7 +522,7 @@ const Index = () => {
         )}
       </main>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation - Show skeleton during initial load */}
       <BottomNav 
         activeTab={activeTab} 
         onTabChange={(tab) => {
@@ -544,6 +544,7 @@ const Index = () => {
           }
         }}
         notificationCount={notifications.filter(n => !n.read).length}
+        isLoading={mapboxLoading && !mapboxToken}
       />
 
       {/* Directions Dialog - Lazy loaded */}
