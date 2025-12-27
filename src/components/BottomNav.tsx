@@ -27,28 +27,28 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
       role="navigation"
       aria-label="Main navigation"
       style={{
-        paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.25rem)',
-        paddingLeft: 'env(safe-area-inset-left, 0px)',
-        paddingRight: 'env(safe-area-inset-right, 0px)',
-        // Fixed height prevents CLS
-        height: 'calc(56px + max(env(safe-area-inset-bottom, 0px), 0.25rem))',
-        minHeight: 'calc(56px + max(env(safe-area-inset-bottom, 0px), 0.25rem))',
+        paddingBottom: 'var(--safe-area-inset-bottom)',
+        paddingLeft: 'var(--safe-area-inset-left)',
+        paddingRight: 'var(--safe-area-inset-right)',
+        // Use CSS variable for responsive height
+        height: 'var(--bottom-nav-total-height)',
+        minHeight: 'var(--bottom-nav-total-height)',
         contain: 'strict',
         transform: 'translateZ(0)',
       }}
     >
-      <div className="max-w-7xl mx-auto px-1 sm:px-2">
-        <div className="flex items-center justify-around">
+      <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 h-full flex items-center">
+        <div className="flex items-center justify-around w-full">
           {isLoading ? (
             // Skeleton loading state - matches nav item dimensions
             <>
               {[1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
-                  className="flex flex-col items-center justify-center gap-0.5 px-3 py-2 min-w-[44px] min-h-[44px]"
+                  className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px]"
                 >
-                  <Skeleton className="w-5 h-5 sm:w-6 sm:h-6 rounded-md" />
-                  <Skeleton className="w-8 h-2.5 sm:h-3 rounded" />
+                  <Skeleton className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md" />
+                  <Skeleton className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded" />
                 </div>
               ))}
             </>
@@ -63,19 +63,19 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
                   onClick={() => onTabChange(item.id)}
                   aria-label={`${item.label}${item.id === 'notifications' && notificationCount > 0 ? `, ${notificationCount} unread` : ''}`}
                   aria-current={isActive ? "page" : undefined}
-                  className={`relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                  className={`relative flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 rounded-xl transition-all duration-300 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px] touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                     isActive
                       ? "bg-gradient-primary shadow-glow text-primary-foreground scale-105"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 active:bg-secondary/70 active:text-foreground"
                   }`}
                 >
                   <Icon 
-                    className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300" 
+                    className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 transition-transform duration-300" 
                     strokeWidth={isActive ? 2.5 : 2}
                     aria-hidden="true"
                   />
                   
-                  <span className={`text-[10px] sm:text-xs font-semibold transition-all duration-300 whitespace-nowrap ${
+                  <span className={`text-[10px] sm:text-xs md:text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
                     isActive ? "opacity-100" : "opacity-70"
                   }`}>
                     {item.label}
