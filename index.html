@@ -57,16 +57,34 @@
     
     <!-- Critical CSS - Inlined for instant FCP -->
     <style>
-      :root { color-scheme: dark; }
+      /* Critical CSS variables for dark mode */
+      :root {
+        color-scheme: dark;
+        --background: 0 0% 6%;
+        --foreground: 0 0% 98%;
+        --primary: 24 100% 50%;
+        --muted: 0 0% 15%;
+        --muted-foreground: 0 0% 64%;
+        --border: 0 0% 20%;
+        --header-height: 52px;
+        --bottom-nav-height: 60px;
+        --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+      }
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html { height: 100%; background: #0f0f0f; }
+      html { 
+        height: 100%; 
+        background: hsl(var(--background)); 
+      }
       body { 
         height: 100%; 
         min-height: 100vh;
-        background: #0f0f0f; 
-        color: #fafafa; 
+        min-height: 100dvh;
+        background: hsl(var(--background)); 
+        color: hsl(var(--foreground)); 
         font-family: 'Kanit', system-ui, -apple-system, sans-serif;
         -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
       }
       #root { display: contents; }
       
@@ -77,18 +95,18 @@
         z-index: 9999;
         display: flex;
         flex-direction: column;
-        background: #0f0f0f;
+        background: hsl(var(--background));
       }
       #app-shell.hidden { display: none; }
       
       .shell-header {
-        height: 52px;
+        height: var(--header-height);
         padding: 0 12px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: #1a1a1a;
-        border-bottom: 1px solid #333;
+        background: hsl(var(--muted));
+        border-bottom: 1px solid hsl(var(--border));
         flex-shrink: 0;
       }
       .shell-logo {
@@ -104,7 +122,7 @@
       .shell-logo-text {
         font-size: 20px;
         font-weight: 600;
-        color: #fafafa;
+        color: hsl(var(--foreground));
         letter-spacing: -0.5px;
       }
       .shell-search {
@@ -112,14 +130,14 @@
         max-width: 300px;
         height: 36px;
         margin: 0 16px;
-        background: #2b2b2b;
+        background: hsl(var(--border));
         border-radius: 8px;
       }
       .shell-avatar {
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        background: #2b2b2b;
+        background: hsl(var(--border));
       }
       
       .shell-main {
@@ -127,7 +145,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #141414;
+        background: hsl(var(--background));
       }
       .shell-loader {
         display: flex;
@@ -138,26 +156,26 @@
       .shell-spinner {
         width: 48px;
         height: 48px;
-        border: 3px solid #333;
-        border-top-color: #ff6b00;
+        border: 3px solid hsl(var(--border));
+        border-top-color: hsl(var(--primary));
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
       }
       @keyframes spin { to { transform: rotate(360deg); } }
       .shell-text {
         font-size: 14px;
-        color: #a3a3a3;
+        color: hsl(var(--muted-foreground));
       }
       
       .shell-nav {
-        height: 60px;
+        height: var(--bottom-nav-height);
         padding: 8px 24px;
-        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(8px + var(--safe-area-inset-bottom));
         display: flex;
         align-items: center;
         justify-content: space-around;
-        background: #1a1a1a;
-        border-top: 1px solid #333;
+        background: hsl(var(--muted));
+        border-top: 1px solid hsl(var(--border));
         flex-shrink: 0;
       }
       .shell-nav-item {
@@ -172,14 +190,14 @@
         width: 24px;
         height: 24px;
         border-radius: 4px;
-        background: #2b2b2b;
+        background: hsl(var(--border));
       }
-      .shell-nav-icon.active { background: #ff6b00; }
+      .shell-nav-icon.active { background: hsl(var(--primary)); }
       .shell-nav-label {
         width: 32px;
         height: 8px;
         border-radius: 4px;
-        background: #2b2b2b;
+        background: hsl(var(--border));
       }
       
       /* Skip link */
