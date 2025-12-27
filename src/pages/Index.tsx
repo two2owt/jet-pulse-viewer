@@ -457,22 +457,18 @@ const Index = () => {
               />
             </div>
 
-            {/* Selected Venue Card - Positioned between header and bottom nav */}
+            {/* Selected Venue Card - Positioned above bottom nav */}
             {selectedVenue && (
               <div 
                 ref={jetCardRef} 
-                className="fixed z-[60] animate-fade-in animate-scale-in overflow-auto"
+                className="fixed z-[60] animate-fade-in animate-scale-in"
                 style={{
-                  top: 'var(--header-total-height)',
                   bottom: 'var(--map-fixed-bottom)',
                   left: 'var(--map-ui-inset-left)',
                   right: 'var(--map-ui-inset-right)',
-                  maxWidth: '720px',
+                  maxWidth: '480px',
                   marginLeft: 'auto',
                   marginRight: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
                   pointerEvents: 'none',
                   ...(isMobile ? swipeStyle : {}),
                 }}
@@ -481,8 +477,8 @@ const Index = () => {
                 <div className="pointer-events-auto">
                   {/* Swipe indicator for mobile */}
                   {isMobile && (
-                    <div className="flex justify-center pb-2.5 sm:pb-3">
-                      <div className="w-12 h-1.5 bg-muted-foreground/40 rounded-full" />
+                    <div className="flex justify-center pb-2 sm:pb-2.5">
+                      <div className="w-10 h-1 bg-muted-foreground/40 rounded-full" />
                     </div>
                   )}
                   <JetCard 
