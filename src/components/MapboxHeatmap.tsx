@@ -1938,7 +1938,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         style={{ 
           width: '100%', 
           height: '100%',
-          backgroundColor: '#0a0a0a', // Immediate dark background before map tiles load
           touchAction: isMobile ? 'manipulation' : 'none',
           WebkitOverflowScrolling: 'touch',
           contain: 'strict',

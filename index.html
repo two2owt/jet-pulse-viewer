@@ -1,12 +1,10 @@
 <!doctype html>
-<html lang="en" class="dark" style="min-height: 100%; background-color: #0f0f0f;">
+<html lang="en" class="dark" style="min-height: 100%;">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- Immediate dark mode enforcement - runs before any other scripts -->
     <script>
-      // Immediately set dark background to prevent flash
-      document.documentElement.style.backgroundColor = '#0f0f0f';
       document.documentElement.classList.add('dark');
     </script>
     <!-- Preconnect hints MUST be first - establishes connections before any resource requests -->
@@ -34,12 +32,6 @@
         /* Safe area insets */
         --safe-area-inset-top: env(safe-area-inset-top, 0px);
         --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-        /* Map container defaults */
-        --map-bg: #0a0a0a;
-      }
-      /* Map container - immediate dark background to prevent flash */
-      .mapboxgl-map, [class*="mapbox"], .map-container {
-        background-color: var(--map-bg, #0a0a0a) !important;
       }
 
       @supports (height: 100dvh) {
