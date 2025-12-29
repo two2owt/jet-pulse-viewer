@@ -43,20 +43,20 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
 
   return (
     <div className="relative w-full h-full bg-background overflow-hidden">
-      {/* Animated tile-loading grid effect */}
+      {/* Animated tile-loading grid effect - GPU accelerated */}
       <div className="absolute inset-0 grid grid-cols-8 grid-rows-6 gap-px opacity-60">
         {tiles.map(({ row, col, delay }) => (
           <div
             key={`${row}-${col}`}
-            className="bg-muted/20 relative overflow-hidden"
+            className="bg-muted/20 relative overflow-hidden will-change-[opacity]"
             style={{
               animation: `tileLoad 2.5s ease-in-out infinite`,
               animationDelay: `${delay}s`,
             }}
           >
-            {/* Shimmer overlay per tile */}
+            {/* Shimmer overlay per tile - GPU accelerated */}
             <div 
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-muted/30 to-transparent"
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-muted/30 to-transparent will-change-transform"
               style={{
                 animation: `tileShimmer 2s ease-in-out infinite`,
                 animationDelay: `${delay + 0.5}s`,
@@ -82,9 +82,9 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
         </svg>
       </div>
       
-      {/* Animated scan line effect */}
+      {/* Animated scan line effect - GPU accelerated */}
       <div 
-        className="absolute inset-x-0 h-24 bg-gradient-to-b from-primary/5 via-primary/10 to-transparent pointer-events-none"
+        className="absolute inset-x-0 h-24 bg-gradient-to-b from-primary/5 via-primary/10 to-transparent pointer-events-none will-change-transform"
         style={{
           animation: 'scanLine 3s ease-in-out infinite',
         }}
@@ -139,9 +139,9 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
                 strokeWidth={2.5}
                 fill="hsl(var(--primary))"
               />
-              {/* Trail effect */}
+              {/* Trail effect - GPU accelerated with scaleX instead of width */}
               <div 
-                className="absolute top-1/2 -left-2 w-4 h-0.5 bg-gradient-to-l from-primary/50 to-transparent rounded-full"
+                className="absolute top-1/2 -left-2 w-6 h-0.5 bg-gradient-to-l from-primary/50 to-transparent rounded-full will-change-transform origin-right"
                 style={{
                   animation: 'trailPulse 1.5s ease-in-out infinite',
                 }}
@@ -151,14 +151,20 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
           
           {/* Modern progress indicator */}
           <div className="flex flex-col items-center gap-3 mt-2">
-            {/* Progress bar */}
-            <div className="w-32 sm:w-40 h-1 bg-muted rounded-full overflow-hidden">
+            {/* Progress bar - GPU accelerated */}
+            <div className="w-32 sm:w-40 h-1 bg-muted rounded-full overflow-hidden relative">
+              {/* Progress fill - use scaleX for GPU acceleration */}
               <div 
-                className="h-full bg-gradient-to-r from-primary via-accent to-primary rounded-full"
+                className="absolute inset-y-0 left-0 w-full bg-primary/40 rounded-full origin-left"
                 style={{
-                  width: `${displayProgress}%`,
-                  transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                  backgroundSize: '200% 100%',
+                  transform: `scaleX(${displayProgress / 100})`,
+                  transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+              />
+              {/* Shimmer effect - GPU accelerated */}
+              <div 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-primary to-transparent will-change-transform"
+                style={{
                   animation: 'shimmerBar 2s linear infinite',
                 }}
               />
@@ -167,7 +173,7 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
             {/* Status text */}
             <div className="flex items-center gap-2">
               <div 
-                className="w-1.5 h-1.5 rounded-full bg-primary"
+                className="w-1.5 h-1.5 rounded-full bg-primary will-change-[transform,opacity]"
                 style={{
                   animation: 'pulse 1.5s ease-in-out infinite',
                 }}
@@ -187,89 +193,45 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
       </div>
       
       {/* Keyframe animations */}
+      {/* GPU-accelerated animations - only use transform and opacity */}
       <style>{`
         @keyframes tileLoad {
-          0%, 100% { 
-            opacity: 0.2;
-            background-color: hsl(var(--muted) / 0.2);
-          }
-          50% { 
-            opacity: 0.5;
-            background-color: hsl(var(--muted) / 0.4);
-          }
+          0%, 100% { opacity: 0.2; }
+          50% { opacity: 0.5; }
         }
         
         @keyframes tileShimmer {
-          0% { 
-            transform: translateX(-100%);
-            opacity: 0;
-          }
-          50% {
-            opacity: 1;
-          }
-          100% { 
-            transform: translateX(100%);
-            opacity: 0;
-          }
+          0% { transform: translateX(-100%); opacity: 0; }
+          50% { opacity: 1; }
+          100% { transform: translateX(100%); opacity: 0; }
         }
         
         @keyframes scanLine {
-          0% { 
-            transform: translateY(-100%);
-            opacity: 0;
-          }
-          10% {
-            opacity: 1;
-          }
-          90% {
-            opacity: 1;
-          }
-          100% { 
-            transform: translateY(calc(100vh + 100%));
-            opacity: 0;
-          }
+          0% { transform: translateY(-100%); opacity: 0; }
+          10%, 90% { opacity: 1; }
+          100% { transform: translateY(calc(100vh + 100%)); opacity: 0; }
         }
         
         @keyframes planeFloat {
-          0%, 100% { 
-            transform: translateY(0) translateX(0) rotate(-12deg); 
-          }
-          25% { 
-            transform: translateY(-4px) translateX(2px) rotate(-8deg); 
-          }
-          50% { 
-            transform: translateY(-6px) translateX(4px) rotate(-14deg); 
-          }
-          75% { 
-            transform: translateY(-3px) translateX(1px) rotate(-10deg); 
-          }
+          0%, 100% { transform: translateY(0) translateX(0) rotate(-12deg); }
+          25% { transform: translateY(-4px) translateX(2px) rotate(-8deg); }
+          50% { transform: translateY(-6px) translateX(4px) rotate(-14deg); }
+          75% { transform: translateY(-3px) translateX(1px) rotate(-10deg); }
         }
         
         @keyframes trailPulse {
-          0%, 100% { 
-            opacity: 0.3; 
-            width: 16px; 
-          }
-          50% { 
-            opacity: 0.6; 
-            width: 24px; 
-          }
+          0%, 100% { opacity: 0.3; transform: scaleX(0.67); }
+          50% { opacity: 0.6; transform: scaleX(1); }
         }
         
         @keyframes shimmerBar {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
         
         @keyframes pulse {
-          0%, 100% { 
-            opacity: 1; 
-            transform: scale(1); 
-          }
-          50% { 
-            opacity: 0.5; 
-            transform: scale(0.8); 
-          }
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.8); }
         }
       `}</style>
     </div>
