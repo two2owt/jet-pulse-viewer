@@ -563,6 +563,12 @@ const Index = () => {
             navigate("/social");
           }
         }}
+        onPrefetch={(tab) => {
+          // Prefetch Mapbox chunk on hover/touch of map tab
+          if (tab === "map" && !isMapboxReady) {
+            import("@/components/MapboxHeatmap");
+          }
+        }}
         notificationCount={notifications.filter(n => !n.read).length}
         isLoading={mapboxLoading && !mapboxToken}
       />
