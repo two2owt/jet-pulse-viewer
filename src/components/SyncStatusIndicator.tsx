@@ -176,61 +176,38 @@ export const SyncStatusIndicator = ({
 
         {/* Syncing - Full width runway with flying airplane */}
         {isLoading && isOnline && (
-          <div className="flex-1 flex items-center gap-1 sm:gap-1.5 md:gap-2">
-            {/* Runway container */}
-            <div className="flex-1 relative h-6 sm:h-7 md:h-8 bg-card/60 backdrop-blur-md rounded-full border border-border/40 overflow-hidden">
-              {/* Passing clouds background */}
-              <div className="runway-passing-clouds" />
-              
+          <div className="flex-1 flex items-center gap-1 sm:gap-1.5 md:gap-2" style={{ contain: 'layout style' }}>
+            {/* Runway container - fixed height prevents layout shifts */}
+            <div className="flex-1 relative h-6 sm:h-7 md:h-8 bg-card/60 backdrop-blur-md rounded-full border border-border/40 overflow-hidden" style={{ contain: 'strict' }}>
               {/* Runway track with dashes */}
               <div className="absolute inset-x-2 sm:inset-x-3 top-1/2 -translate-y-1/2 h-0.5 bg-muted-foreground/20 rounded-full" />
               <div className="absolute inset-x-2 sm:inset-x-3 top-1/2 -translate-y-1/2 h-px border-t border-dashed border-muted-foreground/30" />
               
-              {/* Cloud waypoints - hidden on smallest screens */}
-              <Cloud className="hidden sm:block absolute top-1/2 -translate-y-1/2 left-[15%] w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground/20 runway-cloud" />
-              <Cloud className="hidden xs:block absolute top-1/2 -translate-y-1/2 left-[40%] w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground/25 runway-cloud" style={{ animationDelay: '0.5s' }} />
-              <Cloud className="hidden sm:block absolute top-1/2 -translate-y-1/2 left-[65%] w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground/20 runway-cloud" style={{ animationDelay: '1s' }} />
-              
-              {/* Takeoff marker (left) */}
-              <div className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-                <div className="w-0.5 sm:w-1 h-2 sm:h-3 bg-primary/40 rounded-full" />
-                <div className="w-0.5 h-1.5 sm:h-2 bg-primary/30 rounded-full hidden sm:block" />
-              </div>
-              
-              {/* Landing marker (right) */}
-              <div className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-                <div className="w-0.5 h-1.5 sm:h-2 bg-emerald-500/30 rounded-full hidden sm:block" />
-                <div className="w-0.5 sm:w-1 h-2 sm:h-3 bg-emerald-500/40 rounded-full" />
-              </div>
-              
-              {/* Progress fill underneath */}
+              {/* Progress fill underneath - use transform instead of width for GPU acceleration */}
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-full transition-all duration-200"
-                style={{ width: `${syncProgress}%` }}
+                className="absolute left-0 top-0 bottom-0 w-full bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-full"
+                style={{ 
+                  transform: `scaleX(${syncProgress / 100})`,
+                  transformOrigin: 'left center',
+                  willChange: 'transform',
+                }}
               />
               
-              {/* Flying airplane with takeoff animation */}
+              {/* Flying airplane - use transform for GPU acceleration */}
               <div 
-                className="absolute top-1/2 transition-all duration-200 ease-out runway-airplane"
+                className="absolute top-1/2"
                 style={{ 
-                  left: `calc(${Math.max(5, Math.min(95, syncProgress))}% - 6px)`,
-                  transform: `translateY(-50%) translateY(${Math.sin(syncProgress * 0.1) * 2}px) rotate(${syncProgress < 15 ? -25 - (15 - syncProgress) : syncProgress > 85 ? -15 + (syncProgress - 85) * 0.5 : -20}deg)`,
+                  left: `${Math.max(5, Math.min(95, syncProgress))}%`,
+                  transform: `translate(-50%, -50%) rotate(-20deg)`,
+                  willChange: 'left',
                 }}
               >
-                <div className="relative">
-                  <Plane className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary fill-primary drop-shadow-md" />
-                  {/* Contrails */}
-                  <div className="absolute right-full top-1/2 -translate-y-1/2 w-4 sm:w-6 md:w-8 h-0.5 overflow-hidden">
-                    <div className="runway-contrail" />
-                  </div>
-                  {/* Engine glow */}
-                  <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1 h-1 sm:w-1.5 sm:h-1.5 bg-accent rounded-full blur-[2px] animate-pulse" />
-                </div>
+                <Plane className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary fill-primary drop-shadow-md" />
               </div>
               
-              {/* Progress percentage */}
-              <div className="absolute right-5 sm:right-7 md:right-9 top-1/2 -translate-y-1/2">
-                <span className="text-[8px] sm:text-[9px] md:text-[10px] text-primary font-semibold tracking-tight">
+              {/* Progress percentage - fixed position */}
+              <div className="absolute right-2 sm:right-3 md:right-4 top-1/2 -translate-y-1/2">
+                <span className="text-[8px] sm:text-[9px] md:text-[10px] text-primary font-semibold tracking-tight tabular-nums">
                   {Math.round(syncProgress)}%
                 </span>
               </div>
@@ -240,12 +217,13 @@ export const SyncStatusIndicator = ({
 
         {/* Synced - Full width with landed airplane and refresh */}
         {!isLoading && isOnline && (
-          <div className="flex-1 flex items-center gap-1 sm:gap-1.5 md:gap-2">
+          <div className="flex-1 flex items-center gap-1 sm:gap-1.5 md:gap-2" style={{ contain: 'layout style' }}>
             <div 
               className={cn(
-                "flex-1 relative h-6 sm:h-7 md:h-8 bg-card/60 backdrop-blur-md rounded-full border border-border/40 overflow-hidden transition-all duration-500",
+                "flex-1 relative h-6 sm:h-7 md:h-8 bg-card/60 backdrop-blur-md rounded-full border border-border/40 overflow-hidden",
                 showSuccessFlash && "runway-landing-flash"
               )}
+              style={{ contain: 'strict' }}
             >
               {/* Runway track */}
               <div className="absolute inset-x-2 sm:inset-x-3 top-1/2 -translate-y-1/2 h-0.5 bg-muted-foreground/10 rounded-full" />
@@ -253,11 +231,11 @@ export const SyncStatusIndicator = ({
               {/* Landed airplane (parked on right side) with destination */}
               <div className="absolute right-1.5 sm:right-2.5 md:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-1.5">
                 {/* Arrived at destination text */}
-                <div className="flex flex-col items-end gap-0 arrival-destination">
+                <div className="flex flex-col items-end gap-0">
                   <span className="text-[7px] sm:text-[8px] md:text-[9px] text-muted-foreground/70 leading-tight tracking-tight">Arrived at</span>
-                  <span className="text-[8px] sm:text-[10px] md:text-[11px] font-semibold text-emerald-500 leading-tight whitespace-nowrap arrival-city-name">{cityName}</span>
+                  <span className="text-[8px] sm:text-[10px] md:text-[11px] font-semibold text-emerald-500 leading-tight whitespace-nowrap truncate max-w-[80px] sm:max-w-[100px]">{cityName}</span>
                 </div>
-                <div className="relative landed-airplane">
+                <div className="relative flex-shrink-0">
                   <Plane className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary/80 fill-primary/80 rotate-[-10deg]" />
                   {/* Synced indicator */}
                   <div className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full flex items-center justify-center">
@@ -268,20 +246,17 @@ export const SyncStatusIndicator = ({
               
               {/* Last sync time */}
               <div className="absolute left-1.5 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 flex items-center">
-                <span className={cn(
-                  "text-[8px] sm:text-[9px] md:text-[10px] text-muted-foreground font-medium whitespace-nowrap tracking-tight",
-                  showSuccessFlash && "animate-fade-in"
-                )}>
+                <span className="text-[8px] sm:text-[9px] md:text-[10px] text-muted-foreground font-medium whitespace-nowrap tracking-tight tabular-nums">
                   {showSuccessFlash ? "Just landed" : (timeSinceUpdate || "Just now")}
                 </span>
               </div>
             </div>
             
-            {/* Refresh button */}
+            {/* Refresh button - fixed size */}
             {onRefresh && (
               <button
                 onClick={onRefresh}
-                className="p-1 sm:p-1.5 md:p-2 hover:bg-accent/20 rounded-full transition-colors flex-shrink-0"
+                className="p-1.5 sm:p-2 hover:bg-accent/20 rounded-full transition-colors flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 flex items-center justify-center"
                 aria-label="Refresh data"
               >
                 <RefreshCw className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-muted-foreground hover:text-primary transition-colors" />
