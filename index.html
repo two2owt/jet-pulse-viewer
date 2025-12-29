@@ -98,7 +98,7 @@
         line-gap-override: 0%;
         size-adjust: 105%;
       }
-      /* Critical CSS variables for dark mode */
+      /* Critical CSS variables for dark mode - FIXED VALUES prevent CLS */
       :root {
         color-scheme: dark;
         --background: 0 0% 6%;
@@ -107,9 +107,15 @@
         --muted: 0 0% 15%;
         --muted-foreground: 0 0% 64%;
         --border: 0 0% 20%;
+        /* Fixed shell dimensions - must match React components exactly */
         --header-height: 52px;
+        --header-total-height: calc(52px + env(safe-area-inset-top, 0px));
         --bottom-nav-height: 60px;
+        --bottom-nav-total-height: calc(60px + env(safe-area-inset-bottom, 0px));
+        --safe-area-inset-top: env(safe-area-inset-top, 0px);
         --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+        /* Map main area height - calculated to prevent CLS */
+        --main-height: calc(100dvh - var(--header-total-height) - var(--bottom-nav-total-height));
       }
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html { 
@@ -142,7 +148,11 @@
       #app-shell.hidden { display: none; }
       
       .shell-header {
-        height: var(--header-height);
+        /* FIXED dimensions prevent 0.0079 CLS from header elements */
+        height: var(--header-total-height);
+        min-height: var(--header-total-height);
+        max-height: var(--header-total-height);
+        padding-top: var(--safe-area-inset-top);
         padding: 0 12px;
         display: flex;
         align-items: center;
@@ -155,10 +165,16 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        /* Fixed dimensions prevent CLS */
+        min-width: 80px;
+        height: 32px;
+        flex-shrink: 0;
+        contain: layout style;
       }
       .shell-logo-img {
         width: 32px;
         height: 32px;
+        min-width: 32px;
         border-radius: 8px;
       }
       .shell-logo-text {
@@ -168,28 +184,43 @@
         letter-spacing: -0.5px;
       }
       .shell-search {
-        flex: 1;
+        flex: 1 1 auto;
         max-width: 300px;
+        min-width: 100px;
         height: 36px;
+        min-height: 36px;
         margin: 0 16px;
         background: hsl(var(--border));
         border-radius: 8px;
+        contain: layout style;
       }
       .shell-avatar {
         width: 36px;
         height: 36px;
+        min-width: 36px;
+        flex-shrink: 0;
+        contain: layout style;
         border-radius: 50%;
         background: hsl(var(--border));
       }
       
       .shell-main {
-        flex: 1;
+        /* FIXED HEIGHT prevents 0.0655 CLS when map loads */
+        flex: 1 1 var(--main-height);
+        height: var(--main-height);
+        min-height: var(--main-height);
+        max-height: var(--main-height);
         position: relative;
         overflow: hidden;
         background: hsl(var(--background));
         display: flex;
         align-items: center;
         justify-content: center;
+        /* Containment prevents layout recalculation */
+        contain: strict;
+        /* Force GPU layer for smooth transition */
+        transform: translateZ(0);
+        will-change: contents;
       }
       /* Animated gradient background matching MapSkeleton */
       .shell-main::before {
@@ -355,7 +386,10 @@
       }
       
       .shell-nav {
-        height: var(--bottom-nav-height);
+        /* FIXED dimensions prevent CLS */
+        height: var(--bottom-nav-total-height);
+        min-height: var(--bottom-nav-total-height);
+        max-height: var(--bottom-nav-total-height);
         padding: 8px 24px;
         padding-bottom: calc(8px + var(--safe-area-inset-bottom));
         display: flex;
@@ -364,6 +398,7 @@
         background: hsl(var(--muted));
         border-top: 1px solid hsl(var(--border));
         flex-shrink: 0;
+        contain: layout style;
       }
       .shell-nav-item {
         width: 48px;
