@@ -96,14 +96,12 @@ export const Header = ({
   const handleCloseResults = () => {
     setShowResults(false);
   };
-  return <header className="bg-card/98 backdrop-blur-xl border-b border-border/50 fixed top-0 left-0 right-0 z-[60] header-contained" role="banner" style={{
+  return <header className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] header-contained animate-fade-in" role="banner" style={{
     paddingTop: 'var(--safe-area-inset-top)',
+    // Use CSS variable for responsive height
     height: 'var(--header-total-height)',
     minHeight: 'var(--header-total-height)',
-    maxHeight: 'var(--header-total-height)',
-    transform: 'translateZ(0)',
-    contain: 'strict',
-    willChange: 'transform',
+    transform: 'translateZ(0)'
   }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-full">
@@ -120,7 +118,7 @@ export const Header = ({
           {/* Search Bar - Responsive width with better scaling */}
           <div className="min-w-0 w-[100px] sm:w-[140px] md:w-[180px] lg:w-[220px] xl:w-[280px] relative flex-shrink-0">
             <Search className="absolute left-2 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 text-muted-foreground pointer-events-none" />
-            <Input type="text" placeholder="Search..." value={searchQuery} onChange={handleSearchChange} onFocus={() => searchQuery.trim() && setShowResults(true)} maxLength={100} aria-label="Search venues and deals" className="w-full pl-7 sm:pl-8 md:pl-9 pr-2 sm:pr-3 h-8 sm:h-9 md:h-10 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-xs sm:text-sm md:text-base text-foreground placeholder:text-muted-foreground" />
+            <Input type="text" placeholder="Search..." value={searchQuery} onChange={handleSearchChange} onFocus={() => searchQuery.trim() && setShowResults(true)} maxLength={100} aria-label="Search venues and deals" className="w-full pl-7 sm:pl-8 md:pl-9 pr-2 sm:pr-3 h-8 sm:h-9 md:h-10 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-xs sm:text-sm md:text-base text-foreground placeholder:text-muted-foreground my-[28px]" />
             
             <SearchResults query={searchQuery} venues={venues} deals={deals} onVenueSelect={onVenueSelect} onClose={handleCloseResults} isVisible={showResults} />
           </div>

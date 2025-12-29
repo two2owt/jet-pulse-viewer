@@ -38,7 +38,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { OfflineBanner } from "@/components/OfflineBanner";
-import { MapSkeleton } from "@/components/skeletons";
+import { MapSkeleton, HeaderSkeleton } from "@/components/skeletons";
 
 // Lazy load Dialog components (only used when venue is selected)
 const DirectionsDialog = lazy(() => import("@/components/DirectionsDialog"));
@@ -342,58 +342,72 @@ const Index = () => {
       <div 
         className={`app-wrapper ${activeTab === 'map' ? 'map-container' : 'page-container'}`}
         style={{
+          // Fixed dimensions prevent layout shifts during initial render
           height: '100dvh',
           minHeight: '100dvh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
           contain: 'strict',
           transform: 'translateZ(0)',
+          // Isolate stacking context to prevent shift propagation
           isolation: 'isolate',
         }}
       >
-        {/* Header - Always render to prevent layout shifts */}
-        <Header 
-          venues={venues}
-          deals={deals}
-          onVenueSelect={handleVenueSelect}
-          isLoading={mapboxLoading || dealsLoading || venuesLoading}
-          lastUpdated={dealsLastUpdated || venuesLastUpdated}
-          onRefresh={() => {
-            refreshDeals();
-            refreshVenues();
-          }}
-          cityName={detectedLocationName || `${selectedCity.name}, ${selectedCity.state}`}
-        />
+        {/* Header - Show skeleton during initial load before data arrives */}
+        {mapboxLoading && !mapboxToken ? (
+          <HeaderSkeleton />
+        ) : (
+          <Header 
+            venues={venues}
+            deals={deals}
+            onVenueSelect={handleVenueSelect}
+            isLoading={dealsLoading || venuesLoading}
+            lastUpdated={dealsLastUpdated || venuesLastUpdated}
+            onRefresh={() => {
+              refreshDeals();
+              refreshVenues();
+            }}
+            cityName={detectedLocationName || `${selectedCity.name}, ${selectedCity.state}`}
+          />
+        )}
 
         {/* Offline Banner */}
         <OfflineBanner />
 
-      {/* Main Content - Fixed positioning relative to header/nav */}
+      {/* Main Content - Reserve height immediately to prevent CLS */}
       <main 
         role="main"
-        className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 overflow-y-auto'}`}
+        className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5'}`}
         style={{ 
-          position: 'fixed',
-          top: 'var(--header-total-height)',
-          bottom: 'var(--bottom-nav-total-height)',
-          left: 0,
-          right: 0,
-          contain: activeTab === 'map' ? 'strict' : 'layout style paint',
+          // Fixed dimensions prevent layout shifts
+          flex: '1 1 auto',
+          // Calculate height using CSS variables for responsive header/nav
+          minHeight: activeTab === 'map' ? 'calc(100dvh - var(--header-total-height) - var(--bottom-nav-total-height))' : '400px',
+          height: activeTab === 'map' ? 'calc(100dvh - var(--header-total-height) - var(--bottom-nav-total-height))' : 'auto',
+          // Strict size containment prevents content from affecting layout
+          contain: 'size layout style paint',
+          contentVisibility: 'auto',
+          containIntrinsicSize: activeTab === 'map' ? '100vw calc(100dvh - var(--header-total-height) - var(--bottom-nav-total-height))' : '100vw 400px',
+          // Create a stable layer
           transform: 'translateZ(0)',
+          // Explicit sizing prevents browser recalculation
           boxSizing: 'border-box',
+          width: '100%',
+          // Isolate stacking context
           isolation: 'isolate',
-          overflowY: activeTab === 'map' ? 'hidden' : 'auto',
         }}
       >
         {activeTab === "map" && (
           <div 
-            className="absolute inset-0"
+            className="relative w-full h-full"
             style={{ 
-              contain: 'strict',
+              height: '100%',
+              minHeight: '400px',
+              contain: 'layout style paint',
+              contentVisibility: 'auto',
+              containIntrinsicSize: '100vw 400px',
               transform: 'translateZ(0)',
             }}
           >
+
             {/* Mapbox Heatmap - Edge to edge */}
             <div className="h-full w-full relative">
               {/* Error state - only show if there's a definite error */}
