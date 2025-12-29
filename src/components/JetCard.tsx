@@ -119,6 +119,8 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
             sizesConfig={{ mobile: '100vw', tablet: '640px', desktop: '800px' }}
             quality={85}
             aspectRatio="16/9"
+            deferLoad={true}
+            blurUp={true}
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}
