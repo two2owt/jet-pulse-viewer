@@ -65,20 +65,20 @@ const Index = () => {
   const location = useLocation();
   
   // Initialize activeTab from URL parameter synchronously to prevent flash
-  // Default to "explore" to defer Mapbox loading and reduce TBT
+  // Map is the primary tab - Mapbox loading is deferred via requestIdleCallback
   const getInitialTab = (): "map" | "explore" | "notifications" | "favorites" | "social" => {
     const searchParams = new URLSearchParams(location.search);
     const tabParam = searchParams.get('tab');
-    if (tabParam === "map") return "map";
+    if (tabParam === "explore") return "explore";
     if (tabParam === "notifications") return "notifications";
     if (tabParam === "favorites") return "favorites";
     if (tabParam === "social") return "social";
-    return "explore"; // Default to explore to defer Mapbox loading
+    return "map"; // Map is the primary default tab
   };
   
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">(getInitialTab);
-  // Track if map tab has been visited - only load Mapbox after first visit to reduce initial TBT
-  const [hasVisitedMapTab, setHasVisitedMapTab] = useState(getInitialTab() === "map");
+  // Defer Mapbox loading until browser is idle to reduce TBT while keeping map as primary
+  const [isMapboxReady, setIsMapboxReady] = useState(false);
   const [mapUIResetKey, setMapUIResetKey] = useState(0); // Increments when switching to map tab to reset collapsed UI
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
@@ -217,16 +217,30 @@ const Index = () => {
     }
   }, [location.search, location.pathname]);
 
-  // Reset map UI collapsed state when switching to map tab and mark as visited
+  // Reset map UI collapsed state when switching to map tab
   useEffect(() => {
     if (activeTab === "map") {
       setMapUIResetKey(prev => prev + 1);
-      // Mark map tab as visited to trigger Mapbox loading
-      if (!hasVisitedMapTab) {
-        setHasVisitedMapTab(true);
-      }
     }
-  }, [activeTab, hasVisitedMapTab]);
+  }, [activeTab]);
+
+  // Defer Mapbox initialization until browser is idle to reduce TBT
+  useEffect(() => {
+    if (activeTab === "map" && !isMapboxReady) {
+      // Use requestIdleCallback to defer heavy Mapbox loading until browser is idle
+      const scheduleMapboxLoad = () => {
+        if ('requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(() => {
+            setIsMapboxReady(true);
+          }, { timeout: 150 }); // Max 150ms delay to keep it responsive
+        } else {
+          // Fallback for Safari - use short setTimeout
+          setTimeout(() => setIsMapboxReady(true), 50);
+        }
+      };
+      scheduleMapboxLoad();
+    }
+  }, [activeTab, isMapboxReady]);
 
   const handleCityChange = useCallback((city: City) => {
     setSelectedCity(city);
@@ -419,8 +433,8 @@ const Index = () => {
                 </div>
               )}
               
-              {/* Map - only load after map tab has been visited to reduce initial TBT */}
-              {hasVisitedMapTab && mapboxToken ? (
+              {/* Map - deferred via requestIdleCallback to reduce TBT */}
+              {isMapboxReady && mapboxToken ? (
                 <div 
                   className="h-full w-full animate-fade-in"
                   style={{
