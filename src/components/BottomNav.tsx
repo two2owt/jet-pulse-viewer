@@ -31,18 +31,19 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50 nav-contained"
+      className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-[60] nav-contained"
       role="navigation"
       aria-label="Main navigation"
       style={{
         paddingBottom: 'var(--safe-area-inset-bottom)',
         paddingLeft: 'var(--safe-area-inset-left)',
         paddingRight: 'var(--safe-area-inset-right)',
-        // Use CSS variable for responsive height
         height: 'var(--bottom-nav-total-height)',
         minHeight: 'var(--bottom-nav-total-height)',
+        maxHeight: 'var(--bottom-nav-total-height)',
         contain: 'strict',
         transform: 'translateZ(0)',
+        willChange: 'transform',
       }}
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 h-full flex items-center">
