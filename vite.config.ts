@@ -220,32 +220,33 @@ runtimeCaching: [
             },
           },
           {
-            // Mapbox API (styles, fonts, glyphs)
+            // Mapbox API (styles, fonts, glyphs) - NetworkFirst for freshness, fallback to cache offline
             urlPattern: /^https:\/\/api\.mapbox\.com\/.*/i,
-            handler: "CacheFirst",
+            handler: "NetworkFirst",
             options: {
               cacheName: "mapbox-api-cache",
               expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
+              networkTimeoutSeconds: 3, // Fall back to cache if network is slow
             },
           },
           {
-            // Mapbox tiles from main domain
+            // Mapbox tiles from main domain - CacheFirst for speed, works offline
             urlPattern: /^https:\/\/tiles\.mapbox\.com\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "mapbox-tiles-cache",
-              expiration: { maxEntries: 1000, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              expiration: { maxEntries: 2000, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
           {
-            // Mapbox tiles from subdomains (a, b, c, d)
+            // Mapbox tiles from subdomains (a, b, c, d) - CacheFirst for offline
             urlPattern: /^https:\/\/[a-d]\.tiles\.mapbox\.com\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "mapbox-tiles-cache",
-              expiration: { maxEntries: 1000, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              expiration: { maxEntries: 2000, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

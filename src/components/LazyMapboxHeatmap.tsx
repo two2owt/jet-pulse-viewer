@@ -1,6 +1,8 @@
 import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { MapSkeleton } from "@/components/skeletons";
 import { useConnectionSpeed } from "@/hooks/useConnectionSpeed";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { OfflineMapIndicator } from "@/components/OfflineMapIndicator";
 import type { City } from "@/types/cities";
 import type { Venue } from "@/types/venue";
 
@@ -102,6 +104,8 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
     };
   }, [preloadDistance, renderDistance, shouldPreloadExtras]);
 
+  const isOnline = useOnlineStatus();
+
   return (
     <div 
       ref={containerRef}
@@ -112,7 +116,11 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
         containIntrinsicSize: '100vw 100%',
       }}
       data-connection-speed={isSlowConnection ? 'slow' : 'fast'}
+      data-online={isOnline ? 'true' : 'false'}
     >
+      {/* Offline indicator overlay */}
+      <OfflineMapIndicator compact />
+      
       {hasBeenVisible ? (
         <Suspense fallback={<MapSkeleton />}>
           <MapboxHeatmap {...props} />
