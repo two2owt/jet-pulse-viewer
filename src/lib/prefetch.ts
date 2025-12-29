@@ -48,13 +48,19 @@ export const prefetchMapboxToken = async () => {
 
 /**
  * Prefetch the Mapbox chunk during browser idle time
- * DEPRECATED: Mapbox is now loaded on-demand by MapboxHeatmap to reduce TBT
- * Keeping this function for backwards compatibility but it's a no-op
+ * Uses dynamic import to trigger chunk loading without executing
  */
 export const prefetchMapbox = () => {
-  // No-op: Mapbox is loaded on-demand when the map tab is active
-  // This reduces Total Blocking Time on initial page load
-  console.log('Prefetch: Mapbox loading deferred to on-demand');
+  if (mapboxPrefetched) return;
+  mapboxPrefetched = true;
+  
+  // Trigger the chunk download by importing the module
+  // The browser will fetch and cache it for later use
+  import('mapbox-gl').then(() => {
+    console.log('Prefetch: Mapbox chunk loaded and cached');
+  }).catch(() => {
+    mapboxPrefetched = false;
+  });
 };
 
 // ========================================
