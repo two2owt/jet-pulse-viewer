@@ -18,6 +18,11 @@ serve(async (req) => {
       throw new Error('MAPBOX_PUBLIC_TOKEN not configured');
     }
 
+    // Mapbox GL JS requires a public token (pk.*). Never expose secret tokens (sk.*) to clients.
+    if (!mapboxToken.startsWith('pk.')) {
+      throw new Error('MAPBOX_PUBLIC_TOKEN must be a public token starting with "pk."');
+    }
+
     return new Response(
       JSON.stringify({ token: mapboxToken }),
       { 

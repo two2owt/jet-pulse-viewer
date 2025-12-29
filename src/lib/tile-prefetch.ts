@@ -17,7 +17,8 @@ const MAX_TILES_PER_ZOOM = 16;
 // LocalStorage keys
 const LAST_LOCATION_KEY = 'jet_last_known_location';
 const PREFETCH_TIMESTAMP_KEY = 'tile_prefetch_timestamp';
-const TOKEN_CACHE_KEY = 'mapbox_token_cache';
+const TOKEN_CACHE_KEY = 'mapbox_token_cache_v2';
+const LEGACY_TOKEN_CACHE_KEY = 'mapbox_token_cache';
 
 interface LastKnownLocation {
   lat: number;
@@ -115,13 +116,23 @@ function generateTileUrls(
  * Get the cached Mapbox token
  */
 function getCachedToken(): string | null {
-  const tokenCache = localStorage.getItem(TOKEN_CACHE_KEY) || 
+  const tokenCache = localStorage.getItem(TOKEN_CACHE_KEY) ||
                      sessionStorage.getItem(TOKEN_CACHE_KEY);
-  
-  if (!tokenCache) return null;
-  
+
+  if (!tokenCache) {
+    // Clear legacy key so rotated tokens take effect immediately
+    try {
+      localStorage.removeItem(LEGACY_TOKEN_CACHE_KEY);
+      sessionStorage.removeItem(LEGACY_TOKEN_CACHE_KEY);
+    } catch {
+      // ignore
+    }
+    return null;
+  }
+
   try {
     const { token } = JSON.parse(tokenCache);
+    if (typeof token !== 'string' || !token.startsWith('pk.')) return null;
     return token;
   } catch {
     return null;

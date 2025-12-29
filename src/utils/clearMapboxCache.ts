@@ -4,8 +4,14 @@
  */
 export const clearMapboxTokenCache = (): void => {
   try {
+    // Current cache key
+    localStorage.removeItem('mapbox_token_cache_v2');
+    sessionStorage.removeItem('mapbox_token_cache_v2');
+
+    // Legacy cache key
     localStorage.removeItem('mapbox_token_cache');
     sessionStorage.removeItem('mapbox_token_cache');
+
     console.log('✅ Mapbox token cache cleared');
   } catch (error) {
     console.error('Failed to clear Mapbox token cache:', error);
