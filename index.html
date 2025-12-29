@@ -467,15 +467,20 @@
         var root = document.getElementById('root');
         if (!shell || !root) return;
 
+        // Prevent infinite reload loops - only attempt recovery once per session
+        var BOOT_KEY = 'jet_boot_attempted';
+        var bootAttempted = sessionStorage.getItem(BOOT_KEY);
+
         var isHidden = function () {
           return shell.classList.contains('hidden') || shell.style.display === 'none' || shell.style.opacity === '0';
         };
 
         var hideShell = function () {
           if (isHidden()) return;
+          // Clear boot flag on successful mount
+          try { sessionStorage.removeItem(BOOT_KEY); } catch (e) {}
           requestAnimationFrame(function () {
             // Polished reveal: shell scales up slightly and fades out with blur
-            // This creates the illusion of the map "coming forward" behind it
             shell.style.transition = 'opacity 400ms cubic-bezier(0.4, 0, 0.2, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1), filter 400ms cubic-bezier(0.4, 0, 0.2, 1)';
             shell.style.opacity = '0';
             shell.style.transform = 'scale(1.04)';
@@ -488,6 +493,18 @@
           });
         };
 
+        var showError = function () {
+          var loader = document.querySelector('.shell-loader');
+          if (loader) {
+            loader.innerHTML = '<div style="text-align:center;padding:24px;">' +
+              '<div style="font-size:48px;margin-bottom:16px;">⚠️</div>' +
+              '<div style="font-size:18px;font-weight:600;margin-bottom:8px;color:hsl(0 0% 98%);">Unable to Load App</div>' +
+              '<div style="font-size:14px;color:hsl(0 0% 64%);margin-bottom:16px;max-width:280px;">Try clearing your browser cache or opening in a private window.</div>' +
+              '<button onclick="localStorage.clear();sessionStorage.clear();location.reload();" style="background:hsl(24 100% 50%);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">Clear Cache & Reload</button>' +
+            '</div>';
+          }
+        };
+
         // Hide shell as soon as React mounts anything into #root
         try {
           var observer = new MutationObserver(function () {
@@ -497,11 +514,9 @@
             }
           });
           observer.observe(root, { childList: true });
-        } catch (e) {
-          // Ignore observer failures
-        }
+        } catch (e) {}
 
-        // If we're still on the shell after a while, attempt a recovery (stale SW often causes this)
+        // If we're still on the shell after a while, attempt a recovery (but only once)
         setTimeout(function () {
           if (isHidden()) return;
           if (root.childElementCount > 0) {
@@ -509,7 +524,16 @@
             return;
           }
 
-          // Update shell copy so it doesn't feel frozen
+          // If we already tried recovery this session, show error instead of looping
+          if (bootAttempted) {
+            showError();
+            return;
+          }
+
+          // Mark that we're attempting recovery
+          try { sessionStorage.setItem(BOOT_KEY, '1'); } catch (e) {}
+
+          // Update shell copy
           try {
             var status = document.querySelector('.shell-text');
             if (status) status.textContent = 'Refreshing…';
@@ -529,9 +553,7 @@
                 return Promise.all(keys.map(function (k) { return caches.delete(k); }));
               });
             })
-            .catch(function () {
-              // Ignore recovery errors
-            })
+            .catch(function () {})
             .finally(function () {
               // Cache-bust to avoid reusing a broken cached document
               var url = new URL(window.location.href);
