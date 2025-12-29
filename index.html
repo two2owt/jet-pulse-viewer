@@ -251,7 +251,7 @@
         position: absolute;
         top: 50%;
         left: -8px;
-        width: 16px;
+        width: 24px; /* Fixed width - animate with scaleX instead */
         height: 2px;
         background: linear-gradient(to left, hsl(var(--primary) / 0.5), transparent);
         border-radius: 2px;
@@ -265,9 +265,10 @@
         50% { transform: translateY(-6px) translateX(4px) rotate(-14deg); }
         75% { transform: translateY(-3px) translateX(1px) rotate(-10deg); }
       }
+      /* GPU-accelerated: use scaleX instead of width to avoid layout recalc */
       @keyframes trailPulse {
-        0%, 100% { opacity: 0.3; width: 16px; }
-        50% { opacity: 0.6; width: 24px; }
+        0%, 100% { opacity: 0.3; transform: scaleX(0.67); }
+        50% { opacity: 0.6; transform: scaleX(1); }
       }
       /* Progress bar - matching MapSkeleton gradient */
       .shell-progress-container {
@@ -280,15 +281,27 @@
       }
       .shell-progress-bar {
         height: 100%;
-        width: 60%;
-        background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)));
-        background-size: 200% 100%;
+        width: 100%; /* Full width, use pseudo-element for shimmer */
+        background: hsl(var(--muted));
         border-radius: 4px;
+        position: relative;
+        overflow: hidden;
+      }
+      .shell-progress-bar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)), transparent);
+        /* GPU-accelerated: use translateX instead of background-position */
         animation: shimmerBar 2s linear infinite;
+        will-change: transform;
       }
       @keyframes shimmerBar {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
       }
       /* Status indicator */
       .shell-status {
