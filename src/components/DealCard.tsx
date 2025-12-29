@@ -120,6 +120,7 @@ export const DealCard = memo(({ deal, index = 0 }: DealCardProps) => {
             aspectRatio="16/10"
             deferLoad={index >= 2}
             eager={index === 0}
+            fetchPriority={index === 0 ? "high" : undefined}
             onError={(e) => {
               e.currentTarget.style.display = "none";
             }}
