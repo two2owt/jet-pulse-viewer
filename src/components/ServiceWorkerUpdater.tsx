@@ -1,70 +1,43 @@
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { RefreshCw } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 export function ServiceWorkerUpdater() {
-  const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
+  const hasReloaded = useRef(false);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
-
-    const handleUpdate = () => {
-      navigator.serviceWorker.getRegistration().then((registration) => {
-        if (registration?.waiting) {
-          setWaitingWorker(registration.waiting);
-        }
-      });
-    };
-
-    // Check for waiting service worker on mount
-    handleUpdate();
-
-    // Listen for new service worker updates
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.addEventListener("updatefound", () => {
-        const newWorker = registration.installing;
-        if (newWorker) {
-          newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-              setWaitingWorker(newWorker);
-            }
-          });
-        }
-      });
-    });
-
-    // Listen for controller change (update applied)
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      window.location.reload();
-    });
-  }, []);
-
-  useEffect(() => {
-    if (waitingWorker) {
-      toast(
-        <div className="flex items-center gap-3">
-          <RefreshCw className="w-5 h-5 text-primary animate-spin" />
-          <div className="flex-1">
-            <p className="font-medium">New version available</p>
-            <p className="text-sm text-muted-foreground">Click to update JET</p>
-          </div>
-        </div>,
-        {
-          duration: Infinity,
-          id: "sw-update",
-          action: {
-            label: "Update",
-            onClick: () => {
-              waitingWorker.postMessage({ type: "SKIP_WAITING" });
-            },
-          },
-          onDismiss: () => {
-            // User dismissed, don't show again this session
-          },
-        }
-      );
+    
+    // Prevent reload loop by checking sessionStorage
+    const reloadKey = 'sw_reload_' + Date.now().toString().slice(0, -4); // Group by ~10 second windows
+    const hasRecentReload = sessionStorage.getItem('sw_recent_reload');
+    
+    if (hasRecentReload) {
+      // Already reloaded recently, don't set up reload listener
+      console.log('ServiceWorkerUpdater: Skipping reload listener to prevent loop');
+      return;
     }
-  }, [waitingWorker]);
+
+    // Listen for controller change (update applied) with guard against loops
+    const handleControllerChange = () => {
+      if (hasReloaded.current) return;
+      
+      // Mark that we're about to reload
+      hasReloaded.current = true;
+      sessionStorage.setItem('sw_recent_reload', 'true');
+      
+      // Clear the flag after 30 seconds to allow future updates
+      setTimeout(() => {
+        sessionStorage.removeItem('sw_recent_reload');
+      }, 30000);
+      
+      window.location.reload();
+    };
+    
+    navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
+    
+    return () => {
+      navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+    };
+  }, []);
 
   return null;
 }
