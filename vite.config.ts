@@ -57,7 +57,13 @@ export default defineConfig(({ mode }) => ({
     },
     // Optimize chunk splitting for better caching and reduced unused JS
     rollupOptions: {
+      // Externalize mapbox-gl - load from CDN instead of bundling (saves ~448KB)
+      external: mode === 'production' ? ['mapbox-gl'] : [],
       output: {
+        // Map externalized modules to their global variable names
+        globals: {
+          'mapbox-gl': 'mapboxgl',
+        },
         manualChunks: (id) => {
           // Core React - always needed, load first
           if (id.includes('react-dom') || id.includes('react/') || id.includes('/react/')) {
@@ -79,19 +85,17 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('@sentry/')) {
             return 'sentry';
           }
-          // Mapbox - heavy (~500KB+), lazy loaded when map is needed
-          // IMPORTANT: Keep Mapbox geometry deps out of the 'charts' chunk; otherwise the home page can
-          // end up loading the charts chunk (and its D3 internals) and crash with "Cannot access 'S' before initialization".
-          const isMapboxModule =
-            id.includes("mapbox-gl") ||
+          // Mapbox geometry deps - keep separate from charts to avoid initialization issues
+          // Note: mapbox-gl itself is externalized to CDN in production
+          const isMapboxDep =
             id.includes("martinez-polygon-clipping") ||
             id.includes("robust-predicates") ||
             id.includes("splaytree") ||
             id.includes("tinyqueue") ||
             id.includes("delaunator");
 
-          if (isMapboxModule) {
-            return "mapbox";
+          if (isMapboxDep) {
+            return "mapbox-deps";
           }
 
           // Recharts + D3 are only used in the admin analytics view.

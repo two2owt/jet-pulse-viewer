@@ -13,12 +13,19 @@ const MapboxHeatmap = lazy(() =>
 
 // Preload function to start fetching the Mapbox chunk early
 const preloadMapboxChunk = (shouldPreloadExtras: boolean) => {
+  // In production, mapbox-gl is loaded from CDN - check if already available
+  if (typeof window !== 'undefined' && (window as any).mapboxgl) {
+    // Already loaded from CDN, just preload the component
+    import("@/components/MapboxHeatmap");
+    return;
+  }
+  
   // This triggers the dynamic import but doesn't render
   import("@/components/MapboxHeatmap");
-  // Also preload mapbox-gl library itself
-  import("mapbox-gl");
+  // Also preload mapbox-gl library itself (dev mode fallback)
+  import("mapbox-gl").catch(() => {});
   
-  // On fast connections, also preload the CSS
+  // On fast connections, also preload the CSS (redundant if CDN script loads it)
   if (shouldPreloadExtras) {
     const link = document.createElement('link');
     link.rel = 'preload';

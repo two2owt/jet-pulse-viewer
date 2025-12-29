@@ -54,8 +54,14 @@ export const prefetchMapbox = () => {
   if (mapboxPrefetched) return;
   mapboxPrefetched = true;
   
-  // Trigger the chunk download by importing the module
-  // The browser will fetch and cache it for later use
+  // In production, mapbox-gl is loaded from CDN via script tag
+  // Check if it's already available globally
+  if (typeof window !== 'undefined' && (window as any).mapboxgl) {
+    console.log('Prefetch: Mapbox already loaded from CDN');
+    return;
+  }
+  
+  // Fallback: trigger the chunk download by importing the module (dev mode)
   import('mapbox-gl').then(() => {
     console.log('Prefetch: Mapbox chunk loaded and cached');
   }).catch(() => {
