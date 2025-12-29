@@ -74,6 +74,8 @@ const Index = () => {
   };
   
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">(getInitialTab);
+  // Track if map tab has been visited - only load Mapbox after first visit to reduce initial TBT
+  const [hasVisitedMapTab, setHasVisitedMapTab] = useState(getInitialTab() === "map");
   const [mapUIResetKey, setMapUIResetKey] = useState(0); // Increments when switching to map tab to reset collapsed UI
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
@@ -212,12 +214,16 @@ const Index = () => {
     }
   }, [location.search, location.pathname]);
 
-  // Reset map UI collapsed state when switching to map tab
+  // Reset map UI collapsed state when switching to map tab and mark as visited
   useEffect(() => {
     if (activeTab === "map") {
       setMapUIResetKey(prev => prev + 1);
+      // Mark map tab as visited to trigger Mapbox loading
+      if (!hasVisitedMapTab) {
+        setHasVisitedMapTab(true);
+      }
     }
-  }, [activeTab]);
+  }, [activeTab, hasVisitedMapTab]);
 
   const handleCityChange = useCallback((city: City) => {
     setSelectedCity(city);
@@ -410,8 +416,8 @@ const Index = () => {
                 </div>
               )}
               
-              {/* Map - eagerly loaded for fastest LCP */}
-              {mapboxToken ? (
+              {/* Map - only load after map tab has been visited to reduce initial TBT */}
+              {hasVisitedMapTab && mapboxToken ? (
                 <div 
                   className="h-full w-full animate-fade-in"
                   style={{
@@ -419,19 +425,21 @@ const Index = () => {
                     animationTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
-                  <MapboxHeatmap
-                    onVenueSelect={handleVenueSelect} 
-                    venues={venues} 
-                    mapboxToken={mapboxToken}
-                    selectedCity={selectedCity}
-                    onCityChange={handleCityChange}
-                    onNearestCityDetected={handleNearestCityDetected}
-                    onDetectedLocationNameChange={handleDetectedLocationNameChange}
-                    isLoadingVenues={venuesLoading}
-                    selectedVenue={selectedVenue}
-                    resetUIKey={mapUIResetKey}
-                    isTokenLoading={false}
-                  />
+                  <Suspense fallback={<MapSkeleton phase="loading" />}>
+                    <MapboxHeatmap
+                      onVenueSelect={handleVenueSelect} 
+                      venues={venues} 
+                      mapboxToken={mapboxToken}
+                      selectedCity={selectedCity}
+                      onCityChange={handleCityChange}
+                      onNearestCityDetected={handleNearestCityDetected}
+                      onDetectedLocationNameChange={handleDetectedLocationNameChange}
+                      isLoadingVenues={venuesLoading}
+                      selectedVenue={selectedVenue}
+                      resetUIKey={mapUIResetKey}
+                      isTokenLoading={false}
+                    />
+                  </Suspense>
                 </div>
               ) : (
                 <MapSkeleton phase={mapboxLoading ? 'token' : 'loading'} />
