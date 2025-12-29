@@ -26,12 +26,23 @@
     <!-- Preconnect hints - establish early connections to critical origins -->
     <link rel="preconnect" href="https://zbrscuoqmkdbmdimdnqu.supabase.co" crossorigin>
     <!-- Fonts self-hosted via @fontsource/kanit - no external font requests needed -->
+    
+    <!-- Mapbox critical origins - ordered by impact on LCP -->
     <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
-    <!-- Critical: events.mapbox.com for analytics/telemetry - 340ms potential savings -->
-    <link rel="preconnect" href="https://events.mapbox.com" crossorigin>
-    <link rel="preconnect" href="https://tiles.mapbox.com" crossorigin>
-    <!-- Only preconnect to primary tile subdomain to reduce connection overhead -->
+    <!-- Mapbox fonts endpoint - required for map labels, high LCP impact -->
+    <link rel="preconnect" href="https://fonts.mapbox.com" crossorigin>
+    <!-- Primary tile subdomain - most tiles load from here first -->
     <link rel="preconnect" href="https://a.tiles.mapbox.com" crossorigin>
+    <link rel="preconnect" href="https://b.tiles.mapbox.com" crossorigin>
+    <!-- Tiles parent domain for sprite/style resources -->
+    <link rel="preconnect" href="https://tiles.mapbox.com" crossorigin>
+    <!-- Events/telemetry - lower priority but still preconnect to avoid delays -->
+    <link rel="preconnect" href="https://events.mapbox.com" crossorigin>
+    
+    <!-- DNS prefetch - resolve DNS for secondary tile subdomains -->
+    <link rel="dns-prefetch" href="https://c.tiles.mapbox.com">
+    <link rel="dns-prefetch" href="https://d.tiles.mapbox.com">
+    <link rel="dns-prefetch" href="https://maps.googleapis.com">
     
     <!-- Preload critical fonts - Kanit weights used for LCP elements -->
     <!-- High priority for 600/900 (headers, brand) to eliminate render-blocking -->
@@ -40,13 +51,7 @@
     <!-- Normal priority for 400/500 (body text) - loaded after critical fonts -->
     <link rel="preload" href="/assets/kanit-latin-400-normal-Bz3HaF1T.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/assets/kanit-latin-500-normal-DE47hVn5.woff2" as="font" type="font/woff2" crossorigin>
-    
-    <!-- DNS prefetch - resolve DNS for secondary domains -->
-    <link rel="dns-prefetch" href="https://b.tiles.mapbox.com">
-    <link rel="dns-prefetch" href="https://c.tiles.mapbox.com">
-    <link rel="dns-prefetch" href="https://d.tiles.mapbox.com">
-    <link rel="dns-prefetch" href="https://maps.googleapis.com">
-    
+
     <!-- SEO Meta Tags -->
     <title>JET - Discover What&#39;s Hot Right Now</title>
     <meta name="description" content="Find trending venues, live events, and exclusive deals in your area with real-time heatmaps. Your guide to what's happening now.">
