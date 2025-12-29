@@ -203,7 +203,21 @@ export default defineConfig(({ mode }) => ({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
-        runtimeCaching: [
+runtimeCaching: [
+          // Cache all /assets/* files with immutable-like behavior
+          // This bypasses the CDN's missing cache headers
+          {
+            urlPattern: /^https:\/\/[^/]+\/assets\/.+\.(js|css|woff|woff2|png|jpg|jpeg|webp|svg|ico)$/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "static-assets-cache",
+              expiration: { 
+                maxEntries: 200, 
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year - assets have content hashes
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             urlPattern: /^https:\/\/api\.mapbox\.com\/.*/i,
             handler: "CacheFirst",
