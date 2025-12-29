@@ -454,6 +454,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           
           const img = document.createElement('img');
           img.src = locationPuckIcon;
+          img.width = 32;
+          img.height = 32;
           img.style.width = '70%';
           img.style.height = '70%';
           img.style.objectFit = 'contain';

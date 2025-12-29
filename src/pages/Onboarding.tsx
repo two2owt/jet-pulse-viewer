@@ -297,7 +297,7 @@ const Onboarding = () => {
               <div className="relative">
                 <div className="w-24 h-24 rounded-full bg-muted border-2 border-border flex items-center justify-center overflow-hidden">
                   {avatarPreview ? (
-                    <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                    <img src={avatarPreview} alt="Avatar" width={96} height={96} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <Upload className="w-8 h-8 text-muted-foreground" />
                   )}
