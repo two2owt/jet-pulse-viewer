@@ -4,6 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 import cssnano from "cssnano";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -278,6 +279,14 @@ runtimeCaching: [
           },
         ],
       },
+    }),
+    // Bundle analyzer - generates stats.html in project root after build
+    mode === "production" && visualizer({
+      filename: "stats.html",
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
+      template: "treemap", // Options: sunburst, treemap, network
     }),
   ].filter(Boolean),
   resolve: {
