@@ -1,10 +1,27 @@
 import { Send } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useMemo } from "react";
 
 interface MapSkeletonProps {
   phase?: 'token' | 'initializing' | 'loading' | 'ready';
   progress?: number;
 }
+
+// Generate deterministic tile positions for the grid
+const generateTileGrid = (rows: number, cols: number) => {
+  const tiles: { row: number; col: number; delay: number }[] = [];
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      // Stagger from center outward for natural loading feel
+      const centerRow = rows / 2;
+      const centerCol = cols / 2;
+      const distance = Math.sqrt(Math.pow(row - centerRow, 2) + Math.pow(col - centerCol, 2));
+      const delay = distance * 0.15; // Delay based on distance from center
+      tiles.push({ row, col, delay });
+    }
+  }
+  return tiles;
+};
 
 export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) => {
   const phaseText: Record<string, string> = {
@@ -21,24 +38,57 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
     ready: 90,
   }[phase] ?? 50;
 
+  // Memoize tile grid to prevent recalculation
+  const tiles = useMemo(() => generateTileGrid(6, 8), []);
+
   return (
     <div className="relative w-full h-full bg-background overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-muted/30 via-background to-muted/50 animate-pulse" />
-      
-      {/* Subtle grid pattern */}
-      <div className="absolute inset-0 opacity-[0.02]">
-        <div 
-          className="w-full h-full"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px),
-              linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px)
-            `,
-            backgroundSize: '80px 80px',
-          }}
-        />
+      {/* Animated tile-loading grid effect */}
+      <div className="absolute inset-0 grid grid-cols-8 grid-rows-6 gap-px opacity-60">
+        {tiles.map(({ row, col, delay }) => (
+          <div
+            key={`${row}-${col}`}
+            className="bg-muted/20 relative overflow-hidden"
+            style={{
+              animation: `tileLoad 2.5s ease-in-out infinite`,
+              animationDelay: `${delay}s`,
+            }}
+          >
+            {/* Shimmer overlay per tile */}
+            <div 
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-muted/30 to-transparent"
+              style={{
+                animation: `tileShimmer 2s ease-in-out infinite`,
+                animationDelay: `${delay + 0.5}s`,
+              }}
+            />
+          </div>
+        ))}
       </div>
+      
+      {/* Subtle road-like lines overlay */}
+      <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
+        <svg className="w-full h-full" preserveAspectRatio="none">
+          {/* Horizontal roads */}
+          <line x1="0" y1="30%" x2="100%" y2="30%" stroke="hsl(var(--foreground))" strokeWidth="2" />
+          <line x1="0" y1="55%" x2="100%" y2="55%" stroke="hsl(var(--foreground))" strokeWidth="3" />
+          <line x1="0" y1="75%" x2="100%" y2="75%" stroke="hsl(var(--foreground))" strokeWidth="1.5" />
+          {/* Vertical roads */}
+          <line x1="25%" y1="0" x2="25%" y2="100%" stroke="hsl(var(--foreground))" strokeWidth="1.5" />
+          <line x1="50%" y1="0" x2="50%" y2="100%" stroke="hsl(var(--foreground))" strokeWidth="2.5" />
+          <line x1="70%" y1="0" x2="70%" y2="100%" stroke="hsl(var(--foreground))" strokeWidth="1" />
+          {/* Diagonal */}
+          <line x1="10%" y1="80%" x2="40%" y2="20%" stroke="hsl(var(--foreground))" strokeWidth="1.5" />
+        </svg>
+      </div>
+      
+      {/* Animated scan line effect */}
+      <div 
+        className="absolute inset-x-0 h-24 bg-gradient-to-b from-primary/5 via-primary/10 to-transparent pointer-events-none"
+        style={{
+          animation: 'scanLine 3s ease-in-out infinite',
+        }}
+      />
       
       {/* City selector skeleton */}
       <div 
@@ -65,7 +115,7 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
       
       {/* Center branding & loading indicator */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-4 bg-background/80 backdrop-blur-sm px-8 py-6 rounded-2xl">
           {/* JET Logo with animated paper plane */}
           <div className="flex items-center gap-0.5 relative">
             <span 
@@ -138,9 +188,46 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
       
       {/* Keyframe animations */}
       <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0) scale(1); }
-          50% { transform: translateY(-20px) scale(1.05); }
+        @keyframes tileLoad {
+          0%, 100% { 
+            opacity: 0.2;
+            background-color: hsl(var(--muted) / 0.2);
+          }
+          50% { 
+            opacity: 0.5;
+            background-color: hsl(var(--muted) / 0.4);
+          }
+        }
+        
+        @keyframes tileShimmer {
+          0% { 
+            transform: translateX(-100%);
+            opacity: 0;
+          }
+          50% {
+            opacity: 1;
+          }
+          100% { 
+            transform: translateX(100%);
+            opacity: 0;
+          }
+        }
+        
+        @keyframes scanLine {
+          0% { 
+            transform: translateY(-100%);
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          90% {
+            opacity: 1;
+          }
+          100% { 
+            transform: translateY(calc(100vh + 100%));
+            opacity: 0;
+          }
         }
         
         @keyframes planeFloat {
