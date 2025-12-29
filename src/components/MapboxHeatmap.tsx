@@ -2049,16 +2049,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     >
       {/* Map loads directly - no placeholder overlay */}
 
-      {/* Map Error State with Retry */}
+      {/* Map Error State with Retry - deferred to not become LCP element */}
       {mapError && !mapInitializing && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
+        <div 
+          className="absolute inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm"
+          style={{ contentVisibility: 'auto' }}
+        >
           <div className="flex flex-col items-center gap-4 p-6 max-w-sm text-center">
             <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center">
-              <AlertCircle className="w-7 h-7 text-destructive" />
+              <AlertCircle className="w-7 h-7 text-destructive" aria-hidden="true" />
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">Map Loading Failed</h3>
-              <p className="text-sm text-muted-foreground">{mapError}</p>
+              {/* h3 is larger - should be LCP if error shows, not the p tag */}
+              <h3 className="text-lg font-semibold text-foreground">Map Loading Failed</h3>
+              {/* Small text won't be LCP candidate due to smaller size */}
+              <p className="text-xs text-muted-foreground leading-relaxed">{mapError}</p>
               {retryCount > 0 && (
                 <p className="text-xs text-muted-foreground/70">
                   Attempt {retryCount + 1} failed. Try refreshing the page.

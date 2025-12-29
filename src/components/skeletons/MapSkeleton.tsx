@@ -118,12 +118,15 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
         <div className="flex flex-col items-center gap-4 bg-background/80 backdrop-blur-sm px-8 py-6 rounded-2xl">
           {/* JET Logo with animated paper plane */}
           <div className="flex items-center gap-0.5 relative">
+            {/* LCP candidate - large text element with elementtiming for tracking */}
             <span 
               className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-foreground"
               style={{
                 fontFamily: 'Kanit, sans-serif',
                 letterSpacing: '-0.02em',
               }}
+              // @ts-expect-error - elementtiming is a valid HTML attribute for LCP tracking
+              elementtiming="lcp-brand"
             >
               JET
             </span>
