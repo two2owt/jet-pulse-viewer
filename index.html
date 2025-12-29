@@ -368,6 +368,12 @@
       }
     </style>
     
+    <!-- Font preloading - Download critical font files early to prevent FOUT/FOIT -->
+    <!-- Preload most-used weights (400 for body, 600 for headings, 900 for brand) -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/kanit/v15/nKKZ-Go6G5tXcoaSEQGodLxA.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://fonts.gstatic.com/s/kanit/v15/nKKU-Go6G5tXcr4uPhWnVaFrNlJzIu4.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://fonts.gstatic.com/s/kanit/v15/nKKU-Go6G5tXcr5765WnVaFrNlJzIu4.woff2" as="font" type="font/woff2" crossorigin>
+    
     <!-- Fonts - Non-blocking pattern: load as print, swap to screen after load -->
     <!-- This eliminates the 760ms render-blocking delay from PageSpeed Insights -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;900&display=swap" media="print" onload="this.media='all'">
