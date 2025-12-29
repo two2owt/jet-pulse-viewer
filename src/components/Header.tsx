@@ -98,10 +98,14 @@ export const Header = ({
   };
   return <header className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] header-contained animate-fade-in" role="banner" style={{
     paddingTop: 'var(--safe-area-inset-top)',
-    // Use CSS variable for responsive height
+    // FIXED dimensions using CSS variables - must match shell-header exactly
     height: 'var(--header-total-height)',
     minHeight: 'var(--header-total-height)',
-    transform: 'translateZ(0)'
+    maxHeight: 'var(--header-total-height)',
+    // Containment prevents CLS propagation
+    contain: 'strict',
+    transform: 'translateZ(0)',
+    overflow: 'hidden',
   }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-full">

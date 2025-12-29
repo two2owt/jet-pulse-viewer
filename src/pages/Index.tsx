@@ -372,27 +372,28 @@ const Index = () => {
           <OfflineBanner />
         </Suspense>
 
-      {/* Main Content - Reserve height immediately to prevent CLS */}
+      {/* Main Content - FIXED height using CSS variables to prevent CLS */}
       <main 
         role="main"
+        id="main-content"
         className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5'}`}
         style={{ 
-          // Fixed dimensions prevent layout shifts
-          flex: '1 1 auto',
-          // Calculate height using CSS variables for responsive header/nav
-          minHeight: activeTab === 'map' ? 'calc(100dvh - var(--header-total-height) - var(--bottom-nav-total-height))' : '400px',
-          height: activeTab === 'map' ? 'calc(100dvh - var(--header-total-height) - var(--bottom-nav-total-height))' : 'auto',
-          // Strict size containment prevents content from affecting layout
-          contain: 'size layout style paint',
+          // FIXED dimensions using CSS variables - must match shell-main exactly
+          flex: '1 1 var(--main-height)',
+          height: activeTab === 'map' ? 'var(--main-height)' : 'auto',
+          minHeight: activeTab === 'map' ? 'var(--main-height)' : '400px',
+          maxHeight: activeTab === 'map' ? 'var(--main-height)' : 'none',
+          // Strict containment prevents CLS propagation
+          contain: activeTab === 'map' ? 'strict' : 'layout style paint',
           contentVisibility: 'auto',
-          containIntrinsicSize: activeTab === 'map' ? '100vw calc(100dvh - var(--header-total-height) - var(--bottom-nav-total-height))' : '100vw 400px',
-          // Create a stable layer
+          containIntrinsicSize: activeTab === 'map' ? '100vw var(--main-height)' : '100vw 400px',
+          // GPU layer for smooth transitions
           transform: 'translateZ(0)',
-          // Explicit sizing prevents browser recalculation
           boxSizing: 'border-box',
           width: '100%',
-          // Isolate stacking context
           isolation: 'isolate',
+          // Prevent content from affecting layout
+          overflow: activeTab === 'map' ? 'hidden' : 'visible',
         }}
       >
         {activeTab === "map" && (
