@@ -1,13 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
+import { lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, MapPin, Bell, TrendingUp, Star, Activity, Eye, Search, Share2 } from "lucide-react";
 import { Loader2 } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { format, subDays } from "date-fns";
 import { LiveEventFeed } from "./LiveEventFeed";
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
+// Lazy load chart components - Recharts is ~200KB+ and only needed when viewing analytics
+const UserGrowthChart = lazy(() => import("./AnalyticsCharts").then(m => ({ default: m.UserGrowthChart })));
+const EngagementChart = lazy(() => import("./AnalyticsCharts").then(m => ({ default: m.EngagementChart })));
+const DealTypePieChart = lazy(() => import("./AnalyticsCharts").then(m => ({ default: m.DealTypePieChart })));
+const LocationActivityChart = lazy(() => import("./AnalyticsCharts").then(m => ({ default: m.LocationActivityChart })));
+
+const ChartFallback = () => (
+  <div className="flex items-center justify-center h-[200px]">
+    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+  </div>
+);
 
 export const UserAnalytics = () => {
   const { data, isLoading } = useQuery({
@@ -259,27 +269,9 @@ export const UserAnalytics = () => {
             <CardDescription>New user registrations per day</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={data?.userGrowth || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="users" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={2}
-                  dot={{ fill: 'hsl(var(--primary))' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <Suspense fallback={<ChartFallback />}>
+              <UserGrowthChart data={data?.userGrowth || []} />
+            </Suspense>
           </CardContent>
         </Card>
 
@@ -292,22 +284,9 @@ export const UserAnalytics = () => {
             <CardDescription>Shares and reviews over the last week</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={data?.engagementActivity || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                />
-                <Line type="monotone" dataKey="shares" stroke="hsl(var(--primary))" name="Shares" strokeWidth={2} />
-                <Line type="monotone" dataKey="reviews" stroke="hsl(var(--secondary))" name="Reviews" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+            <Suspense fallback={<ChartFallback />}>
+              <EngagementChart data={data?.engagementActivity || []} />
+            </Suspense>
           </CardContent>
         </Card>
       </div>
@@ -383,30 +362,9 @@ export const UserAnalytics = () => {
           </CardHeader>
           <CardContent>
             {data?.dealTypeStats && data.dealTypeStats.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={data.dealTypeStats}
-                    dataKey="count"
-                    nameKey="type"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    label={(entry) => `${entry.type}: ${entry.count}`}
-                  >
-                    {data.dealTypeStats.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <Suspense fallback={<ChartFallback />}>
+                <DealTypePieChart data={data.dealTypeStats} />
+              </Suspense>
             ) : (
               <p className="text-sm text-muted-foreground">No deal data available</p>
             )}
@@ -422,21 +380,9 @@ export const UserAnalytics = () => {
             <CardDescription>User check-ins over the last week</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={data?.locationActivity || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                />
-                <Bar dataKey="locations" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <Suspense fallback={<ChartFallback />}>
+              <LocationActivityChart data={data?.locationActivity || []} />
+            </Suspense>
           </CardContent>
         </Card>
       </div>
