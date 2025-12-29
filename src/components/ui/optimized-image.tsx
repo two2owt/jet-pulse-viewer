@@ -29,6 +29,8 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   blurUp?: boolean;
   /** Aspect ratio to reserve space and prevent CLS (e.g., "16/9", "1/1", "4/3") */
   aspectRatio?: string;
+  /** Fetch priority for LCP optimization ('high' | 'low' | 'auto') */
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 export const OptimizedImage = memo(({ 

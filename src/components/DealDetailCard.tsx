@@ -171,6 +171,8 @@ export const DealDetailCard = memo(({ deal, onClose }: DealDetailCardProps) => {
             sizesConfig={{ mobile: "100vw", tablet: "640px", desktop: "800px" }}
             quality={85}
             aspectRatio="16/10"
+            eager={true}
+            fetchPriority="high"
             onError={(e) => {
               e.currentTarget.style.display = "none";
             }}
