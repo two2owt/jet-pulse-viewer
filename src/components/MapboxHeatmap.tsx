@@ -76,6 +76,8 @@ const getPlatformSettings = (isMobile: boolean) => {
   const isPWA = window.matchMedia('(display-mode: standalone)').matches;
   const isLowPowerMode = 'connection' in navigator && (navigator as any).connection?.saveData;
   const hasReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isSlowConnection = 'connection' in navigator && 
+    ['slow-2g', '2g', '3g'].includes((navigator as any).connection?.effectiveType);
   
   return {
     // Reduce pitch on mobile for better performance
@@ -84,8 +86,8 @@ const getPlatformSettings = (isMobile: boolean) => {
     antialias: !isMobile && !isLowPowerMode,
     // Fade duration - instant on mobile/low power
     fadeDuration: (isMobile || isLowPowerMode || hasReducedMotion) ? 0 : 100,
-    // Tile cache - smaller on mobile
-    maxTileCacheSize: isMobile ? 30 : 100,
+    // Tile cache - smaller on mobile, larger on desktop for better caching
+    maxTileCacheSize: isMobile ? 25 : 150,
     // Cooperative gestures disabled - allow single finger pan on all devices
     cooperativeGestures: false,
     // Touch controls
@@ -102,6 +104,13 @@ const getPlatformSettings = (isMobile: boolean) => {
     isPWA,
     isLowPowerMode,
     hasReducedMotion,
+    isSlowConnection,
+    // Use 1x tiles on slow connections or low power mode for 75% less data
+    useRetinaSprite: !isSlowConnection && !isLowPowerMode,
+    // Higher initial zoom = fewer tiles loaded
+    minZoom: isMobile ? 10 : 9,
+    // Limit max zoom on mobile to reduce tile requests
+    maxZoom: isMobile ? 17 : 18,
   };
 };
 
@@ -323,15 +332,19 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           touchZoomRotate: settings.touchZoomRotate,
           touchPitch: settings.touchPitch,
           dragRotate: settings.dragRotate,
-          doubleClickZoom: true, // Enable double-tap/double-click to zoom in
+          doubleClickZoom: true,
           projection: 'globe' as any,
-          // Performance optimizations
+          // Performance optimizations - reduce tile loading
           fadeDuration: settings.fadeDuration,
           refreshExpiredTiles: false,
           maxTileCacheSize: settings.maxTileCacheSize,
           trackResize: false,
-          // Additional mobile optimizations
           renderWorldCopies: !isMobile,
+          // Zoom constraints to limit tile requests
+          minZoom: settings.minZoom,
+          maxZoom: settings.maxZoom,
+          // Disable resource timing for performance
+          collectResourceTiming: false,
         });
 
         // Add attribution control in a better position

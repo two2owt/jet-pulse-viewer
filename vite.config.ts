@@ -219,47 +219,42 @@ runtimeCaching: [
             },
           },
           {
+            // Mapbox API (styles, fonts, glyphs)
             urlPattern: /^https:\/\/api\.mapbox\.com\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "mapbox-api-cache",
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
           {
+            // Mapbox tiles from main domain
             urlPattern: /^https:\/\/tiles\.mapbox\.com\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "mapbox-tiles-cache",
-              expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              expiration: { maxEntries: 1000, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
           {
+            // Mapbox tiles from subdomains (a, b, c, d)
+            urlPattern: /^https:\/\/[a-d]\.tiles\.mapbox\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "mapbox-tiles-cache",
+              expiration: { maxEntries: 1000, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Supabase API - no longer needed for fonts since self-hosted
             urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "supabase-api-cache",
               expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "google-fonts-stylesheets",
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-webfonts",
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
