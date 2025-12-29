@@ -6,6 +6,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Suspense } from "react";
 import App from "./App.tsx";
 import { LoadingFallback } from "./components/LoadingFallback";
+
+// Self-hosted Kanit font - eliminates render-blocking Google Fonts request
+import "@fontsource/kanit/400.css";
+import "@fontsource/kanit/500.css";
+import "@fontsource/kanit/600.css";
+import "@fontsource/kanit/900.css";
+
 import "./index.css";
 
 // requestIdleCallback polyfill (must run before first usage)

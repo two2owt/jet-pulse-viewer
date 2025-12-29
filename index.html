@@ -25,8 +25,7 @@
     
     <!-- Preconnect hints - establish early connections to critical origins -->
     <link rel="preconnect" href="https://zbrscuoqmkdbmdimdnqu.supabase.co" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Fonts self-hosted via @fontsource/kanit - no external font requests needed -->
     <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
     <link rel="preconnect" href="https://tiles.mapbox.com" crossorigin>
     <!-- Upgrade tile subdomains to preconnect for faster tile loading -->
@@ -384,9 +383,7 @@
       }
     </style>
     
-    <!-- Google Fonts - Use preconnect + CSS2 API for optimal loading -->
-    <!-- The CSS2 API automatically serves the correct font files with proper caching -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;900&display=swap">
+    <!-- Fonts loaded via @fontsource/kanit in main.tsx - no external requests needed -->
     
     <!-- Mapbox CSS - deferred -->
     <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
