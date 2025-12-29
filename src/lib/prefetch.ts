@@ -166,23 +166,45 @@ export const createPrefetchHandlers = (routeImport: () => Promise<unknown>) => {
  * Should be called once on app initialization
  */
 export const initPrefetching = () => {
-  // Prefetch Mapbox token immediately - this is critical for initial map load
-  // Don't wait for idle, start fetching right away
-  prefetchMapboxToken();
+  // Check if we should defer prefetching based on connection
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  const shouldDefer = connection?.saveData || connection?.effectiveType === '2g' || connection?.effectiveType === 'slow-2g';
+  
+  // Prefetch Mapbox token - defer on slow connections
+  if (shouldDefer) {
+    // On slow connections, wait until after LCP
+    setTimeout(prefetchMapboxToken, 5000);
+  } else {
+    // On fast connections, start after a short delay to not block critical path
+    setTimeout(prefetchMapboxToken, 1000);
+  }
   
   // Wait for initial render to complete, then prefetch JS chunks during idle
-  // Use a longer delay to ensure critical path is fully complete
-  if (document.readyState === 'complete') {
-    // Delay prefetch to after Time to Interactive (~3s on mobile)
-    setTimeout(prefetchMapbox, 3000);
-    // Start route prefetching
-    prefetchRoutes();
-  } else {
-    window.addEventListener('load', () => {
-      // Longer delay to let critical rendering and LCP complete
-      setTimeout(prefetchMapbox, 3000);
-      // Start route prefetching
+  const startPrefetching = () => {
+    // Use requestIdleCallback for non-critical prefetching
+    const scheduleMapboxPrefetch = () => {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => prefetchMapbox(), { timeout: 10000 });
+      } else {
+        setTimeout(prefetchMapbox, 5000);
+      }
+    };
+    
+    // Delay based on connection speed
+    const delay = shouldDefer ? 8000 : 4000;
+    setTimeout(scheduleMapboxPrefetch, delay);
+    
+    // Route prefetching with longer delays on slow connections
+    if (!shouldDefer) {
       prefetchRoutes();
-    }, { once: true });
+    } else {
+      setTimeout(prefetchRoutes, 10000);
+    }
+  };
+  
+  if (document.readyState === 'complete') {
+    startPrefetching();
+  } else {
+    window.addEventListener('load', startPrefetching, { once: true });
   }
 };
