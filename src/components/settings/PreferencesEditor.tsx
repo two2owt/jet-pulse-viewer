@@ -325,10 +325,18 @@ const PreferencesEditor = ({ userId, onSaved }: PreferencesEditorProps) => {
         isSelected ? "border-primary bg-primary/5" : "border-border bg-card"
       )}
     >
-      <button
-        type="button"
+      {/* Use a div with role="button" to avoid nested button warning */}
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => toggleCategory(category)}
-        className="w-full p-3 flex items-center justify-between"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleCategory(category);
+          }
+        }}
+        className="w-full p-3 flex items-center justify-between cursor-pointer select-none"
       >
         <div className="flex items-center gap-3">
           <Icon className={cn("w-5 h-5", isSelected ? "text-primary" : "text-muted-foreground")} />
@@ -360,7 +368,7 @@ const PreferencesEditor = ({ userId, onSaved }: PreferencesEditorProps) => {
             </button>
           )}
         </div>
-      </button>
+      </div>
       {isSelected && isExpanded && (
         <div className="px-3 pb-3 space-y-3 border-t border-border/50 pt-3">
           {children}
