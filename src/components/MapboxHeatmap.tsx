@@ -10,25 +10,58 @@ type MapboxGLModule = typeof import("mapbox-gl").default;
 let mapboxglModule: MapboxGLModule | null = null;
 let mapboxLoadPromise: Promise<MapboxGLModule> | null = null;
 
+// CDN load timeout - wait for CDN script to load before falling back
+const CDN_LOAD_TIMEOUT = 8000; // 8 seconds
+
+// Wait for CDN mapbox-gl to be available with timeout
+const waitForCDNMapbox = (): Promise<MapboxGLModule | null> => {
+  return new Promise((resolve) => {
+    // Check immediately
+    if (typeof window !== 'undefined' && (window as any).mapboxgl) {
+      resolve((window as any).mapboxgl);
+      return;
+    }
+    
+    // Poll every 100ms for up to CDN_LOAD_TIMEOUT
+    const startTime = Date.now();
+    const checkInterval = setInterval(() => {
+      if (typeof window !== 'undefined' && (window as any).mapboxgl) {
+        clearInterval(checkInterval);
+        resolve((window as any).mapboxgl);
+      } else if (Date.now() - startTime > CDN_LOAD_TIMEOUT) {
+        clearInterval(checkInterval);
+        console.warn('MapboxHeatmap: CDN load timeout, falling back to bundled version');
+        resolve(null);
+      }
+    }, 100);
+  });
+};
+
 const loadMapboxGL = async (): Promise<MapboxGLModule> => {
   if (mapboxglModule) return mapboxglModule;
   
   if (!mapboxLoadPromise) {
     mapboxLoadPromise = (async () => {
-      // Check if mapbox-gl is available globally (CDN in production)
-      if (typeof window !== 'undefined' && (window as any).mapboxgl) {
+      // First, try to use CDN version (production)
+      const cdnMapbox = await waitForCDNMapbox();
+      if (cdnMapbox) {
         console.log('MapboxHeatmap: Using CDN mapbox-gl');
-        mapboxglModule = (window as any).mapboxgl;
-        return mapboxglModule!;
+        mapboxglModule = cdnMapbox;
+        return mapboxglModule;
       }
       
       // Fallback to dynamic import (development or if CDN fails)
       console.log('MapboxHeatmap: Loading mapbox-gl via import');
-      const m = await import("mapbox-gl");
-      // Also load the CSS in dev
-      await import("mapbox-gl/dist/mapbox-gl.css");
-      mapboxglModule = m.default;
-      return m.default;
+      try {
+        const m = await import("mapbox-gl");
+        // Also load the CSS in dev
+        await import("mapbox-gl/dist/mapbox-gl.css");
+        mapboxglModule = m.default;
+        return m.default;
+      } catch (importError) {
+        console.error('MapboxHeatmap: Failed to import mapbox-gl:', importError);
+        throw new Error('Failed to load map library. Please check your connection and refresh.');
+      }
     })();
   }
   return mapboxLoadPromise;
@@ -157,11 +190,19 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       }
     }).catch((err) => {
       console.error('MapboxHeatmap: Failed to load mapbox-gl:', err);
-      setMapError('Failed to load map library');
+      // Provide user-friendly error messages
+      const errorMessage = err?.message || 'Unknown error';
+      if (errorMessage.includes('Failed to load map library')) {
+        setMapError('Unable to load map. Please check your internet connection.');
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        setMapError('Network error. Please check your connection and try again.');
+      } else {
+        setMapError('Failed to load map. Please refresh the page.');
+      }
       setMapInitializing(false);
     });
     return () => { mounted = false; };
-  }, []);
+  }, [retryCount]); // Re-run when retryCount changes
   
   // Density heatmap state
   const [showDensityLayer, setShowDensityLayer] = useState(false);
@@ -2018,19 +2059,37 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             <div className="space-y-2">
               <h3 className="font-semibold text-foreground">Map Loading Failed</h3>
               <p className="text-sm text-muted-foreground">{mapError}</p>
+              {retryCount > 0 && (
+                <p className="text-xs text-muted-foreground/70">
+                  Attempt {retryCount + 1} failed. Try refreshing the page.
+                </p>
+              )}
             </div>
-            <Button 
-              onClick={() => {
-                setMapError(null);
-                setMapInitializing(true);
-                setTileProgress(0);
-                setRetryCount(c => c + 1);
-              }}
-              className="gap-2"
-            >
-              <Route className="w-4 h-4" />
-              Try Again
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <Button 
+                onClick={() => {
+                  setMapError(null);
+                  setMapInitializing(true);
+                  setTileProgress(0);
+                  // Reset the module promise to force a fresh load attempt
+                  mapboxLoadPromise = null;
+                  setRetryCount(c => c + 1);
+                }}
+                className="gap-2 flex-1"
+                variant={retryCount > 1 ? "outline" : "default"}
+              >
+                <Route className="w-4 h-4" />
+                Try Again
+              </Button>
+              {retryCount > 1 && (
+                <Button 
+                  onClick={() => window.location.reload()}
+                  className="gap-2 flex-1"
+                >
+                  Refresh Page
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       )}
