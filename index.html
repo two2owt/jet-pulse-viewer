@@ -34,8 +34,12 @@
     <link rel="preconnect" href="https://a.tiles.mapbox.com" crossorigin>
     
     <!-- Preload critical fonts - Kanit weights used for LCP elements -->
-    <link rel="preload" href="/assets/kanit-latin-900-normal-dN0P3GyR.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/assets/kanit-latin-600-normal-0lS78yAd.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- High priority for 600/900 (headers, brand) to eliminate render-blocking -->
+    <link rel="preload" href="/assets/kanit-latin-900-normal-dN0P3GyR.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
+    <link rel="preload" href="/assets/kanit-latin-600-normal-0lS78yAd.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
+    <!-- Normal priority for 400/500 (body text) - loaded after critical fonts -->
+    <link rel="preload" href="/assets/kanit-latin-400-normal-Bz3HaF1T.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/kanit-latin-500-normal-DE47hVn5.woff2" as="font" type="font/woff2" crossorigin>
     
     <!-- DNS prefetch - resolve DNS for secondary domains -->
     <link rel="dns-prefetch" href="https://b.tiles.mapbox.com">
