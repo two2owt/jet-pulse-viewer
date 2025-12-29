@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { MapSkeleton } from "@/components/skeletons";
+import { useConnectionSpeed } from "@/hooks/useConnectionSpeed";
 import type { City } from "@/types/cities";
 import type { Venue } from "@/types/venue";
 
@@ -9,11 +10,20 @@ const MapboxHeatmap = lazy(() =>
 );
 
 // Preload function to start fetching the Mapbox chunk early
-const preloadMapboxChunk = () => {
+const preloadMapboxChunk = (shouldPreloadExtras: boolean) => {
   // This triggers the dynamic import but doesn't render
   import("@/components/MapboxHeatmap");
   // Also preload mapbox-gl library itself
   import("mapbox-gl");
+  
+  // On fast connections, also preload the CSS
+  if (shouldPreloadExtras) {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'style';
+    link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css';
+    document.head.appendChild(link);
+  }
 };
 
 interface LazyMapboxHeatmapProps {
@@ -34,6 +44,9 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
   const hasPreloaded = useRef(false);
+  
+  // Get connection-aware preload distances
+  const { preloadDistance, renderDistance, shouldPreloadExtras, isSlowConnection } = useConnectionSpeed();
 
   // Use Intersection Observer to detect when component enters viewport
   useEffect(() => {
@@ -47,23 +60,25 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
       return;
     }
 
-    // Preload observer - triggers chunk fetch 500px before visible
+    // Preload observer - triggers chunk fetch based on connection speed
+    // Fast connections: 500-800px, Slow connections: 100px
     const preloadObserver = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
         if (entry.isIntersecting && !hasPreloaded.current) {
           hasPreloaded.current = true;
-          preloadMapboxChunk();
+          preloadMapboxChunk(shouldPreloadExtras);
           preloadObserver.disconnect();
         }
       },
       {
-        rootMargin: '500px', // Start preloading 500px before visible
+        rootMargin: `${preloadDistance}px`,
         threshold: 0,
       }
     );
 
-    // Render observer - actually renders the component 100px before visible
+    // Render observer - actually renders the component
+    // Fast connections: 150px, Slow connections: 50px
     const renderObserver = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
@@ -73,7 +88,7 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
         }
       },
       {
-        rootMargin: '100px', // Render 100px before visible
+        rootMargin: `${renderDistance}px`,
         threshold: 0,
       }
     );
@@ -85,7 +100,7 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
       preloadObserver.disconnect();
       renderObserver.disconnect();
     };
-  }, []);
+  }, [preloadDistance, renderDistance, shouldPreloadExtras]);
 
   return (
     <div 
@@ -96,6 +111,7 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
         contentVisibility: 'auto',
         containIntrinsicSize: '100vw 100%',
       }}
+      data-connection-speed={isSlowConnection ? 'slow' : 'fast'}
     >
       {hasBeenVisible ? (
         <Suspense fallback={<MapSkeleton />}>
