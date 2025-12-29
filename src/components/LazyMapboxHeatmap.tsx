@@ -8,6 +8,14 @@ const MapboxHeatmap = lazy(() =>
   import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap }))
 );
 
+// Preload function to start fetching the Mapbox chunk early
+const preloadMapboxChunk = () => {
+  // This triggers the dynamic import but doesn't render
+  import("@/components/MapboxHeatmap");
+  // Also preload mapbox-gl library itself
+  import("mapbox-gl");
+};
+
 interface LazyMapboxHeatmapProps {
   onVenueSelect: (venue: Venue) => void;
   venues: Venue[];
@@ -24,8 +32,8 @@ interface LazyMapboxHeatmapProps {
 
 export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
+  const hasPreloaded = useRef(false);
 
   // Use Intersection Observer to detect when component enters viewport
   useEffect(() => {
@@ -35,31 +43,48 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
     // Check if IntersectionObserver is supported
     if (!('IntersectionObserver' in window)) {
       // Fallback: load immediately if IO not supported
-      setIsVisible(true);
       setHasBeenVisible(true);
       return;
     }
 
-    const observer = new IntersectionObserver(
+    // Preload observer - triggers chunk fetch 500px before visible
+    const preloadObserver = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          setHasBeenVisible(true);
-          // Once visible, disconnect observer - no need to track anymore
-          observer.disconnect();
+        if (entry.isIntersecting && !hasPreloaded.current) {
+          hasPreloaded.current = true;
+          preloadMapboxChunk();
+          preloadObserver.disconnect();
         }
       },
       {
-        // Start loading slightly before visible (100px threshold)
-        rootMargin: '100px',
+        rootMargin: '500px', // Start preloading 500px before visible
         threshold: 0,
       }
     );
 
-    observer.observe(container);
+    // Render observer - actually renders the component 100px before visible
+    const renderObserver = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting) {
+          setHasBeenVisible(true);
+          renderObserver.disconnect();
+        }
+      },
+      {
+        rootMargin: '100px', // Render 100px before visible
+        threshold: 0,
+      }
+    );
 
-    return () => observer.disconnect();
+    preloadObserver.observe(container);
+    renderObserver.observe(container);
+
+    return () => {
+      preloadObserver.disconnect();
+      renderObserver.disconnect();
+    };
   }, []);
 
   return (
