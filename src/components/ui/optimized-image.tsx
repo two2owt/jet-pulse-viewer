@@ -46,6 +46,7 @@ export const OptimizedImage = memo(({
   deferLoad = false,
   blurUp = true,
   aspectRatio,
+  fetchPriority,
   onError,
   style,
   ...props 
@@ -109,6 +110,7 @@ export const OptimizedImage = memo(({
         alt={alt}
         loading={eager ? "eager" : "lazy"}
         decoding="async"
+        fetchPriority={fetchPriority}
         className={cn(
           "transition-opacity duration-500 w-full h-full object-cover",
           isLoaded ? "opacity-100" : "opacity-0"
@@ -154,6 +156,7 @@ export const OptimizedImage = memo(({
       alt={alt}
       loading={eager ? "eager" : "lazy"}
       decoding="async"
+      fetchPriority={fetchPriority}
       className={cn(
         "transition-opacity duration-300",
         isLoaded ? "opacity-100" : "opacity-0",
