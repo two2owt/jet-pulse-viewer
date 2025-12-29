@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 // Lazy load MapboxHeatmap - it's heavy (~500KB with mapbox-gl)
 // The MapSkeleton shows while it loads, and we prefetch in main.tsx
@@ -77,7 +78,7 @@ const Index = () => {
   };
   
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">(getInitialTab);
-  // Defer Mapbox loading until browser is idle to reduce TBT while keeping map as primary
+  // Defer Mapbox loading until browser is idle AND map container is visible to reduce TBT
   const [isMapboxReady, setIsMapboxReady] = useState(false);
   const [mapUIResetKey, setMapUIResetKey] = useState(0); // Increments when switching to map tab to reset collapsed UI
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
@@ -95,6 +96,13 @@ const Index = () => {
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const jetCardRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  
+  // Intersection observer for map container - only load Mapbox when visible
+  const [mapVisibilityRef, isMapVisible] = useIntersectionObserver<HTMLDivElement>({
+    threshold: 0,
+    rootMargin: '100px', // Start loading slightly before it's in view
+    freezeOnceVisible: true, // Only trigger once - don't unload after loading
+  });
   
   // Swipe to dismiss for JetCard on mobile
   const { handlers: swipeHandlers, style: swipeStyle } = useSwipeToDismiss({
@@ -224,25 +232,29 @@ const Index = () => {
     }
   }, [activeTab]);
 
-  // Defer Mapbox initialization until after initial paint to reduce TBT
+  // Defer Mapbox initialization until container is visible AND browser is idle to reduce TBT
   useEffect(() => {
-    if (activeTab === "map" && !isMapboxReady) {
-      // Use requestIdleCallback with 500ms timeout to push loading after LCP
+    // Only load Mapbox when:
+    // 1. Map tab is active
+    // 2. Map container is visible in viewport (via intersection observer)
+    // 3. Not already ready
+    if (activeTab === "map" && isMapVisible && !isMapboxReady) {
+      // Use requestIdleCallback with 300ms timeout to push loading after LCP
       const scheduleMapboxLoad = () => {
         if ('requestIdleCallback' in window) {
           (window as any).requestIdleCallback(() => {
             setIsMapboxReady(true);
-          }, { timeout: 500 }); // 500ms delay to allow initial paint to complete
+          }, { timeout: 300 }); // 300ms delay to allow initial paint to complete
         } else {
           // Fallback for Safari - use setTimeout after paint
           requestAnimationFrame(() => {
-            setTimeout(() => setIsMapboxReady(true), 100);
+            setTimeout(() => setIsMapboxReady(true), 50);
           });
         }
       };
       scheduleMapboxLoad();
     }
-  }, [activeTab, isMapboxReady]);
+  }, [activeTab, isMapVisible, isMapboxReady]);
 
   const handleCityChange = useCallback((city: City) => {
     setSelectedCity(city);
@@ -397,6 +409,7 @@ const Index = () => {
       >
         {activeTab === "map" && (
           <div 
+            ref={mapVisibilityRef}
             className="relative w-full h-full"
             style={{ 
               height: '100%',
