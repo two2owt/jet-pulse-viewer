@@ -224,18 +224,20 @@ const Index = () => {
     }
   }, [activeTab]);
 
-  // Defer Mapbox initialization until browser is idle to reduce TBT
+  // Defer Mapbox initialization until after initial paint to reduce TBT
   useEffect(() => {
     if (activeTab === "map" && !isMapboxReady) {
-      // Use requestIdleCallback to defer heavy Mapbox loading until browser is idle
+      // Use requestIdleCallback with 500ms timeout to push loading after LCP
       const scheduleMapboxLoad = () => {
         if ('requestIdleCallback' in window) {
           (window as any).requestIdleCallback(() => {
             setIsMapboxReady(true);
-          }, { timeout: 150 }); // Max 150ms delay to keep it responsive
+          }, { timeout: 500 }); // 500ms delay to allow initial paint to complete
         } else {
-          // Fallback for Safari - use short setTimeout
-          setTimeout(() => setIsMapboxReady(true), 50);
+          // Fallback for Safari - use setTimeout after paint
+          requestAnimationFrame(() => {
+            setTimeout(() => setIsMapboxReady(true), 100);
+          });
         }
       };
       scheduleMapboxLoad();
