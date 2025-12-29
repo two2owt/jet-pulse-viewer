@@ -65,12 +65,15 @@ const Index = () => {
   const location = useLocation();
   
   // Initialize activeTab from URL parameter synchronously to prevent flash
+  // Default to "explore" to defer Mapbox loading and reduce TBT
   const getInitialTab = (): "map" | "explore" | "notifications" | "favorites" | "social" => {
     const searchParams = new URLSearchParams(location.search);
     const tabParam = searchParams.get('tab');
-    if (tabParam === "explore") return "explore";
+    if (tabParam === "map") return "map";
     if (tabParam === "notifications") return "notifications";
-    return "map";
+    if (tabParam === "favorites") return "favorites";
+    if (tabParam === "social") return "social";
+    return "explore"; // Default to explore to defer Mapbox loading
   };
   
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">(getInitialTab);
