@@ -7,7 +7,6 @@ import { Header } from "@/components/Header";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 // Lazy load MapboxHeatmap - it's heavy (~500KB with mapbox-gl)
 // The MapSkeleton shows while it loads, and we prefetch in main.tsx
@@ -78,7 +77,7 @@ const Index = () => {
   };
   
   const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">(getInitialTab);
-  // Defer Mapbox loading until browser is idle AND map container is visible to reduce TBT
+  // Defer Mapbox loading until browser is idle to reduce TBT while keeping map as primary
   const [isMapboxReady, setIsMapboxReady] = useState(false);
   const [mapUIResetKey, setMapUIResetKey] = useState(0); // Increments when switching to map tab to reset collapsed UI
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
@@ -96,26 +95,6 @@ const Index = () => {
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const jetCardRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  
-  // Track if initial paint has completed - defer heavy loading until after LCP
-  const [initialPaintComplete, setInitialPaintComplete] = useState(false);
-  
-  // Intersection observer for map container - only load Mapbox when visible
-  const [mapVisibilityRef, isMapVisible] = useIntersectionObserver<HTMLDivElement>({
-    threshold: 0,
-    rootMargin: '100px', // Start loading slightly before it's in view
-    freezeOnceVisible: true, // Only trigger once - don't unload after loading
-  });
-  
-  // Mark initial paint as complete after first frame renders
-  useEffect(() => {
-    // Use double rAF to ensure we're past the first paint
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setInitialPaintComplete(true);
-      });
-    });
-  }, []);
   
   // Swipe to dismiss for JetCard on mobile
   const { handlers: swipeHandlers, style: swipeStyle } = useSwipeToDismiss({
@@ -245,30 +224,25 @@ const Index = () => {
     }
   }, [activeTab]);
 
-  // Defer Mapbox initialization until AFTER initial paint to reduce TBT
+  // Defer Mapbox initialization until after initial paint to reduce TBT
   useEffect(() => {
-    // Only load Mapbox when:
-    // 1. Initial paint is complete (critical for TBT reduction)
-    // 2. Map tab is active
-    // 3. Map container is visible in viewport
-    // 4. Not already ready
-    if (!initialPaintComplete || !isMapVisible || activeTab !== "map" || isMapboxReady) {
-      return;
+    if (activeTab === "map" && !isMapboxReady) {
+      // Use requestIdleCallback with 500ms timeout to push loading after LCP
+      const scheduleMapboxLoad = () => {
+        if ('requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(() => {
+            setIsMapboxReady(true);
+          }, { timeout: 500 }); // 500ms delay to allow initial paint to complete
+        } else {
+          // Fallback for Safari - use setTimeout after paint
+          requestAnimationFrame(() => {
+            setTimeout(() => setIsMapboxReady(true), 100);
+          });
+        }
+      };
+      scheduleMapboxLoad();
     }
-    
-    // Use requestIdleCallback with longer timeout to push loading well after LCP
-    const scheduleMapboxLoad = () => {
-      if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(() => {
-          setIsMapboxReady(true);
-        }, { timeout: 1000 }); // 1s timeout - aggressive deferral
-      } else {
-        // Fallback for Safari - use setTimeout after paint
-        setTimeout(() => setIsMapboxReady(true), 500);
-      }
-    };
-    scheduleMapboxLoad();
-  }, [activeTab, isMapVisible, isMapboxReady, initialPaintComplete]);
+  }, [activeTab, isMapboxReady]);
 
   const handleCityChange = useCallback((city: City) => {
     setSelectedCity(city);
@@ -423,7 +397,6 @@ const Index = () => {
       >
         {activeTab === "map" && (
           <div 
-            ref={mapVisibilityRef}
             className="relative w-full h-full"
             style={{ 
               height: '100%',
