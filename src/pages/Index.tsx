@@ -97,12 +97,25 @@ const Index = () => {
   const jetCardRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   
+  // Track if initial paint has completed - defer heavy loading until after LCP
+  const [initialPaintComplete, setInitialPaintComplete] = useState(false);
+  
   // Intersection observer for map container - only load Mapbox when visible
   const [mapVisibilityRef, isMapVisible] = useIntersectionObserver<HTMLDivElement>({
     threshold: 0,
     rootMargin: '100px', // Start loading slightly before it's in view
     freezeOnceVisible: true, // Only trigger once - don't unload after loading
   });
+  
+  // Mark initial paint as complete after first frame renders
+  useEffect(() => {
+    // Use double rAF to ensure we're past the first paint
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setInitialPaintComplete(true);
+      });
+    });
+  }, []);
   
   // Swipe to dismiss for JetCard on mobile
   const { handlers: swipeHandlers, style: swipeStyle } = useSwipeToDismiss({
@@ -232,29 +245,30 @@ const Index = () => {
     }
   }, [activeTab]);
 
-  // Defer Mapbox initialization until container is visible AND browser is idle to reduce TBT
+  // Defer Mapbox initialization until AFTER initial paint to reduce TBT
   useEffect(() => {
     // Only load Mapbox when:
-    // 1. Map tab is active
-    // 2. Map container is visible in viewport (via intersection observer)
-    // 3. Not already ready
-    if (activeTab === "map" && isMapVisible && !isMapboxReady) {
-      // Use requestIdleCallback with 300ms timeout to push loading after LCP
-      const scheduleMapboxLoad = () => {
-        if ('requestIdleCallback' in window) {
-          (window as any).requestIdleCallback(() => {
-            setIsMapboxReady(true);
-          }, { timeout: 300 }); // 300ms delay to allow initial paint to complete
-        } else {
-          // Fallback for Safari - use setTimeout after paint
-          requestAnimationFrame(() => {
-            setTimeout(() => setIsMapboxReady(true), 50);
-          });
-        }
-      };
-      scheduleMapboxLoad();
+    // 1. Initial paint is complete (critical for TBT reduction)
+    // 2. Map tab is active
+    // 3. Map container is visible in viewport
+    // 4. Not already ready
+    if (!initialPaintComplete || !isMapVisible || activeTab !== "map" || isMapboxReady) {
+      return;
     }
-  }, [activeTab, isMapVisible, isMapboxReady]);
+    
+    // Use requestIdleCallback with longer timeout to push loading well after LCP
+    const scheduleMapboxLoad = () => {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(() => {
+          setIsMapboxReady(true);
+        }, { timeout: 1000 }); // 1s timeout - aggressive deferral
+      } else {
+        // Fallback for Safari - use setTimeout after paint
+        setTimeout(() => setIsMapboxReady(true), 500);
+      }
+    };
+    scheduleMapboxLoad();
+  }, [activeTab, isMapVisible, isMapboxReady, initialPaintComplete]);
 
   const handleCityChange = useCallback((city: City) => {
     setSelectedCity(city);
