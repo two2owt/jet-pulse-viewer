@@ -43,8 +43,18 @@ export default defineConfig(({ mode }) => ({
           // Keep all recharts internals together to avoid circular dependency issues
           // The 'S before initialization' error happens when d3 modules are split incorrectly
           // IMPORTANT: Do NOT include prop-types here - it's used by many React components
-          // and including it forces the charts chunk to load early, causing initialization errors
-          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor') || id.includes('react-smooth') || id.includes('decimal.js-light')) {
+          // SOLUTION: Include ALL d3 modules together - the issue is d3-scale imports from d3-array/d3-interpolate
+          // which have their own internal dependencies that get split incorrectly
+          if (
+            id.includes('recharts') || 
+            id.includes('/d3') ||           // catches all d3-* and d3/* modules  
+            id.includes('victory-vendor') || 
+            id.includes('react-smooth') || 
+            id.includes('decimal.js-light') ||
+            id.includes('internmap') ||     // d3 internal dependency
+            id.includes('delaunator') ||    // d3 internal dependency  
+            id.includes('robust-predicates') // d3 internal dependency
+          ) {
             return 'charts';
           }
           // Mapbox - heavy (~500KB+), lazy loaded when map is needed
