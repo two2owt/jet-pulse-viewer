@@ -54,22 +54,12 @@ export default defineConfig(({ mode }) => ({
             return "mapbox";
           }
 
-          // Recharts + D3 - heavy (~200KB), ONLY used in admin dashboard
-          // Keep all recharts internals together to avoid circular dependency issues
-          // The 'S before initialization' error happens when d3 modules are split incorrectly
-          // FIX: Use regex to catch ALL d3 modules regardless of path format (d3-scale, /d3/, etc)
-          const isD3Module = /[/\\]d3(-[a-z]+)?[/\\]/.test(id) || id.includes("node_modules/d3");
-          if (
-            id.includes("recharts") ||
-            id.includes("recharts-scale") ||
-            isD3Module || // catches d3-scale, d3-array, d3-interpolate, etc
-            id.includes("victory-vendor") ||
-            id.includes("react-smooth") ||
-            id.includes("decimal.js-light") ||
-            id.includes("internmap") // d3 internal dependency
-          ) {
-            return "charts";
-          }
+          // Recharts + D3 are only used in the admin analytics view.
+          // IMPORTANT: Do not force them into a dedicated vendor chunk.
+          // In some builds, splitting these ESM modules can lead to initialization-order issues
+          // (e.g. "Cannot access 'S' before initialization" in the generated charts chunk).
+          // Let Vite/Rollup decide optimal chunking so these modules stay co-located with their entry.
+
           // Dialogs - lazy loaded on user interaction
           if (id.includes('@radix-ui/react-dialog') || id.includes('@radix-ui/react-alert-dialog')) {
             return 'ui-dialogs';
