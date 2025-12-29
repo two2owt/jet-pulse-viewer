@@ -1722,4 +1722,16 @@ All colors MUST be HSL.
       opacity: 1;
     }
   }
+  
+  /* Slide in from top animation - GPU accelerated for OfflineBanner */
+  @keyframes slideInFromTop {
+    0% {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
 }

@@ -8,8 +8,15 @@ import { Send } from "lucide-react";
 export const LoadingFallback = memo(function LoadingFallback() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Header skeleton */}
-      <header className="h-[52px] px-3 flex items-center justify-between bg-card border-b border-border flex-shrink-0">
+      {/* Header skeleton - uses CSS variables for exact match with app shell */}
+      <header 
+        className="px-3 flex items-center justify-between bg-card border-b border-border flex-shrink-0"
+        style={{
+          height: 'var(--header-total-height, 52px)',
+          minHeight: 'var(--header-total-height, 52px)',
+          paddingTop: 'var(--safe-area-inset-top, 0px)',
+        }}
+      >
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-muted animate-pulse" />
           <div className="w-12 h-5 rounded bg-muted animate-pulse" />
@@ -142,9 +149,16 @@ export const LoadingFallback = memo(function LoadingFallback() {
         `}</style>
       </main>
       
-      {/* Bottom nav skeleton */}
-      <nav className="h-[60px] px-6 flex items-center justify-around bg-card border-t border-border flex-shrink-0 pb-safe">
-        {[0, 1, 2, 3].map((i) => (
+      {/* Bottom nav skeleton - uses CSS variables for exact match with app shell */}
+      <nav 
+        className="px-6 flex items-center justify-around bg-card border-t border-border flex-shrink-0"
+        style={{
+          height: 'var(--bottom-nav-total-height, 60px)',
+          minHeight: 'var(--bottom-nav-total-height, 60px)',
+          paddingBottom: 'var(--safe-area-inset-bottom, 0px)',
+        }}
+      >
+        {[0, 1, 2, 3, 4].map((i) => (
           <div key={i} className="w-12 h-10 flex flex-col items-center gap-1">
             <div className={`w-6 h-6 rounded ${i === 0 ? 'bg-primary' : 'bg-muted'}`} />
             <div className="w-8 h-2 rounded bg-muted" />
