@@ -74,13 +74,10 @@ class ServiceWorkerTracker {
       // Track initial registration
       await this.logEvent('registered');
 
-      // Also register push notification service worker
-      try {
-        await navigator.serviceWorker.register('/sw-push.js', { scope: '/' });
-        console.log('[SW Tracker] Push notification SW registered');
-      } catch (pushError) {
-        console.warn('[SW Tracker] Push SW registration failed:', pushError);
-      }
+      // Note: We do NOT auto-register the web-push service worker here.
+      // Registering multiple service workers with the same scope ("/") causes controller churn
+      // and can create reload loops in production.
+      // Web push registers its own worker only when the user opts in (see useWebPushNotifications).
 
       // Listen for updates
       registration.addEventListener('updatefound', () => {

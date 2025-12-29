@@ -5,6 +5,10 @@ import { toast } from "sonner";
 // VAPID public key for web push authentication
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
 
+// Keep web-push SW isolated from the app SW to avoid scope conflicts.
+const PUSH_SW_URL = '/sw-push.js';
+const PUSH_SW_SCOPE = '/push/';
+
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding)
@@ -20,6 +24,18 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+const getPushRegistrationIfExists = async (): Promise<ServiceWorkerRegistration | null> => {
+  if (!('serviceWorker' in navigator)) return null;
+
+  // getRegistration expects a document URL; "/push/" works as a representative URL under that scope.
+  const byUrl = await navigator.serviceWorker.getRegistration(PUSH_SW_SCOPE);
+  if (byUrl) return byUrl;
+
+  // Fallback: search all registrations.
+  const regs = await navigator.serviceWorker.getRegistrations();
+  return regs.find((r) => r.scope.endsWith(PUSH_SW_SCOPE)) ?? null;
+};
+
 export const useWebPushNotifications = () => {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -29,8 +45,8 @@ export const useWebPushNotifications = () => {
 
   useEffect(() => {
     // Check if push notifications are supported
-    const supported = 'serviceWorker' in navigator && 
-                      'PushManager' in window && 
+    const supported = 'serviceWorker' in navigator &&
+                      'PushManager' in window &&
                       'Notification' in window;
     setIsSupported(supported);
 
@@ -42,9 +58,11 @@ export const useWebPushNotifications = () => {
 
   const checkExistingSubscription = async () => {
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await getPushRegistrationIfExists();
+      if (!registration) return;
+
       const existingSubscription = await registration.pushManager.getSubscription();
-      
+
       if (existingSubscription) {
         setSubscription(existingSubscription);
         setIsSubscribed(true);
@@ -59,14 +77,14 @@ export const useWebPushNotifications = () => {
       throw new Error('Service workers not supported');
     }
 
-    // Register the push service worker
-    const registration = await navigator.serviceWorker.register('/sw-push.js', {
-      scope: '/'
+    // Register the push service worker under an isolated scope to avoid replacing the app SW.
+    const registration = await navigator.serviceWorker.register(PUSH_SW_URL, {
+      scope: PUSH_SW_SCOPE,
     });
 
-    // Wait for the service worker to be ready
-    await navigator.serviceWorker.ready;
-    
+    // Best-effort update; do not block.
+    registration.update().catch(() => undefined);
+
     return registration;
   };
 

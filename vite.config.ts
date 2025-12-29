@@ -197,7 +197,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       // Defer service worker registration to avoid render-blocking
       injectRegister: null,
       includeAssets: ["favicon.ico", "robots.txt", "jet-email-logo.png"],
@@ -234,8 +234,9 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff,woff2,jpg,jpeg}"],
         navigateFallback: "index.html",
         navigateFallbackDenylist: [/^\/api/, /^\/functions/],
-        skipWaiting: true,
-        clientsClaim: true,
+        // Stability: don't force-activate and claim clients (can create controller churn)
+        skipWaiting: false,
+        clientsClaim: false,
         cleanupOutdatedCaches: true,
 runtimeCaching: [
           // Cache all /assets/* files with immutable-like behavior
