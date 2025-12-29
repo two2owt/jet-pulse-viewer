@@ -132,11 +132,7 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('framer-motion')) {
             return 'animations';
           }
-          // Split Radix UI into smaller chunks by usage frequency
-          // Dialogs - used for modals, confirmations (common)
-          if (id.includes('@radix-ui/react-dialog') || id.includes('@radix-ui/react-alert-dialog')) {
-            return 'ui-dialogs';
-          }
+          // Split remaining Radix UI into smaller chunks by usage frequency
           // Menus - dropdowns, selects (common)
           if (id.includes('@radix-ui/react-select') || id.includes('@radix-ui/react-dropdown-menu')) {
             return 'ui-menus';

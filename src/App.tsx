@@ -23,8 +23,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const VerificationSuccess = lazy(() => import("./pages/VerificationSuccess"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Lazy load PWA components - not critical for initial render
-const PWAInstallPrompt = lazy(() => import("@/components/PWAInstallPrompt").then(m => ({ default: m.PWAInstallPrompt })));
+// Lazy load ServiceWorkerUpdater - not critical for initial render
 const ServiceWorkerUpdater = lazy(() => import("@/components/ServiceWorkerUpdater").then(m => ({ default: m.ServiceWorkerUpdater })));
 
 const PageTracker = memo(function PageTracker() {
@@ -55,9 +54,8 @@ const App = () => (
           <Sonner />
           <PageTracker />
           
-          {/* Lazy load PWA components */}
+          {/* Lazy load ServiceWorkerUpdater */}
           <Suspense fallback={null}>
-            <PWAInstallPrompt />
             <ServiceWorkerUpdater />
           </Suspense>
           

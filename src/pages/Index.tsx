@@ -2,44 +2,44 @@ import { useState, useEffect, useRef, lazy, Suspense, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { type Venue } from "@/types/venue";
+import { CITIES, type City } from "@/types/cities";
+
+// Critical path: Header and BottomNav are always visible
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
+import { MapSkeleton, HeaderSkeleton } from "@/components/skeletons";
+
+// Hooks must be imported synchronously (React rules)
+import { useMapboxToken, getMapboxTokenFromCache } from "@/hooks/useMapboxToken";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-// Lazy load MapboxHeatmap with viewport detection - only loads when visible
-// This significantly reduces TBT by deferring the heavy mapbox-gl chunk
-import { LazyMapboxHeatmap } from "@/components/LazyMapboxHeatmap";
-
-// Lazy load secondary components that aren't immediately visible
-const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
-const ExploreTab = lazy(() => import("@/components/ExploreTab").then(m => ({ default: m.ExploreTab })));
-
-// Lazy load components used conditionally
-const JetCard = lazy(() => import("@/components/JetCard").then(m => ({ default: m.JetCard })));
-const NotificationCard = lazy(() => import("@/components/NotificationCard").then(m => ({ default: m.NotificationCard })));
-
-import { useMapboxToken, getMapboxTokenFromCache } from "@/hooks/useMapboxToken";
 import { useVenueImages } from "@/hooks/useVenueImages";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAutoScrapeVenueImages } from "@/hooks/useAutoScrapeVenueImages";
 import { useDeals } from "@/hooks/useDeals";
-
 import { useVenueActivity } from "@/hooks/useVenueActivity";
-import { CITIES, type City } from "@/types/cities";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
+
+// Lazy load MapboxHeatmap with viewport detection - only loads when visible
+import { LazyMapboxHeatmap } from "@/components/LazyMapboxHeatmap";
+
+// Lazy load all secondary components - breaks up critical request chain
+const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
+const ExploreTab = lazy(() => import("@/components/ExploreTab").then(m => ({ default: m.ExploreTab })));
+const JetCard = lazy(() => import("@/components/JetCard").then(m => ({ default: m.JetCard })));
+const NotificationCard = lazy(() => import("@/components/NotificationCard").then(m => ({ default: m.NotificationCard })));
+const DirectionsDialog = lazy(() => import("@/components/DirectionsDialog"));
+
+// Lazy load non-critical UI - deferred until after FCP
+const OfflineBanner = lazy(() => import("@/components/OfflineBanner").then(m => ({ default: m.OfflineBanner })));
+const PWAInstallPrompt = lazy(() => import("@/components/PWAInstallPrompt").then(m => ({ default: m.PWAInstallPrompt })));
+const PushNotificationPrompt = lazy(() => import("@/components/PushNotificationPrompt").then(m => ({ default: m.PushNotificationPrompt })));
+
+// Minimal critical imports
 import { Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
-import jetLogo from "@/assets/jet-logo-256.webp";
 import { Button } from "@/components/ui/button";
-import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
-import { usePWAInstall } from "@/hooks/usePWAInstall";
-import { OfflineBanner } from "@/components/OfflineBanner";
-import { MapSkeleton, HeaderSkeleton } from "@/components/skeletons";
-
-// Lazy load Dialog components (only used when venue is selected)
-const DirectionsDialog = lazy(() => import("@/components/DirectionsDialog"));
 
 // Check for cached token synchronously to determine if we can skip loading state
 const hasCachedToken = getMapboxTokenFromCache() !== null;
@@ -367,8 +367,10 @@ const Index = () => {
           />
         )}
 
-        {/* Offline Banner */}
-        <OfflineBanner />
+        {/* Offline Banner - lazy loaded, non-critical */}
+        <Suspense fallback={null}>
+          <OfflineBanner />
+        </Suspense>
 
       {/* Main Content - Reserve height immediately to prevent CLS */}
       <main 
@@ -580,17 +582,21 @@ const Index = () => {
         />
       </Suspense>
 
-      {/* PWA Install Prompt */}
-      <PWAInstallPrompt />
+      {/* PWA Install Prompt - lazy loaded */}
+      <Suspense fallback={null}>
+        <PWAInstallPrompt />
+      </Suspense>
 
       {/* Push Notification Prompt - shows after PWA install */}
-      <PushNotificationPrompt 
-        show={justInstalled || showPushPrompt}
-        onDismiss={() => {
-          clearJustInstalled();
-          setShowPushPrompt(false);
-        }}
-      />
+      <Suspense fallback={null}>
+        <PushNotificationPrompt 
+          show={justInstalled || showPushPrompt}
+          onDismiss={() => {
+            clearJustInstalled();
+            setShowPushPrompt(false);
+          }}
+        />
+      </Suspense>
     </div>
     </>
   );
