@@ -19,7 +19,7 @@ import PrivacySettings from "@/components/settings/PrivacySettings";
 import { DeleteAccountDialog } from "@/components/settings/DeleteAccountDialog";
 import { SubscriptionPlans } from "@/components/SubscriptionPlans";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { isMonetizationEnabled } from "@/components/admin/MonetizationToggle";
+import { isMonetizationEnabled } from "@/lib/monetization";
 const preferencesSchema = z.object({
   notifications_enabled: z.boolean(),
   location_tracking_enabled: z.boolean(),

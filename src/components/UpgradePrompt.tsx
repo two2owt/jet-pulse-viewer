@@ -98,8 +98,8 @@ export const UpgradePrompt = ({
   );
 };
 
-// Import the monetization check from admin toggle
-import { isMonetizationEnabled } from "./admin/MonetizationToggle";
+// Import from lightweight utility module (avoids pulling in admin UI components)
+import { isMonetizationEnabled } from "@/lib/monetization";
 
 // Hook to check feature access
 export const useFeatureAccess = () => {

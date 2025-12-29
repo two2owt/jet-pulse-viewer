@@ -5,29 +5,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-const MONETIZATION_OVERRIDE_KEY = "jet_monetization_override";
-const MONETIZATION_RELEASE_DATE = new Date("2026-01-01");
+// Import from the lightweight utility module (no UI dependencies)
+import {
+  type MonetizationOverride,
+  getMonetizationOverride,
+  setMonetizationOverride,
+  isMonetizationEnabled,
+  getMonetizationReleaseDate,
+} from "@/lib/monetization";
 
-export type MonetizationOverride = "auto" | "enabled" | "disabled";
-
-export const getMonetizationOverride = (): MonetizationOverride => {
-  if (typeof window === "undefined") return "auto";
-  return (localStorage.getItem(MONETIZATION_OVERRIDE_KEY) as MonetizationOverride) || "auto";
-};
-
-export const isMonetizationEnabled = (): boolean => {
-  const override = getMonetizationOverride();
-  
-  if (override === "enabled") return true;
-  if (override === "disabled") return false;
-  
-  // Auto mode: check release date
-  return new Date() >= MONETIZATION_RELEASE_DATE;
-};
+// Re-export for backwards compatibility with any code that imports from this file
+export { isMonetizationEnabled, getMonetizationOverride, type MonetizationOverride };
 
 export const MonetizationToggle = () => {
   const [override, setOverride] = useState<MonetizationOverride>("auto");
-  const isBeforeRelease = new Date() < MONETIZATION_RELEASE_DATE;
+  const releaseDate = getMonetizationReleaseDate();
+  const isBeforeRelease = new Date() < releaseDate;
 
   useEffect(() => {
     setOverride(getMonetizationOverride());
@@ -35,10 +28,10 @@ export const MonetizationToggle = () => {
 
   const handleToggle = (value: MonetizationOverride) => {
     setOverride(value);
-    localStorage.setItem(MONETIZATION_OVERRIDE_KEY, value);
+    setMonetizationOverride(value);
     toast.success(`Monetization ${value === "auto" ? "set to auto" : value}`, {
       description: value === "auto" 
-        ? `Will activate on ${MONETIZATION_RELEASE_DATE.toLocaleDateString()}`
+        ? `Will activate on ${releaseDate.toLocaleDateString()}`
         : `Feature gating is now ${value}`,
     });
     // Trigger a page reload to apply changes
@@ -84,7 +77,7 @@ export const MonetizationToggle = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Scheduled release: <span className="font-medium text-foreground">{MONETIZATION_RELEASE_DATE.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
+          Scheduled release: <span className="font-medium text-foreground">{releaseDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
           {isBeforeRelease && " (not yet active)"}
         </p>
 
