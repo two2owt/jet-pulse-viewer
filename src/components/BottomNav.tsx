@@ -1,5 +1,5 @@
 import { Map, Compass, Bell, Star, Users } from "lucide-react";
-import { useState } from "react";
+import { useCallback } from "react";
 import { Skeleton } from "./ui/skeleton";
 
 type NavItem = "map" | "explore" | "notifications" | "favorites" | "social";
@@ -10,9 +10,17 @@ interface BottomNavProps {
   notificationCount?: number;
   /** Show skeleton loading state */
   isLoading?: boolean;
+  /** Callback to prefetch heavy resources on hover/touch */
+  onPrefetch?: (tab: NavItem) => void;
 }
 
-export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoading = false }: BottomNavProps) => {
+export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoading = false, onPrefetch }: BottomNavProps) => {
+  // Track if we've already prefetched to avoid redundant calls
+  const handlePrefetch = useCallback((tab: NavItem) => {
+    if (onPrefetch && tab !== activeTab) {
+      onPrefetch(tab);
+    }
+  }, [onPrefetch, activeTab]);
   const navItems = [
     { id: "map" as NavItem, icon: Map, label: "Map" },
     { id: "explore" as NavItem, icon: Compass, label: "Explore" },
@@ -61,6 +69,8 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
                 <button
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
+                  onMouseEnter={() => handlePrefetch(item.id)}
+                  onTouchStart={() => handlePrefetch(item.id)}
                   aria-label={`${item.label}${item.id === 'notifications' && notificationCount > 0 ? `, ${notificationCount} unread` : ''}`}
                   aria-current={isActive ? "page" : undefined}
                   className={`relative flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 rounded-xl transition-all duration-300 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px] touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
