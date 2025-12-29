@@ -42,12 +42,11 @@ export default defineConfig(({ mode }) => ({
           // Recharts + D3 - heavy (~200KB), ONLY used in admin dashboard
           // Keep all recharts internals together to avoid circular dependency issues
           // The 'S before initialization' error happens when d3 modules are split incorrectly
-          // IMPORTANT: Do NOT include prop-types here - it's used by many React components
-          // SOLUTION: Include ALL d3 modules together - the issue is d3-scale imports from d3-array/d3-interpolate
-          // which have their own internal dependencies that get split incorrectly
+          // FIX: Use regex to catch ALL d3 modules regardless of path format (d3-scale, /d3/, etc)
+          const isD3Module = /[/\\]d3(-[a-z]+)?[/\\]/.test(id) || id.includes('node_modules/d3');
           if (
             id.includes('recharts') || 
-            id.includes('/d3') ||           // catches all d3-* and d3/* modules  
+            isD3Module ||                   // catches d3-scale, d3-array, d3-interpolate, etc
             id.includes('victory-vendor') || 
             id.includes('react-smooth') || 
             id.includes('decimal.js-light') ||
