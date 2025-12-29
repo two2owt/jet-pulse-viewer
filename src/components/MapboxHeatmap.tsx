@@ -5,19 +5,31 @@ import type * as MapboxGL from "mapbox-gl";
 // Type alias for the mapbox-gl default export
 type MapboxGLModule = typeof import("mapbox-gl").default;
 
-// Dynamically load mapbox-gl to defer the 448KB chunk until after FCP
+// In production, mapbox-gl is loaded from CDN as window.mapboxgl
+// In development, we use the npm package for HMR
 let mapboxglModule: MapboxGLModule | null = null;
 let mapboxLoadPromise: Promise<MapboxGLModule> | null = null;
 
 const loadMapboxGL = async (): Promise<MapboxGLModule> => {
   if (mapboxglModule) return mapboxglModule;
+  
   if (!mapboxLoadPromise) {
-    mapboxLoadPromise = import("mapbox-gl").then(async (m) => {
-      // Also load the CSS
+    mapboxLoadPromise = (async () => {
+      // Check if mapbox-gl is available globally (CDN in production)
+      if (typeof window !== 'undefined' && (window as any).mapboxgl) {
+        console.log('MapboxHeatmap: Using CDN mapbox-gl');
+        mapboxglModule = (window as any).mapboxgl;
+        return mapboxglModule!;
+      }
+      
+      // Fallback to dynamic import (development or if CDN fails)
+      console.log('MapboxHeatmap: Loading mapbox-gl via import');
+      const m = await import("mapbox-gl");
+      // Also load the CSS in dev
       await import("mapbox-gl/dist/mapbox-gl.css");
       mapboxglModule = m.default;
       return m.default;
-    });
+    })();
   }
   return mapboxLoadPromise;
 };
