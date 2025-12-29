@@ -8,11 +8,9 @@ import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// Lazy load MapboxHeatmap - it's heavy (~500KB with mapbox-gl)
-// The MapSkeleton shows while it loads, and we prefetch in main.tsx
-const MapboxHeatmap = lazy(() => 
-  import("@/components/MapboxHeatmap").then(m => ({ default: m.MapboxHeatmap }))
-);
+// Lazy load MapboxHeatmap with viewport detection - only loads when visible
+// This significantly reduces TBT by deferring the heavy mapbox-gl chunk
+import { LazyMapboxHeatmap } from "@/components/LazyMapboxHeatmap";
 
 // Lazy load secondary components that aren't immediately visible
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
@@ -435,7 +433,7 @@ const Index = () => {
                 </div>
               )}
               
-              {/* Map - deferred via requestIdleCallback to reduce TBT */}
+              {/* Map - lazy loaded with Intersection Observer to reduce TBT */}
               {isMapboxReady && mapboxToken ? (
                 <div 
                   className="h-full w-full animate-fade-in"
@@ -444,21 +442,19 @@ const Index = () => {
                     animationTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
-                  <Suspense fallback={<MapSkeleton phase="loading" />}>
-                    <MapboxHeatmap
-                      onVenueSelect={handleVenueSelect} 
-                      venues={venues} 
-                      mapboxToken={mapboxToken}
-                      selectedCity={selectedCity}
-                      onCityChange={handleCityChange}
-                      onNearestCityDetected={handleNearestCityDetected}
-                      onDetectedLocationNameChange={handleDetectedLocationNameChange}
-                      isLoadingVenues={venuesLoading}
-                      selectedVenue={selectedVenue}
-                      resetUIKey={mapUIResetKey}
-                      isTokenLoading={false}
-                    />
-                  </Suspense>
+                  <LazyMapboxHeatmap
+                    onVenueSelect={handleVenueSelect} 
+                    venues={venues} 
+                    mapboxToken={mapboxToken}
+                    selectedCity={selectedCity}
+                    onCityChange={handleCityChange}
+                    onNearestCityDetected={handleNearestCityDetected}
+                    onDetectedLocationNameChange={handleDetectedLocationNameChange}
+                    isLoadingVenues={venuesLoading}
+                    selectedVenue={selectedVenue}
+                    resetUIKey={mapUIResetKey}
+                    isTokenLoading={false}
+                  />
                 </div>
               ) : (
                 <MapSkeleton phase={mapboxLoading ? 'token' : 'loading'} />
