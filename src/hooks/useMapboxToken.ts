@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-const TOKEN_CACHE_KEY = 'mapbox_token_cache';
+const TOKEN_CACHE_KEY = 'mapbox_token_cache_v2';
 const TOKEN_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 interface CachedToken {
@@ -19,23 +19,28 @@ const getCachedToken = (): string | null => {
   try {
     // Try localStorage first (persists across sessions)
     let cached = localStorage.getItem(TOKEN_CACHE_KEY);
-    
+
     // Fallback to sessionStorage
     if (!cached) {
       cached = sessionStorage.getItem(TOKEN_CACHE_KEY);
     }
-    
-    if (!cached) return null;
-    
+
+    // Clear legacy cache key so a rotated token takes effect immediately
+    if (!cached) {
+      localStorage.removeItem('mapbox_token_cache');
+      sessionStorage.removeItem('mapbox_token_cache');
+      return null;
+    }
+
     const { token, timestamp }: CachedToken = JSON.parse(cached);
     const isExpired = Date.now() - timestamp > TOKEN_CACHE_DURATION;
-    
-    if (isExpired) {
+
+    if (isExpired || typeof token !== 'string' || !token.startsWith('pk.')) {
       localStorage.removeItem(TOKEN_CACHE_KEY);
       sessionStorage.removeItem(TOKEN_CACHE_KEY);
       return null;
     }
-    
+
     return token;
   } catch {
     return null;
@@ -104,6 +109,11 @@ export const useMapboxToken = (options: UseMapboxTokenOptions = {}) => {
         if (!data || !data.token) {
           console.error('useMapboxToken: No token received from edge function');
           throw new Error('No token received from server');
+        }
+
+        if (typeof data.token !== 'string' || !data.token.startsWith('pk.')) {
+          console.error('useMapboxToken: Invalid token received');
+          throw new Error('Invalid Mapbox public token');
         }
         
         console.log('useMapboxToken: Successfully fetched token');

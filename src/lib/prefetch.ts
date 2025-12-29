@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 let mapboxPrefetched = false;
 let mapboxTokenPrefetched = false;
 
-const TOKEN_CACHE_KEY = 'mapbox_token_cache';
+const TOKEN_CACHE_KEY = 'mapbox_token_cache_v2';
 const TOKEN_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
