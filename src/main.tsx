@@ -87,10 +87,8 @@ requestIdleCallback(() => {
     const { analytics } = await import("@/lib/analytics");
     analytics.init();
     
-    // Prefetch Mapbox JS chunk
-    await yieldToMain();
-    const { prefetchMapbox } = await import("@/lib/prefetch");
-    prefetchMapbox();
+    // NOTE: Mapbox JS chunk is now loaded on-demand by MapboxHeatmap component
+    // Removed eager prefetch to reduce TBT - the chunk loads when user views the map
     
     // Register service worker
     await yieldToMain();

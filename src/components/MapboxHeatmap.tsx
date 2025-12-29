@@ -1,6 +1,25 @@
-import { useEffect, useRef, useState } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import { useEffect, useRef, useState, useCallback } from "react";
+import type * as MapboxGL from "mapbox-gl";
+
+// Type alias for the mapbox-gl default export
+type MapboxGLModule = typeof import("mapbox-gl").default;
+
+// Dynamically load mapbox-gl to defer the 448KB chunk until after FCP
+let mapboxglModule: MapboxGLModule | null = null;
+let mapboxLoadPromise: Promise<MapboxGLModule> | null = null;
+
+const loadMapboxGL = async (): Promise<MapboxGLModule> => {
+  if (mapboxglModule) return mapboxglModule;
+  if (!mapboxLoadPromise) {
+    mapboxLoadPromise = import("mapbox-gl").then(async (m) => {
+      // Also load the CSS
+      await import("mapbox-gl/dist/mapbox-gl.css");
+      mapboxglModule = m.default;
+      return m.default;
+    });
+  }
+  return mapboxLoadPromise;
+};
 import { MapPin, TrendingUp, Layers, X, AlertCircle, Route, Play, Pause, SkipBack, SkipForward, Clock, ChevronDown, ChevronUp, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocationDensity } from "@/hooks/useLocationDensity";
@@ -88,20 +107,39 @@ const getPlatformSettings = (isMobile: boolean) => {
 
 export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity, onCityChange, onNearestCityDetected, onDetectedLocationNameChange, isLoadingVenues = false, selectedVenue, resetUIKey, isTokenLoading = false }: MapboxHeatmapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  const map = useRef<MapboxGL.Map | null>(null);
+  const mapboxglRef = useRef<MapboxGLModule | null>(null);
+  const [mapboxLoaded, setMapboxLoaded] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInitializing, setMapInitializing] = useState(true);
   const [tileProgress, setTileProgress] = useState(0);
   const [mapError, setMapError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const userMarker = useRef<mapboxgl.Marker | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const dealMarkersRef = useRef<mapboxgl.Marker[]>([]);
-  const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
+  const userMarker = useRef<MapboxGL.Marker | null>(null);
+  const markersRef = useRef<MapboxGL.Marker[]>([]);
+  const dealMarkersRef = useRef<MapboxGL.Marker[]>([]);
+  const geolocateControlRef = useRef<MapboxGL.GeolocateControl | null>(null);
   const flowAnimationRef = useRef<number | null>(null);
   const isMobile = useIsMobile();
   const initStartTime = useRef<number>(0);
   const platformSettings = useRef(getPlatformSettings(isMobile));
+  
+  // Load mapbox-gl module on mount (deferred to reduce TBT)
+  useEffect(() => {
+    let mounted = true;
+    loadMapboxGL().then((mapboxgl) => {
+      if (mounted) {
+        mapboxglRef.current = mapboxgl;
+        setMapboxLoaded(true);
+        console.log('MapboxHeatmap: mapbox-gl module loaded');
+      }
+    }).catch((err) => {
+      console.error('MapboxHeatmap: Failed to load mapbox-gl:', err);
+      setMapError('Failed to load map library');
+      setMapInitializing(false);
+    });
+    return () => { mounted = false; };
+  }, []);
   
   // Density heatmap state
   const [showDensityLayer, setShowDensityLayer] = useState(false);
@@ -246,16 +284,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
     
+    // Wait for mapbox-gl module to be loaded
+    if (!mapboxLoaded || !mapboxglRef.current) return;
+    
     // Validate token before initialization
     if (!mapboxToken || mapboxToken.trim() === '') {
       console.error('MapboxHeatmap: Invalid or missing Mapbox token');
       setMapInitializing(false);
       return;
     }
+    
+    const mapboxgl = mapboxglRef.current;
 
     // Defer map initialization to reduce main thread blocking during initial load
     const initializeMap = () => {
-      if (!mapContainer.current || map.current) return;
+      if (!mapContainer.current || map.current || !mapboxglRef.current) return;
       
       try {
         initStartTime.current = performance.now();
@@ -509,8 +552,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           }
           
           // Create or update user marker with smooth interpolation
-          if (!userMarker.current && map.current) {
-            userMarker.current = new mapboxgl.Marker({
+          if (!userMarker.current && map.current && mapboxglRef.current) {
+            userMarker.current = new mapboxglRef.current.Marker({
               element: createUserMarker(),
               anchor: 'bottom'
             })
@@ -707,7 +750,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
     return () => {
       cleanupMap();
     };
-  }, [mapboxToken, retryCount]);
+  }, [mapboxToken, mapboxLoaded, retryCount]);
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     
@@ -1482,7 +1525,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
         el.appendChild(pinEl);
 
-        const marker = new mapboxgl.Marker({ element: el })
+        if (!mapboxglRef.current) return;
+        const marker = new mapboxglRef.current.Marker({ element: el })
           .setLngLat([pos.lng, pos.lat])
           .addTo(mapInstance);
 
@@ -1627,7 +1671,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       });
 
       // Create marker with bottom anchor for teardrop (pin point at GPS location)
-      const marker = new mapboxgl.Marker({
+      if (!mapboxglRef.current) return;
+      const marker = new mapboxglRef.current.Marker({
         element: el,
         anchor: 'bottom'
       })
@@ -1656,7 +1701,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
            </div>`
         : '';
 
-      const popup = new mapboxgl.Popup({
+      const popup = new mapboxglRef.current.Popup({
         offset: isMobile ? 20 : 28,
         closeButton: true,
         closeOnClick: true,
