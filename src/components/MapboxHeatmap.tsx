@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { storeLastKnownLocation } from "@/lib/tile-prefetch";
 import type * as MapboxGL from "mapbox-gl";
 
 // Type alias for the mapbox-gl default export
@@ -535,6 +536,9 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           
           // Find the nearest predefined city using proper Haversine distance (for filtering)
           const nearestCity = getNearestCity(latitude, longitude);
+          
+          // Store last known location for tile prefetching on next visit
+          storeLastKnownLocation(latitude, longitude, nearestCity.name);
           
           // Set detected city based on location (used for data filtering)
           setDetectedCity(nearestCity);

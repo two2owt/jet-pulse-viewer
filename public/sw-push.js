@@ -114,7 +114,65 @@ self.addEventListener('message', function(event) {
     console.log('[SW-Push] Skip waiting requested');
     self.skipWaiting();
   }
+  
+  // Handle tile prefetch requests from main thread
+  if (event.data && event.data.type === 'PREFETCH_TILES') {
+    console.log('[SW-Push] Tile prefetch requested:', event.data.urls?.length || 0, 'tiles');
+    
+    const urls = event.data.urls || [];
+    
+    // Prefetch tiles in background with low priority
+    event.waitUntil(
+      prefetchTilesInBackground(urls)
+    );
+  }
 });
+
+// Background tile prefetching
+async function prefetchTilesInBackground(urls) {
+  const cache = await caches.open('mapbox-tiles-cache');
+  let successCount = 0;
+  
+  // Prefetch in small batches with delays to avoid network congestion
+  const BATCH_SIZE = 2;
+  
+  for (let i = 0; i < urls.length; i += BATCH_SIZE) {
+    const batch = urls.slice(i, i + BATCH_SIZE);
+    
+    const results = await Promise.allSettled(
+      batch.map(async (url) => {
+        // Check if already cached
+        const cached = await cache.match(url);
+        if (cached) return true;
+        
+        // Fetch and cache
+        try {
+          const response = await fetch(url, {
+            mode: 'cors',
+            credentials: 'omit',
+          });
+          
+          if (response.ok) {
+            await cache.put(url, response.clone());
+            return true;
+          }
+        } catch (e) {
+          // Ignore errors - tiles may not be critical
+        }
+        return false;
+      })
+    );
+    
+    successCount += results.filter(r => r.status === 'fulfilled' && r.value).length;
+    
+    // Delay between batches to avoid hogging network
+    if (i + BATCH_SIZE < urls.length) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+  }
+  
+  console.log('[SW-Push] Tile prefetch complete:', successCount, '/', urls.length);
+}
 
 self.addEventListener('install', function() {
   console.log('[SW-Push] Installed');
