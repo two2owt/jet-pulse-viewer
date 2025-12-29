@@ -465,7 +465,27 @@
       });
     </script>
 
-    <!-- Boot watchdog: prevents being stuck on the HTML shell (often due to a stale Service Worker) -->
+    <!-- Global error handler: catch JS errors and show them -->
+    <script>
+      window.__jetErrors = [];
+      window.onerror = function(msg, url, line, col, error) {
+        window.__jetErrors.push({ msg: msg, url: url, line: line, error: error });
+        var loader = document.querySelector('.shell-loader');
+        if (loader && window.__jetErrors.length === 1) {
+          var shortUrl = url ? url.split('/').pop() : 'unknown';
+          loader.innerHTML = '<div style="text-align:center;padding:24px;">' +
+            '<div style="font-size:48px;margin-bottom:16px;">⚠️</div>' +
+            '<div style="font-size:18px;font-weight:600;margin-bottom:8px;color:hsl(0 0% 98%);">JavaScript Error</div>' +
+            '<div style="font-size:12px;color:hsl(0 0% 64%);margin-bottom:8px;max-width:300px;word-break:break-word;font-family:monospace;">' + msg + '</div>' +
+            '<div style="font-size:11px;color:hsl(0 0% 50%);margin-bottom:16px;">' + shortUrl + ':' + line + '</div>' +
+            '<button onclick="localStorage.clear();sessionStorage.clear();caches.keys().then(function(k){k.forEach(function(n){caches.delete(n)})});navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(w){w.unregister()})});setTimeout(function(){location.reload()},500);" style="background:hsl(24 100% 50%);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">Clear All & Reload</button>' +
+          '</div>';
+        }
+        return false;
+      };
+    </script>
+
+    <!-- Boot watchdog: prevents being stuck on the HTML shell -->
     <script>
       (function () {
         var shell = document.getElementById('app-shell');
@@ -485,7 +505,6 @@
           // Clear boot flag on successful mount
           try { sessionStorage.removeItem(BOOT_KEY); } catch (e) {}
           requestAnimationFrame(function () {
-            // Polished reveal: shell scales up slightly and fades out with blur
             shell.style.transition = 'opacity 400ms cubic-bezier(0.4, 0, 0.2, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1), filter 400ms cubic-bezier(0.4, 0, 0.2, 1)';
             shell.style.opacity = '0';
             shell.style.transform = 'scale(1.04)';
@@ -498,14 +517,17 @@
           });
         };
 
-        var showError = function () {
+        var showTimeoutError = function () {
+          // Don't override JS error display
+          if (window.__jetErrors && window.__jetErrors.length > 0) return;
+          
           var loader = document.querySelector('.shell-loader');
           if (loader) {
             loader.innerHTML = '<div style="text-align:center;padding:24px;">' +
-              '<div style="font-size:48px;margin-bottom:16px;">⚠️</div>' +
-              '<div style="font-size:18px;font-weight:600;margin-bottom:8px;color:hsl(0 0% 98%);">Unable to Load App</div>' +
-              '<div style="font-size:14px;color:hsl(0 0% 64%);margin-bottom:16px;max-width:280px;">Try clearing your browser cache or opening in a private window.</div>' +
-              '<button onclick="localStorage.clear();sessionStorage.clear();location.reload();" style="background:hsl(24 100% 50%);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">Clear Cache & Reload</button>' +
+              '<div style="font-size:48px;margin-bottom:16px;">⏱️</div>' +
+              '<div style="font-size:18px;font-weight:600;margin-bottom:8px;color:hsl(0 0% 98%);">Loading Timeout</div>' +
+              '<div style="font-size:14px;color:hsl(0 0% 64%);margin-bottom:16px;max-width:280px;">The app is taking too long to load. Try clearing cache.</div>' +
+              '<button onclick="localStorage.clear();sessionStorage.clear();caches.keys().then(function(k){k.forEach(function(n){caches.delete(n)})});navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(w){w.unregister()})});setTimeout(function(){location.reload()},500);" style="background:hsl(24 100% 50%);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">Clear Cache & Reload</button>' +
             '</div>';
           }
         };
@@ -521,7 +543,7 @@
           observer.observe(root, { childList: true });
         } catch (e) {}
 
-        // If we're still on the shell after a while, attempt a recovery (but only once)
+        // If we're still on the shell after a while, attempt recovery once then show error
         setTimeout(function () {
           if (isHidden()) return;
           if (root.childElementCount > 0) {
@@ -529,22 +551,22 @@
             return;
           }
 
-          // If we already tried recovery this session, show error instead of looping
-          if (bootAttempted) {
-            showError();
+          // If already tried recovery OR there's a JS error, show error instead of reloading
+          if (bootAttempted || (window.__jetErrors && window.__jetErrors.length > 0)) {
+            showTimeoutError();
             return;
           }
 
           // Mark that we're attempting recovery
           try { sessionStorage.setItem(BOOT_KEY, '1'); } catch (e) {}
 
-          // Update shell copy
+          // Update shell text
           try {
             var status = document.querySelector('.shell-text');
             if (status) status.textContent = 'Refreshing…';
           } catch (e) {}
 
-          // Best-effort: unregister SW + clear caches, then reload
+          // Unregister SW + clear caches, then reload
           Promise.resolve()
             .then(function () {
               if (!('serviceWorker' in navigator)) return;
@@ -560,12 +582,11 @@
             })
             .catch(function () {})
             .finally(function () {
-              // Cache-bust to avoid reusing a broken cached document
               var url = new URL(window.location.href);
               url.searchParams.set('_boot', String(Date.now()));
               window.location.replace(url.toString());
             });
-        }, 8000);
+        }, 12000); // Increased to 12 seconds
       })();
     </script>
   </body>
