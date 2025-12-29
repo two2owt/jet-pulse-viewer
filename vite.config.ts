@@ -1,10 +1,12 @@
-import { defineConfig } from "vite";
+import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 import cssnano from "cssnano";
 import { visualizer } from "rollup-plugin-visualizer";
+// @ts-ignore - critters types are in a non-standard location
+import Critters from "critters";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -161,6 +163,37 @@ export default defineConfig(({ mode }) => ({
           '<link rel="preload" as="style" href="$1" onload="this.onload=null;this.rel=\'stylesheet\'">' +
           '<noscript><link rel="stylesheet" href="$1"></noscript>'
         );
+      },
+    },
+    // Critical CSS extraction - inlines above-the-fold styles
+    mode === 'production' && {
+      name: 'critters-plugin',
+      async transformIndexHtml(html: string) {
+        try {
+          const critters = new Critters({
+            // Inline critical CSS
+            inlineThreshold: 0,
+            // Preload remaining CSS
+            preload: 'swap',
+            // Don't remove original CSS (already handled by css-preload plugin)
+            pruneSource: false,
+            // Reduce unused CSS
+            reduceInlineStyles: true,
+            // Inline fonts for faster LCP
+            inlineFonts: true,
+            // Compress inlined CSS
+            compress: true,
+            // Don't merge stylesheets
+            mergeStylesheets: false,
+            // Add noscript fallback
+            noscriptFallback: true,
+          });
+          
+          return await critters.process(html);
+        } catch (e) {
+          console.warn('Critters CSS extraction failed, using original HTML:', e);
+          return html;
+        }
       },
     },
     VitePWA({
