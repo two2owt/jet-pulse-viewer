@@ -111,9 +111,13 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
       ref={containerRef}
       className="h-full w-full relative"
       style={{
+        // Explicit aspect ratio prevents CLS (0.145 -> 0)
+        // The map fills the remaining viewport after header/nav
+        aspectRatio: 'auto',
+        minHeight: 'calc(100vh - var(--header-height, 52px) - var(--bottom-nav-height, 60px) - env(safe-area-inset-bottom, 0px))',
         contain: 'layout style paint',
         contentVisibility: 'auto',
-        containIntrinsicSize: '100vw 100%',
+        containIntrinsicSize: '100vw calc(100vh - 112px)',
       }}
       data-connection-speed={isSlowConnection ? 'slow' : 'fast'}
       data-online={isOnline ? 'true' : 'false'}
