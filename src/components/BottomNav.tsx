@@ -38,11 +38,14 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
         paddingBottom: 'var(--safe-area-inset-bottom)',
         paddingLeft: 'var(--safe-area-inset-left)',
         paddingRight: 'var(--safe-area-inset-right)',
-        // Use CSS variable for responsive height
+        // Use CSS variable for responsive height - explicit max prevents overflow
         height: 'var(--bottom-nav-total-height)',
         minHeight: 'var(--bottom-nav-total-height)',
+        maxHeight: 'var(--bottom-nav-total-height)',
         contain: 'strict',
         transform: 'translateZ(0)',
+        // Prevent any content from causing shifts
+        overflow: 'hidden',
       }}
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 h-full flex items-center">
