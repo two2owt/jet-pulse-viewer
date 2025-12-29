@@ -15,9 +15,46 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   build: {
-    // Disable modulepreload entirely - prevents unused JS warnings for lazy chunks
-    // This stops Vite from injecting <link rel="modulepreload"> for lazy-loaded chunks
-    modulePreload: false,
+    // Enable modulepreload for critical chunks only - improves LCP by reducing request chain depth
+    // Filter out heavy lazy chunks (mapbox, charts, sentry) to avoid unused JS warnings
+    modulePreload: {
+      polyfill: true,
+      resolveDependencies: (filename, deps, { hostId, hostType }) => {
+        // Critical chunks to preload - needed for initial render
+        const criticalChunks = [
+          'vendor-react',
+          'vendor-router', 
+          'vendor-query',
+          'supabase',
+          'ui-core',
+          'forms',
+          'index',
+        ];
+        
+        // Lazy chunks to exclude - loaded on demand
+        const lazyChunks = [
+          'mapbox',
+          'MapboxHeatmap',
+          'sentry',
+          'charts',
+          'ui-dialogs',
+          'animations',
+        ];
+        
+        // Filter dependencies to only preload critical ones
+        return deps.filter(dep => {
+          const depName = dep.toLowerCase();
+          // Exclude lazy chunks
+          if (lazyChunks.some(lazy => depName.includes(lazy.toLowerCase()))) {
+            return false;
+          }
+          // Include if it's a critical chunk or a core dependency
+          return criticalChunks.some(critical => depName.includes(critical.toLowerCase())) ||
+                 depName.includes('index') ||
+                 depName.endsWith('.css');
+        });
+      },
+    },
     // Optimize chunk splitting for better caching and reduced unused JS
     rollupOptions: {
       output: {
