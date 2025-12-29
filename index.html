@@ -23,9 +23,11 @@
     <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
     <link rel="manifest" href="/manifest.webmanifest" />
     
+    <!-- CRITICAL: Preload Kanit fonts for LCP (JET brand text) - eliminates 910ms render delay -->
+    <link rel="preload" href="/fonts/kanit-900.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
+    <link rel="preload" href="/fonts/kanit-600.woff2" as="font" type="font/woff2" crossorigin>
     <!-- Preconnect hints - establish early connections to critical origins -->
     <link rel="preconnect" href="https://zbrscuoqmkdbmdimdnqu.supabase.co" crossorigin>
-    <!-- Fonts self-hosted via @fontsource/kanit - no external font requests needed -->
     
     <!-- Mapbox critical origins - ordered by impact on LCP -->
     <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
@@ -43,10 +45,6 @@
     <link rel="dns-prefetch" href="https://c.tiles.mapbox.com">
     <link rel="dns-prefetch" href="https://d.tiles.mapbox.com">
     <link rel="dns-prefetch" href="https://maps.googleapis.com">
-    
-    <!-- Font preloading removed - @fontsource handles font loading via CSS imports in main.tsx -->
-    <!-- Vite will hash these at build time, so hardcoded preload paths become stale -->
-
     <!-- SEO Meta Tags -->
     <title>JET - Discover What&#39;s Hot Right Now</title>
     <meta name="description" content="Find trending venues, live events, and exclusive deals in your area with real-time heatmaps. Your guide to what's happening now.">
@@ -72,6 +70,24 @@
     
     <!-- Critical CSS - Inlined for instant FCP -->
     <style>
+      /* CRITICAL: Kanit 900 for LCP element (JET brand text) - inline declaration eliminates JS dependency */
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 900;
+        font-display: swap;
+        src: url('/fonts/kanit-900.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      /* Kanit 600 for header logo */
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/kanit-600.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
       /* Fallback font face - prevents CLS by using optional display */
       @font-face {
         font-family: 'Kanit Fallback';
@@ -82,7 +98,6 @@
         line-gap-override: 0%;
         size-adjust: 105%;
       }
-      /* @fontsource handles font-face declarations via CSS imports in main.tsx */
       /* Critical CSS variables for dark mode */
       :root {
         color-scheme: dark;
