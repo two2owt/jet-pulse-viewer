@@ -39,26 +39,36 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('@sentry/')) {
             return 'sentry';
           }
+          // Mapbox - heavy (~500KB+), lazy loaded when map is needed
+          // IMPORTANT: Keep Mapbox geometry deps out of the 'charts' chunk; otherwise the home page can
+          // end up loading the charts chunk (and its D3 internals) and crash with "Cannot access 'S' before initialization".
+          const isMapboxModule =
+            id.includes("mapbox-gl") ||
+            id.includes("martinez-polygon-clipping") ||
+            id.includes("robust-predicates") ||
+            id.includes("splaytree") ||
+            id.includes("tinyqueue") ||
+            id.includes("delaunator");
+
+          if (isMapboxModule) {
+            return "mapbox";
+          }
+
           // Recharts + D3 - heavy (~200KB), ONLY used in admin dashboard
           // Keep all recharts internals together to avoid circular dependency issues
           // The 'S before initialization' error happens when d3 modules are split incorrectly
           // FIX: Use regex to catch ALL d3 modules regardless of path format (d3-scale, /d3/, etc)
-          const isD3Module = /[/\\]d3(-[a-z]+)?[/\\]/.test(id) || id.includes('node_modules/d3');
+          const isD3Module = /[/\\]d3(-[a-z]+)?[/\\]/.test(id) || id.includes("node_modules/d3");
           if (
-            id.includes('recharts') || 
-            isD3Module ||                   // catches d3-scale, d3-array, d3-interpolate, etc
-            id.includes('victory-vendor') || 
-            id.includes('react-smooth') || 
-            id.includes('decimal.js-light') ||
-            id.includes('internmap') ||     // d3 internal dependency
-            id.includes('delaunator') ||    // d3 internal dependency  
-            id.includes('robust-predicates') // d3 internal dependency
+            id.includes("recharts") ||
+            id.includes("recharts-scale") ||
+            isD3Module || // catches d3-scale, d3-array, d3-interpolate, etc
+            id.includes("victory-vendor") ||
+            id.includes("react-smooth") ||
+            id.includes("decimal.js-light") ||
+            id.includes("internmap") // d3 internal dependency
           ) {
-            return 'charts';
-          }
-          // Mapbox - heavy (~500KB+), lazy loaded when map is needed
-          if (id.includes('mapbox-gl')) {
-            return 'mapbox';
+            return "charts";
           }
           // Dialogs - lazy loaded on user interaction
           if (id.includes('@radix-ui/react-dialog') || id.includes('@radix-ui/react-alert-dialog')) {
