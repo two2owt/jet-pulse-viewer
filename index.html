@@ -44,13 +44,8 @@
     <link rel="dns-prefetch" href="https://d.tiles.mapbox.com">
     <link rel="dns-prefetch" href="https://maps.googleapis.com">
     
-    <!-- Preload critical fonts - Kanit weights used for LCP elements -->
-    <!-- High priority for 600/900 (headers, brand) to eliminate render-blocking -->
-    <link rel="preload" href="/assets/kanit-latin-900-normal-dN0P3GyR.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
-    <link rel="preload" href="/assets/kanit-latin-600-normal-0lS78yAd.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
-    <!-- Normal priority for 400/500 (body text) - loaded after critical fonts -->
-    <link rel="preload" href="/assets/kanit-latin-400-normal-Bz3HaF1T.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/assets/kanit-latin-500-normal-DE47hVn5.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- Font preloading removed - @fontsource handles font loading via CSS imports in main.tsx -->
+    <!-- Vite will hash these at build time, so hardcoded preload paths become stale -->
 
     <!-- SEO Meta Tags -->
     <title>JET - Discover What&#39;s Hot Right Now</title>
@@ -87,39 +82,7 @@
         line-gap-override: 0%;
         size-adjust: 105%;
       }
-      /* Override @fontsource font-display to optional - prevents CLS from font swap */
-      @font-face {
-        font-family: 'Kanit';
-        font-style: normal;
-        font-weight: 400;
-        font-display: optional;
-        src: url('/assets/kanit-latin-400-normal-Bz3HaF1T.woff2') format('woff2');
-        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-      }
-      @font-face {
-        font-family: 'Kanit';
-        font-style: normal;
-        font-weight: 500;
-        font-display: optional;
-        src: url('/assets/kanit-latin-500-normal-DE47hVn5.woff2') format('woff2');
-        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-      }
-      @font-face {
-        font-family: 'Kanit';
-        font-style: normal;
-        font-weight: 600;
-        font-display: optional;
-        src: url('/assets/kanit-latin-600-normal-0lS78yAd.woff2') format('woff2');
-        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-      }
-      @font-face {
-        font-family: 'Kanit';
-        font-style: normal;
-        font-weight: 900;
-        font-display: optional;
-        src: url('/assets/kanit-latin-900-normal-dN0P3GyR.woff2') format('woff2');
-        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-      }
+      /* @fontsource handles font-face declarations via CSS imports in main.tsx */
       /* Critical CSS variables for dark mode */
       :root {
         color-scheme: dark;
