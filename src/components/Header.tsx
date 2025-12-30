@@ -109,12 +109,16 @@ export const Header = ({
   }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-full">
-          {/* Logo */}
+          {/* Logo - LCP element with elementtiming for performance tracking */}
           <a href="/" className="flex items-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md" onClick={e => {
           e.preventDefault();
           navigate('/');
         }} aria-label="JET - Go to home">
-            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-wider">
+            <h1 
+              className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-wider"
+              // @ts-expect-error - elementtiming is a valid HTML attribute for LCP tracking
+              elementtiming="lcp-brand"
+            >
               JET
             </h1>
           </a>
