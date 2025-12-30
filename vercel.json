@@ -33,7 +33,43 @@
       ]
     },
     {
-      "source": "/assets/:path*",
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).woff2",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).css",
       "headers": [
         {
           "key": "Cache-Control",
@@ -60,11 +96,38 @@
       ]
     },
     {
+      "source": "/(.*).png",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).webp",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).jpg",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
+          "value": "public, max-age=0, must-revalidate"
         },
         {
           "key": "X-Content-Type-Options",
@@ -77,10 +140,6 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
-        },
-        {
-          "key": "Link",
-          "value": "</assets/kanit-latin-900-normal-dN0P3GyR.woff2>; rel=preload; as=font; type=font/woff2; crossorigin, </assets/kanit-latin-600-normal-0lS78yAd.woff2>; rel=preload; as=font; type=font/woff2; crossorigin, <https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css>; rel=preload; as=style, <https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.js>; rel=preload; as=script, <https://zbrscuoqmkdbmdimdnqu.supabase.co>; rel=preconnect; crossorigin"
         }
       ]
     },
@@ -89,7 +148,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     }
