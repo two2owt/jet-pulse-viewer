@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { memo } from "react";
 
 /**
  * Full-page loading fallback that matches the app shell design
@@ -47,7 +47,7 @@ export const LoadingFallback = memo(function LoadingFallback() {
             {/* Logo placeholder */}
             <div className="flex items-center flex-shrink-0">
               <div 
-                className="w-10 h-6 sm:w-12 sm:h-7 md:w-14 md:h-8 rounded bg-muted/50 animate-pulse"
+                className="w-10 h-6 sm:w-12 sm:h-7 md:w-14 md:h-8 rounded shimmer-skeleton"
                 style={{ animationDelay: '0ms' }}
               />
             </div>
@@ -55,23 +55,23 @@ export const LoadingFallback = memo(function LoadingFallback() {
             {/* Search placeholder */}
             <div className="min-w-0 w-[100px] sm:w-[140px] md:w-[180px] lg:w-[220px] xl:w-[280px] flex-shrink-0">
               <div 
-                className="w-full h-8 sm:h-9 md:h-10 rounded-full bg-secondary/50 animate-pulse"
-                style={{ animationDelay: '75ms' }}
+                className="w-full h-8 sm:h-9 md:h-10 rounded-full shimmer-skeleton"
+                style={{ animationDelay: '100ms' }}
               />
             </div>
 
             {/* Sync status placeholder */}
             <div className="flex-1 min-w-0 px-1 sm:px-2 md:px-3">
               <div 
-                className="h-6 sm:h-7 md:h-8 rounded-full bg-muted/30 animate-pulse"
-                style={{ animationDelay: '150ms' }}
+                className="h-6 sm:h-7 md:h-8 rounded-full shimmer-skeleton"
+                style={{ animationDelay: '200ms' }}
               />
             </div>
 
             {/* Avatar placeholder */}
             <div 
-              className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full bg-muted/50 flex-shrink-0 animate-pulse"
-              style={{ animationDelay: '225ms' }}
+              className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full shimmer-skeleton flex-shrink-0"
+              style={{ animationDelay: '300ms' }}
             />
           </div>
         </div>
@@ -115,15 +115,14 @@ export const LoadingFallback = memo(function LoadingFallback() {
               <div 
                 key={i} 
                 className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px]"
-                style={{ animationDelay: `${i * 75}ms` }}
               >
                 <div 
-                  className={`w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md animate-pulse ${i === 0 ? 'bg-primary/50' : 'bg-muted/50'}`}
-                  style={{ animationDelay: `${i * 75}ms` }}
+                  className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md shimmer-skeleton"
+                  style={{ animationDelay: `${i * 100}ms` }}
                 />
                 <div 
-                  className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded bg-muted/30 animate-pulse"
-                  style={{ animationDelay: `${i * 75 + 50}ms` }}
+                  className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded shimmer-skeleton"
+                  style={{ animationDelay: `${i * 100 + 50}ms` }}
                 />
               </div>
             ))}
@@ -160,14 +159,14 @@ export const LoadingSpinner = memo(function LoadingSpinner({
 });
 
 /**
- * Content area loading placeholder - minimal version without animations
+ * Content area loading placeholder - minimal version with shimmer
  */
 export const ContentSkeleton = memo(function ContentSkeleton() {
   return (
     <div className="flex-1 flex items-center justify-center min-h-[400px] bg-background">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-16 h-16 rounded-full bg-muted/30 animate-pulse" />
-        <div className="w-24 h-3 rounded bg-muted/20 animate-pulse" />
+        <div className="w-16 h-16 rounded-full shimmer-skeleton" />
+        <div className="w-24 h-3 rounded shimmer-skeleton" style={{ animationDelay: '100ms' }} />
       </div>
     </div>
   );
