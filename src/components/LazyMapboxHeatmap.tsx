@@ -117,6 +117,7 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
     <div 
       ref={containerRef}
       className="h-full w-full relative"
+      data-map-container="true"
       style={{
         // Use parent dimensions - no need for CSS variables here
         height: '100%',

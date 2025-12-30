@@ -171,12 +171,11 @@
     
     <!-- Fonts loaded via @fontsource/kanit in main.tsx - no external requests needed -->
     
-    <!-- Mapbox GL JS - externalized to CDN (saves ~448KB from bundle) -->
-    <!-- High priority loading for map-first experience -->
-    <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="high">
+    <!-- Mapbox GL CSS - loaded async to not block rendering -->
+    <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" rel="stylesheet"></noscript>
-    <!-- Mapbox GL JS library - high priority with defer to not block parsing -->
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.js" defer fetchpriority="high"></script>
+    <!-- Mapbox GL JS - defer load until after LCP to prioritize brand text rendering -->
+    <!-- Removed fetchpriority="high" - mapbox should NOT compete with LCP element -->
     <meta property="og:title" content="JET - Discover What&#39;s Hot Right Now">
   <meta name="twitter:title" content="JET - Discover What&#39;s Hot Right Now">
   <meta property="og:description" content="Find trending venues, live events, and exclusive deals in your area with real-time heatmaps. Your guide to what&#39;s happening now.">
@@ -214,49 +213,71 @@
       });
     </script>
 
-    <!-- Prefetch Mapbox chunk during idle time for faster map loading -->
+    <!-- Defer Mapbox JS loading until user interaction or idle time -->
     <script>
-      // Wait for idle time to prefetch the heavy Mapbox chunk (~500KB)
-      // This reduces perceived load time when user scrolls to the map
+      // Load Mapbox GL JS only when needed - reduces LCP blocking
       (function() {
-        var prefetchMapbox = function() {
-          // Find and prefetch the mapbox chunk by looking at the manifest or existing scripts
-          // Since Vite generates hashed names, we'll trigger the dynamic import early
-          if (typeof requestIdleCallback !== 'undefined') {
-            requestIdleCallback(function() {
-              // Create prefetch links for known Mapbox resources
-              var resources = [
-                { href: 'https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.js', as: 'script' }
-              ];
-              
-              resources.forEach(function(res) {
-                var link = document.createElement('link');
-                link.rel = 'prefetch';
-                link.href = res.href;
-                link.as = res.as;
-                link.crossOrigin = 'anonymous';
-                document.head.appendChild(link);
-              });
-              
-              // Also prefetch the local mapbox chunk when we detect it
-              // This will be picked up by the dynamic import in LazyMapboxHeatmap
-              var scripts = document.querySelectorAll('script[src*="mapbox"]');
-              scripts.forEach(function(script) {
-                var link = document.createElement('link');
-                link.rel = 'prefetch';
-                link.href = script.src;
-                link.as = 'script';
-                document.head.appendChild(link);
-              });
-            }, { timeout: 3000 });
-          }
-        };
+        var mapboxLoaded = false;
         
-        // Start prefetching after initial paint
+        function loadMapbox() {
+          if (mapboxLoaded) return;
+          mapboxLoaded = true;
+          
+          var script = document.createElement('script');
+          script.src = 'https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.js';
+          script.async = true;
+          document.head.appendChild(script);
+        }
+        
+        // Load on user interaction (scroll to map)
+        function onScroll() {
+          if (window.scrollY > 100) {
+            loadMapbox();
+            window.removeEventListener('scroll', onScroll);
+          }
+        }
+        
+        // Load after LCP (3 seconds) or on idle
+        function deferLoad() {
+          if (typeof requestIdleCallback !== 'undefined') {
+            requestIdleCallback(loadMapbox, { timeout: 4000 });
+          } else {
+            setTimeout(loadMapbox, 3000);
+          }
+        }
+        
+        // Start deferred loading after initial paint
         if (document.readyState === 'complete') {
-          prefetchMapbox();
+          deferLoad();
         } else {
-          window.addEventListener('load', prefetchMapbox, { once: true });
+          window.addEventListener('load', function() {
+            // Give LCP time to complete first
+            setTimeout(deferLoad, 100);
+          }, { once: true });
+        }
+        
+        window.addEventListener('scroll', onScroll, { passive: true });
+        
+        // Also load if map container becomes visible
+        if ('IntersectionObserver' in window) {
+          var observer = new IntersectionObserver(function(entries) {
+            if (entries[0].isIntersecting) {
+              loadMapbox();
+              observer.disconnect();
+            }
+          }, { rootMargin: '200px' });
+          
+          // Observe after DOM is ready
+          function observeMap() {
+            var mapEl = document.querySelector('[data-map-container]');
+            if (mapEl) observer.observe(mapEl);
+          }
+          
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', observeMap);
+          } else {
+            observeMap();
+          }
         }
       })();
     </script>
