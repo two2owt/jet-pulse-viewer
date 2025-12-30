@@ -46,21 +46,33 @@ export const LoadingFallback = memo(function LoadingFallback() {
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-full">
             {/* Logo placeholder */}
             <div className="flex items-center flex-shrink-0">
-              <div className="w-10 h-6 sm:w-12 sm:h-7 md:w-14 md:h-8 rounded bg-muted/50 animate-pulse" />
+              <div 
+                className="w-10 h-6 sm:w-12 sm:h-7 md:w-14 md:h-8 rounded bg-muted/50 animate-pulse"
+                style={{ animationDelay: '0ms' }}
+              />
             </div>
             
             {/* Search placeholder */}
             <div className="min-w-0 w-[100px] sm:w-[140px] md:w-[180px] lg:w-[220px] xl:w-[280px] flex-shrink-0">
-              <div className="w-full h-8 sm:h-9 md:h-10 rounded-full bg-secondary/50 animate-pulse" />
+              <div 
+                className="w-full h-8 sm:h-9 md:h-10 rounded-full bg-secondary/50 animate-pulse"
+                style={{ animationDelay: '75ms' }}
+              />
             </div>
 
             {/* Sync status placeholder */}
             <div className="flex-1 min-w-0 px-1 sm:px-2 md:px-3">
-              <div className="h-6 sm:h-7 md:h-8 rounded-full bg-muted/30 animate-pulse" />
+              <div 
+                className="h-6 sm:h-7 md:h-8 rounded-full bg-muted/30 animate-pulse"
+                style={{ animationDelay: '150ms' }}
+              />
             </div>
 
             {/* Avatar placeholder */}
-            <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full bg-muted/50 flex-shrink-0 animate-pulse" />
+            <div 
+              className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full bg-muted/50 flex-shrink-0 animate-pulse"
+              style={{ animationDelay: '225ms' }}
+            />
           </div>
         </div>
       </header>
