@@ -230,10 +230,10 @@ export const SyncStatusIndicator = ({
               
               {/* Landed airplane (parked on right side) with destination */}
               <div className="absolute right-1.5 sm:right-2.5 md:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-1.5">
-                {/* Arrived at destination text */}
-                <div className="flex flex-col items-end gap-0">
+                {/* Arrived at destination text - fixed width to prevent shifts */}
+                <div className="flex flex-col items-end gap-0 w-[65px] sm:w-[80px] md:w-[90px]">
                   <span className="text-[7px] sm:text-[8px] md:text-[9px] text-muted-foreground/70 leading-tight tracking-tight">Arrived at</span>
-                  <span className="text-[8px] sm:text-[10px] md:text-[11px] font-semibold text-emerald-500 leading-tight whitespace-nowrap truncate max-w-[80px] sm:max-w-[100px]">{cityName}</span>
+                  <span className="text-[8px] sm:text-[10px] md:text-[11px] font-semibold text-emerald-500 leading-tight whitespace-nowrap truncate w-full text-right">{cityName}</span>
                 </div>
                 <div className="relative flex-shrink-0">
                   <Plane className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary/80 fill-primary/80 rotate-[-10deg]" />
@@ -244,8 +244,8 @@ export const SyncStatusIndicator = ({
                 </div>
               </div>
               
-              {/* Last sync time */}
-              <div className="absolute left-1.5 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 flex items-center">
+              {/* Last sync time - FIXED WIDTH container prevents CLS from changing text */}
+              <div className="absolute left-1.5 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 flex items-center w-[52px] sm:w-[58px] md:w-[64px]">
                 <span className="text-[8px] sm:text-[9px] md:text-[10px] text-muted-foreground font-medium whitespace-nowrap tracking-tight tabular-nums">
                   {showSuccessFlash ? "Just landed" : (timeSinceUpdate || "Just now")}
                 </span>
@@ -333,17 +333,17 @@ export const SyncStatusIndicator = ({
           </div>
         )}
 
-        {/* Synced Status with Timestamp */}
+        {/* Synced Status with Timestamp - fixed width to prevent CLS */}
         {!isLoading && isOnline && (
           <div 
             className={cn(
-              "flex items-center gap-1 px-2 py-1 rounded-full transition-all duration-300",
+              "flex items-center gap-1 px-2 py-1 rounded-full transition-all duration-300 min-w-[70px]",
               showSuccessFlash && "sync-success-flash"
             )}
           >
-            <Check className="h-3 w-3 text-emerald-500" />
+            <Check className="h-3 w-3 text-emerald-500 flex-shrink-0" />
             {showTimestamp && timeSinceUpdate && (
-              <span className="opacity-70">{timeSinceUpdate}</span>
+              <span className="opacity-70 tabular-nums">{timeSinceUpdate}</span>
             )}
           </div>
         )}
