@@ -9,10 +9,28 @@ import { memo, useEffect, useState } from "react";
  */
 export const LoadingFallback = memo(function LoadingFallback() {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div 
+      className="app-wrapper bg-background"
+      style={{
+        // Match Index.tsx app-wrapper exactly
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100dvh',
+        minHeight: '100dvh',
+        maxHeight: '100dvh',
+        width: '100%',
+        maxWidth: '100vw',
+        contain: 'strict',
+        transform: 'translateZ(0)',
+        isolation: 'isolate',
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
       {/* Header shell - MUST match Header.tsx dimensions exactly */}
       <header 
         className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] header-contained"
+        role="banner"
         style={{
           paddingTop: 'var(--safe-area-inset-top)',
           height: 'var(--header-total-height)',
@@ -21,6 +39,7 @@ export const LoadingFallback = memo(function LoadingFallback() {
           contain: 'strict',
           transform: 'translateZ(0)',
           overflow: 'hidden',
+          flexShrink: 0,
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">
@@ -48,15 +67,24 @@ export const LoadingFallback = memo(function LoadingFallback() {
       
       {/* Empty main content area - shell only, no loader animation */}
       <main 
-        className="flex-1 bg-background"
+        role="main"
+        className="bg-background"
         style={{
+          flex: '1 1 auto',
+          height: 'var(--main-height)',
           minHeight: 'var(--main-height)',
+          maxHeight: 'var(--main-height)',
+          contain: 'strict',
+          transform: 'translateZ(0)',
+          overflow: 'hidden',
         }}
       />
       
       {/* Bottom nav shell - MUST match BottomNav.tsx dimensions exactly */}
       <nav 
         className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50 nav-contained"
+        role="navigation"
+        aria-label="Main navigation"
         style={{
           paddingBottom: 'var(--safe-area-inset-bottom)',
           paddingLeft: 'var(--safe-area-inset-left)',
