@@ -14,7 +14,9 @@ export const LoadingFallback = memo(function LoadingFallback() {
         style={{
           height: 'var(--header-total-height, 52px)',
           minHeight: 'var(--header-total-height, 52px)',
+          maxHeight: 'var(--header-total-height, 52px)',
           paddingTop: 'var(--safe-area-inset-top, 0px)',
+          contain: 'strict',
         }}
       >
         <div className="flex items-center gap-2">
@@ -155,7 +157,9 @@ export const LoadingFallback = memo(function LoadingFallback() {
         style={{
           height: 'var(--bottom-nav-total-height, 60px)',
           minHeight: 'var(--bottom-nav-total-height, 60px)',
+          maxHeight: 'var(--bottom-nav-total-height, 60px)',
           paddingBottom: 'var(--safe-area-inset-bottom, 0px)',
+          contain: 'strict',
         }}
       >
         {[0, 1, 2, 3, 4].map((i) => (
