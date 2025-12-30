@@ -1,13 +1,22 @@
-import { memo, useState, useEffect } from "react";
+import { memo, useState, useEffect, useCallback } from "react";
 import { Clock, MapPin, Share2, Heart, X, ExternalLink, Navigation } from "lucide-react";
 import { Button } from "./ui/button";
 import { OptimizedImage } from "./ui/optimized-image";
-import { glideHaptic } from "@/lib/haptics";
 import { toast } from "sonner";
 import { shareDeal } from "@/utils/shareUtils";
 import { useFavorites } from "@/hooks/useFavorites";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+
+// Defer haptics import - only loaded when user interacts
+const triggerHaptic = async () => {
+  try {
+    const { glideHaptic } = await import("@/lib/haptics");
+    await glideHaptic();
+  } catch {
+    // Haptics not available
+  }
+};
 
 interface Deal {
   id: string;
@@ -54,7 +63,7 @@ export const DealDetailCard = memo(({ deal, onClose }: DealDetailCardProps) => {
   const isFav = isFavorite(deal.id);
 
   const handleShare = async () => {
-    await glideHaptic();
+    await triggerHaptic();
     
     const result = await shareDeal({
       id: deal.id,
@@ -83,12 +92,12 @@ export const DealDetailCard = memo(({ deal, onClose }: DealDetailCardProps) => {
   };
 
   const handleFavoriteToggle = async () => {
-    await glideHaptic();
+    await triggerHaptic();
     await toggleFavorite(deal.id);
   };
 
   const handleGetDirections = async () => {
-    await glideHaptic();
+    await triggerHaptic();
     
     const address = deal.venue_address || deal.venue_name;
     const coords = deal.neighborhoods 

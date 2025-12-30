@@ -1,21 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Search } from "lucide-react";
 import { AuthButton } from "./AuthButton";
 import { Input } from "./ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useNavigate } from "react-router-dom";
-import { SearchResults } from "./SearchResults";
-import { SyncStatusIndicator } from "./SyncStatusIndicator";
 import { Skeleton } from "./ui/skeleton";
 import type { Venue } from "./MapboxHeatmap";
 import type { Database } from "@/integrations/supabase/types";
-import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
+
+// Lazy load search results - only needed when user searches
+const SearchResults = lazy(() => import("./SearchResults").then(m => ({ default: m.SearchResults })));
+
+// Lazy load sync status - not critical for initial render
+const SyncStatusIndicator = lazy(() => import("./SyncStatusIndicator").then(m => ({ default: m.SyncStatusIndicator })));
+
 type Deal = Database['public']['Tables']['deals']['Row'];
-const searchSchema = z.string().trim().max(100, {
-  message: "Search query too long"
-});
+
+// Simple validation without zod - avoids loading 13KB library
+const validateSearchQuery = (value: string): boolean => {
+  return typeof value === 'string' && value.length <= 100;
+};
 interface HeaderProps {
   venues: Venue[];
   deals: Deal[];
@@ -72,25 +78,20 @@ export const Header = ({
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
-    // Validate input
-    try {
-      searchSchema.parse(value);
-      setSearchQuery(value);
-      setShowResults(value.trim().length > 0);
+    // Simple validation without zod - avoids loading 13KB library
+    if (!validateSearchQuery(value)) {
+      return; // Reject invalid input
+    }
+    
+    setSearchQuery(value);
+    setShowResults(value.trim().length > 0);
 
-      // Track search after a short delay (debounced)
-      if (value.trim().length > 2) {
-        const timeoutId = setTimeout(() => {
-          addToSearchHistory(value.trim());
-        }, 1000);
-        return () => clearTimeout(timeoutId);
-      }
-    } catch (error) {
-      // Keep the previous valid value if validation fails
-      if (value.length <= 100) {
-        setSearchQuery(value);
-        setShowResults(value.trim().length > 0);
-      }
+    // Track search after a short delay (debounced)
+    if (value.trim().length > 2) {
+      const timeoutId = setTimeout(() => {
+        addToSearchHistory(value.trim());
+      }, 1000);
+      return () => clearTimeout(timeoutId);
     }
   };
   const handleCloseResults = () => {
@@ -128,12 +129,17 @@ export const Header = ({
             <Search className="absolute left-2 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 text-muted-foreground pointer-events-none" />
             <Input type="text" placeholder="Search..." value={searchQuery} onChange={handleSearchChange} onFocus={() => searchQuery.trim() && setShowResults(true)} maxLength={100} aria-label="Search venues and deals" className="w-full pl-7 sm:pl-8 md:pl-9 pr-2 sm:pr-3 h-8 sm:h-9 md:h-10 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-xs sm:text-sm md:text-base text-foreground placeholder:text-muted-foreground" />
             
-            <SearchResults query={searchQuery} venues={venues} deals={deals} onVenueSelect={onVenueSelect} onClose={handleCloseResults} isVisible={showResults} />
+            {/* Lazy-loaded search results - only loads when user searches */}
+            <Suspense fallback={null}>
+              <SearchResults query={searchQuery} venues={venues} deals={deals} onVenueSelect={onVenueSelect} onClose={handleCloseResults} isVisible={showResults} />
+            </Suspense>
           </div>
 
           {/* Sync Status - Takes remaining width between search and avatar */}
           <div className="flex-1 min-w-0 px-1 sm:px-2 md:px-3">
-            <SyncStatusIndicator isLoading={isLoading} lastUpdated={lastUpdated} onRefresh={onRefresh} showTimestamp={true} compact={true} cityName={cityName} isInitializing={!lastUpdated && !isLoading} />
+            <Suspense fallback={<Skeleton className="h-4 w-20" />}>
+              <SyncStatusIndicator isLoading={isLoading} lastUpdated={lastUpdated} onRefresh={onRefresh} showTimestamp={true} compact={true} cityName={cityName} isInitializing={!lastUpdated && !isLoading} />
+            </Suspense>
           </div>
 
           {/* Avatar - Show skeleton while loading to prevent CLS */}
