@@ -194,8 +194,56 @@
       </div>
     </noscript>
     
-    <!-- React root -->
-    <div id="root"></div>
+    <!-- CRITICAL: Inline app shell for instant LCP - this renders before any JS loads -->
+    <!-- React will hydrate over this, maintaining the same visual structure -->
+    <div id="root">
+      <div class="app-shell" style="display:flex;flex-direction:column;height:100dvh;width:100%;background:hsl(0 0% 6%);">
+        <!-- Header shell with actual JET text for LCP -->
+        <header style="background:rgba(15,15,15,0.98);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.1);padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:12px;flex-shrink:0;">
+          <!-- LCP Element: JET brand text - renders immediately with preloaded font -->
+          <h1 style="font-family:'Kanit',sans-serif;font-weight:900;font-size:1.5rem;color:#fafafa;letter-spacing:0.05em;margin:0;" elementtiming="lcp-brand">JET</h1>
+          <!-- Search placeholder -->
+          <div style="flex:1;max-width:200px;">
+            <div style="background:rgba(255,255,255,0.08);border-radius:9999px;height:36px;"></div>
+          </div>
+          <!-- Spacer -->
+          <div style="flex:1;"></div>
+          <!-- Avatar placeholder -->
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);"></div>
+        </header>
+        <!-- Main content area -->
+        <main id="main-content" style="flex:1;background:hsl(0 0% 6%);"></main>
+        <!-- Bottom nav shell -->
+        <nav style="position:fixed;bottom:0;left:0;right:0;background:rgba(15,15,15,0.98);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,0.1);padding:8px 16px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-around;align-items:center;">
+          <div style="width:24px;height:24px;background:rgba(255,255,255,0.2);border-radius:4px;"></div>
+          <div style="width:24px;height:24px;background:rgba(255,255,255,0.1);border-radius:4px;"></div>
+          <div style="width:24px;height:24px;background:rgba(255,255,255,0.1);border-radius:4px;"></div>
+          <div style="width:24px;height:24px;background:rgba(255,255,255,0.1);border-radius:4px;"></div>
+          <div style="width:24px;height:24px;background:rgba(255,255,255,0.1);border-radius:4px;"></div>
+        </nav>
+      </div>
+    </div>
+    
+    <!-- Remove inline shell once React hydrates -->
+    <script>
+      // Clean up shell after React mounts (prevents flash)
+      var shell = document.querySelector('.app-shell');
+      if (shell) {
+        // Use MutationObserver to detect React hydration
+        var observer = new MutationObserver(function(mutations) {
+          // React adds data-reactroot or similar attributes
+          if (document.querySelector('[data-testid]') || 
+              document.getElementById('root').children.length > 1 ||
+              document.querySelector('.app-wrapper')) {
+            shell.remove();
+            observer.disconnect();
+          }
+        });
+        observer.observe(document.getElementById('root'), { childList: true, subtree: true });
+        // Fallback: remove after 5 seconds if React hasn't loaded
+        setTimeout(function() { if (shell.parentNode) shell.remove(); observer.disconnect(); }, 5000);
+      }
+    </script>
     
     <!-- Main app script - Vite will transform this -->
     <script type="module" src="/src/main.tsx"></script>
