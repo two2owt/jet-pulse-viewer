@@ -118,12 +118,12 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
       ref={containerRef}
       className="h-full w-full relative"
       style={{
-        // Use centralized CSS variable for consistent height across environments
-        height: 'var(--main-height)',
-        minHeight: 'var(--main-height)',
-        contain: 'layout style paint',
-        contentVisibility: 'auto',
-        containIntrinsicSize: '100vw var(--main-height)',
+        // Use parent dimensions - no need for CSS variables here
+        height: '100%',
+        width: '100%',
+        contain: 'strict',
+        transform: 'translateZ(0)',
+        overflow: 'hidden',
       }}
       data-connection-speed={isSlowConnection ? 'slow' : 'fast'}
       data-online={isOnline ? 'true' : 'false'}
