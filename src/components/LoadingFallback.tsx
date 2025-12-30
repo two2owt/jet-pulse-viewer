@@ -103,9 +103,16 @@ export const LoadingFallback = memo(function LoadingFallback() {
               <div 
                 key={i} 
                 className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px]"
+                style={{ animationDelay: `${i * 75}ms` }}
               >
-                <div className={`w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md animate-pulse ${i === 0 ? 'bg-primary/50' : 'bg-muted/50'}`} />
-                <div className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded bg-muted/30 animate-pulse" />
+                <div 
+                  className={`w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md animate-pulse ${i === 0 ? 'bg-primary/50' : 'bg-muted/50'}`}
+                  style={{ animationDelay: `${i * 75}ms` }}
+                />
+                <div 
+                  className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded bg-muted/30 animate-pulse"
+                  style={{ animationDelay: `${i * 75 + 50}ms` }}
+                />
               </div>
             ))}
           </div>
