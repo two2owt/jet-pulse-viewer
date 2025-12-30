@@ -15,12 +15,13 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   build: {
-    // Enable modulepreload for critical chunks only - improves LCP by reducing request chain depth
-    // Filter out heavy lazy chunks (mapbox, charts, sentry) to avoid unused JS warnings
+    // Enable modulepreload for critical chunks - improves LCP by reducing request chain depth
+    // Vite will inject <link rel="modulepreload"> for these in the HTML
     modulePreload: {
       polyfill: true,
+      // Aggressively preload critical path chunks to reduce 8.8s chain latency
       resolveDependencies: (filename, deps, { hostId, hostType }) => {
-        // Critical chunks to preload - needed for initial render
+        // Critical chunks needed for first paint - preload ALL of these
         const criticalChunks = [
           'vendor-react',
           'vendor-router', 
@@ -28,29 +29,57 @@ export default defineConfig(({ mode }) => ({
           'supabase',
           'ui-core',
           'forms',
+          'theme',
           'index',
+          'toasts', // Needed for error handling
         ];
         
-        // Lazy chunks to exclude - loaded on demand
+        // Lazy chunks to NEVER preload - loaded on demand only
         const lazyChunks = [
           'mapbox',
           'MapboxHeatmap',
           'sentry',
           'charts',
+          'recharts',
+          'd3',
           'ui-dialogs',
           'animations',
+          'mapbox-deps',
+          'admin', // Admin pages are lazy loaded
         ];
         
-        // Filter dependencies to only preload critical ones
+        // For the main entry point, preload all critical chunks
+        if (filename.includes('index') || filename.includes('main')) {
+          return deps.filter(dep => {
+            const depName = dep.toLowerCase();
+            // Never preload lazy chunks
+            if (lazyChunks.some(lazy => depName.includes(lazy.toLowerCase()))) {
+              return false;
+            }
+            // Always preload critical chunks
+            if (criticalChunks.some(critical => depName.includes(critical.toLowerCase()))) {
+              return true;
+            }
+            // Preload CSS files
+            if (depName.endsWith('.css')) {
+              return true;
+            }
+            // Preload small utility chunks
+            return depName.includes('date-utils') || 
+                   depName.includes('icons') ||
+                   depName.includes('ui-');
+          });
+        }
+        
+        // For other chunks, be more conservative
         return deps.filter(dep => {
           const depName = dep.toLowerCase();
           // Exclude lazy chunks
           if (lazyChunks.some(lazy => depName.includes(lazy.toLowerCase()))) {
             return false;
           }
-          // Include if it's a critical chunk or a core dependency
-          return criticalChunks.some(critical => depName.includes(critical.toLowerCase())) ||
-                 depName.includes('index') ||
+          // Only preload core vendors and CSS
+          return criticalChunks.slice(0, 4).some(c => depName.includes(c.toLowerCase())) ||
                  depName.endsWith('.css');
         });
       },
