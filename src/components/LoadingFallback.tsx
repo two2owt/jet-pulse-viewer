@@ -1,52 +1,87 @@
-import { memo } from "react";
-import { Send } from "lucide-react";
+import { memo, useEffect, useState } from "react";
 
 /**
  * Full-page loading fallback that matches the app shell design
  * Used as Suspense fallback throughout the app
+ * 
+ * CRITICAL: This component must exactly match the Header and BottomNav dimensions
+ * to prevent Cumulative Layout Shift (CLS) during hydration
  */
 export const LoadingFallback = memo(function LoadingFallback() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Header skeleton - uses CSS variables for exact match with app shell */}
+      {/* Header shell - MUST match Header.tsx dimensions exactly */}
       <header 
-        className="px-3 flex items-center justify-between bg-card border-b border-border flex-shrink-0"
+        className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] header-contained"
         style={{
-          height: 'var(--header-total-height, 52px)',
-          minHeight: 'var(--header-total-height, 52px)',
-          maxHeight: 'var(--header-total-height, 52px)',
-          paddingTop: 'var(--safe-area-inset-top, 0px)',
+          paddingTop: 'var(--safe-area-inset-top)',
+          height: 'var(--header-total-height)',
+          minHeight: 'var(--header-total-height)',
+          maxHeight: 'var(--header-total-height)',
           contain: 'strict',
+          transform: 'translateZ(0)',
+          overflow: 'hidden',
         }}
       >
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-muted animate-pulse" />
-          <div className="w-12 h-5 rounded bg-muted animate-pulse" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-full">
+            {/* Logo placeholder */}
+            <div className="flex items-center flex-shrink-0">
+              <div className="w-10 h-6 sm:w-12 sm:h-7 md:w-14 md:h-8 rounded bg-muted/50" />
+            </div>
+            
+            {/* Search placeholder */}
+            <div className="min-w-0 w-[100px] sm:w-[140px] md:w-[180px] lg:w-[220px] xl:w-[280px] flex-shrink-0">
+              <div className="w-full h-8 sm:h-9 md:h-10 rounded-full bg-secondary/50" />
+            </div>
+
+            {/* Sync status placeholder */}
+            <div className="flex-1 min-w-0 px-1 sm:px-2 md:px-3">
+              <div className="h-6 sm:h-7 md:h-8 rounded-full bg-muted/30" />
+            </div>
+
+            {/* Avatar placeholder */}
+            <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full bg-muted/50 flex-shrink-0" />
+          </div>
         </div>
-        <div className="flex-1 max-w-[300px] h-9 mx-4 rounded-lg bg-muted animate-pulse" />
-        <div className="w-9 h-9 rounded-full bg-muted animate-pulse" />
       </header>
       
-      {/* Empty main content area - shell only */}
-      <main className="flex-1 bg-background" />
-      
-      {/* Bottom nav skeleton - uses CSS variables for exact match with app shell */}
-      <nav 
-        className="px-6 flex items-center justify-around bg-card border-t border-border flex-shrink-0"
+      {/* Empty main content area - shell only, no loader animation */}
+      <main 
+        className="flex-1 bg-background"
         style={{
-          height: 'var(--bottom-nav-total-height, 60px)',
-          minHeight: 'var(--bottom-nav-total-height, 60px)',
-          maxHeight: 'var(--bottom-nav-total-height, 60px)',
-          paddingBottom: 'var(--safe-area-inset-bottom, 0px)',
+          minHeight: 'var(--main-height)',
+        }}
+      />
+      
+      {/* Bottom nav shell - MUST match BottomNav.tsx dimensions exactly */}
+      <nav 
+        className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50 nav-contained"
+        style={{
+          paddingBottom: 'var(--safe-area-inset-bottom)',
+          paddingLeft: 'var(--safe-area-inset-left)',
+          paddingRight: 'var(--safe-area-inset-right)',
+          height: 'var(--bottom-nav-total-height)',
+          minHeight: 'var(--bottom-nav-total-height)',
+          maxHeight: 'var(--bottom-nav-total-height)',
           contain: 'strict',
+          transform: 'translateZ(0)',
+          overflow: 'hidden',
         }}
       >
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className="w-12 h-10 flex flex-col items-center gap-1">
-            <div className={`w-6 h-6 rounded ${i === 0 ? 'bg-primary' : 'bg-muted'}`} />
-            <div className="w-8 h-2 rounded bg-muted" />
+        <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 h-full flex items-center">
+          <div className="flex items-center justify-around w-full">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div 
+                key={i} 
+                className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px]"
+              >
+                <div className={`w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md ${i === 0 ? 'bg-primary/50' : 'bg-muted/50'}`} />
+                <div className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded bg-muted/30" />
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </nav>
     </div>
   );
@@ -78,77 +113,15 @@ export const LoadingSpinner = memo(function LoadingSpinner({
 });
 
 /**
- * Content area loading placeholder
+ * Content area loading placeholder - minimal version without animations
  */
 export const ContentSkeleton = memo(function ContentSkeleton() {
   return (
-    <div className="flex-1 flex items-center justify-center min-h-[400px] relative overflow-hidden">
-      {/* Subtle grid pattern */}
-      <div className="absolute inset-0 opacity-[0.02]">
-        <div 
-          className="w-full h-full"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px),
-              linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px)
-            `,
-            backgroundSize: '80px 80px',
-          }}
-        />
+    <div className="flex-1 flex items-center justify-center min-h-[400px] bg-background">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-16 h-16 rounded-full bg-muted/30" />
+        <div className="w-24 h-3 rounded bg-muted/20" />
       </div>
-      
-      <div className="flex flex-col items-center gap-3 z-10">
-        {/* JET Logo with animated paper plane */}
-        <div className="flex items-center gap-0.5 relative">
-          <span 
-            className="text-2xl font-black tracking-tight text-foreground"
-            style={{
-              fontFamily: 'Kanit, sans-serif',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            JET
-          </span>
-          <div 
-            className="relative -top-0.5"
-            style={{
-              animation: 'planeFloat 2s ease-in-out infinite',
-            }}
-          >
-            <Send 
-              className="w-4 h-4 text-primary -rotate-12"
-              strokeWidth={2.5}
-              fill="hsl(var(--primary))"
-            />
-          </div>
-        </div>
-        
-        {/* Progress bar */}
-        <div className="w-20 h-0.5 bg-muted rounded-full overflow-hidden">
-          <div 
-            className="h-full w-full bg-gradient-to-r from-primary via-accent to-primary rounded-full"
-            style={{
-              backgroundSize: '200% 100%',
-              animation: 'shimmerBar 1.5s linear infinite',
-            }}
-          />
-        </div>
-        
-        <span className="text-xs text-muted-foreground font-medium">Loading content...</span>
-      </div>
-      
-      <style>{`
-        @keyframes planeFloat {
-          0%, 100% { transform: translateY(0) translateX(0) rotate(-12deg); }
-          25% { transform: translateY(-3px) translateX(1.5px) rotate(-8deg); }
-          50% { transform: translateY(-5px) translateX(3px) rotate(-14deg); }
-          75% { transform: translateY(-2px) translateX(1px) rotate(-10deg); }
-        }
-        @keyframes shimmerBar {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      `}</style>
     </div>
   );
 });
