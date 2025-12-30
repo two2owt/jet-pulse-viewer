@@ -255,135 +255,8 @@
         border-radius: 8px;
         z-index: 10;
       }
-      /* Navigation controls skeleton - matches MapSkeleton top-right UI */
-      .shell-map-controls {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        z-index: 10;
-      }
-      .shell-map-control {
-        width: 32px;
-        height: 32px;
-        background: hsl(var(--muted));
-        border-radius: 6px;
-      }
-      /* JET branding loader */
-      .shell-loader {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-        z-index: 10;
-        pointer-events: none;
-      }
-      .shell-brand {
-        display: flex;
-        align-items: center;
-        gap: 2px;
-      }
-      .shell-brand-text {
-        font-size: clamp(40px, 8vw, 60px);
-        font-weight: 900;
-        color: hsl(var(--foreground));
-        letter-spacing: -0.02em;
-        font-family: 'Kanit', 'Kanit Fallback', system-ui, sans-serif;
-      }
-      .shell-plane {
-        position: relative;
-        top: clamp(-4px, -1vw, -8px);
-        animation: planeFloat 2s ease-in-out infinite;
-      }
-      .shell-plane svg {
-        width: clamp(24px, 5vw, 40px);
-        height: clamp(24px, 5vw, 40px);
-        fill: hsl(var(--primary));
-        stroke: hsl(var(--primary));
-        transform: rotate(-12deg);
-      }
-      .shell-trail {
-        position: absolute;
-        top: 50%;
-        left: -8px;
-        width: 24px; /* Fixed width - animate with scaleX instead */
-        height: 2px;
-        background: linear-gradient(to left, hsl(var(--primary) / 0.5), transparent);
-        border-radius: 2px;
-        transform-origin: right center;
-        animation: trailPulse 1.5s ease-in-out infinite;
-        will-change: transform, opacity;
-      }
-      @keyframes planeFloat {
-        0%, 100% { transform: translateY(0) translateX(0) rotate(-12deg); }
-        25% { transform: translateY(-4px) translateX(2px) rotate(-8deg); }
-        50% { transform: translateY(-6px) translateX(4px) rotate(-14deg); }
-        75% { transform: translateY(-3px) translateX(1px) rotate(-10deg); }
-      }
-      /* GPU-accelerated: use scaleX instead of width to avoid layout recalc */
-      @keyframes trailPulse {
-        0%, 100% { opacity: 0.3; transform: scaleX(0.67); }
-        50% { opacity: 0.6; transform: scaleX(1); }
-      }
-      /* Progress bar - matching MapSkeleton gradient */
-      .shell-progress-container {
-        width: clamp(128px, 30vw, 160px);
-        height: 4px;
-        background: hsl(var(--muted));
-        border-radius: 4px;
-        overflow: hidden;
-        margin-top: 8px;
-      }
-      .shell-progress-bar {
-        height: 100%;
-        width: 100%; /* Full width, use pseudo-element for shimmer */
-        background: hsl(var(--muted));
-        border-radius: 4px;
-        position: relative;
-        overflow: hidden;
-      }
-      .shell-progress-bar::before {
-        content: '';
-        position: absolute;
-        inset: 0; /* Explicit bounds to prevent layout shift */
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)), transparent);
-        /* GPU-accelerated: use translateX instead of background-position */
-        animation: shimmerBar 2s linear infinite;
-        will-change: transform;
-        contain: strict; /* Prevent layout recalculation from affecting parent */
-      }
-      @keyframes shimmerBar {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
-      }
-      /* Status indicator */
-      .shell-status {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 4px;
-      }
-      .shell-status-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: hsl(var(--primary));
-        animation: pulse 1.5s ease-in-out infinite;
-      }
-      @keyframes pulse {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.5; transform: scale(0.8); }
-      }
-      .shell-text {
-        font-size: clamp(12px, 2.5vw, 14px);
-        color: hsl(var(--muted-foreground));
-        font-weight: 500;
-        letter-spacing: 0.02em;
-      }
+      /* Removed: .shell-map-controls, .shell-loader, .shell-brand, .shell-plane, 
+         .shell-progress-*, .shell-status, and related animations - no longer used */
       
       .shell-nav {
         /* FIXED dimensions prevent CLS */
@@ -483,34 +356,8 @@
         <div class="shell-avatar"></div>
       </header>
       <main class="shell-main" id="main-content">
-        <!-- Animated gradient background -->
+        <!-- Simple gradient background - no loader to reduce complexity -->
         <div class="shell-map-grid"></div>
-        <!-- City selector skeleton - matches MapSkeleton -->
-        <div class="shell-city-selector"></div>
-        <!-- Navigation controls skeleton - matches MapSkeleton -->
-        <div class="shell-map-controls">
-          <div class="shell-map-control"></div>
-          <div class="shell-map-control"></div>
-        </div>
-        <!-- JET branding loader -->
-        <div class="shell-loader">
-          <div class="shell-brand">
-            <span class="shell-brand-text">JET</span>
-            <div class="shell-plane">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-              </svg>
-              <div class="shell-trail"></div>
-            </div>
-          </div>
-          <div class="shell-progress-container">
-            <div class="shell-progress-bar"></div>
-          </div>
-          <div class="shell-status">
-            <div class="shell-status-dot"></div>
-            <span class="shell-text">Loading map...</span>
-          </div>
-        </div>
       </main>
       <nav class="shell-nav">
         <div class="shell-nav-item"><div class="shell-nav-icon active"></div><div class="shell-nav-label"></div></div>
