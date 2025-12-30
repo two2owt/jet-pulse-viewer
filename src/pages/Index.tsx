@@ -377,7 +377,7 @@ const Index = () => {
       <main 
         role="main"
         id="main-content"
-        className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 overflow-y-auto'}`}
+        className={`page-fade-in ${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 overflow-y-auto'}`}
         style={{ 
           // FIXED dimensions using centralized CSS variables
           flex: '1 1 auto',
