@@ -605,6 +605,38 @@ All colors MUST be HSL.
     background-size: 200% 100%;
   }
 
+  /* Polished shimmer skeleton effect */
+  .shimmer-skeleton {
+    position: relative;
+    overflow: hidden;
+    background: hsl(var(--muted) / 0.3);
+  }
+  
+  .shimmer-skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--muted) / 0.4) 20%,
+      hsl(var(--muted) / 0.7) 50%,
+      hsl(var(--muted) / 0.4) 80%,
+      transparent 100%
+    );
+    animation: shimmer-slide 1.5s ease-in-out infinite;
+    animation-delay: inherit;
+  }
+
+  @keyframes shimmer-slide {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
   @keyframes shimmer {
     0% {
       background-position: 200% 0;
