@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback, memo, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
@@ -11,10 +11,13 @@ import { Button } from "./ui/button";
 import { EmptyState } from "./EmptyState";
 import { calculateDistance, getDynamicRadius, formatDistance } from "@/utils/geospatialUtils";
 import { useFavorites } from "@/hooks/useFavorites";
-import { Sheet, SheetContent } from "./ui/sheet";
-import { DealDetailCard } from "./DealDetailCard";
 import { ExploreTabSkeleton } from "./skeletons";
 import type { User } from "@supabase/supabase-js";
+
+// Lazy load Sheet and DealDetailCard - only needed when user clicks a deal
+const Sheet = lazy(() => import("./ui/sheet").then(m => ({ default: m.Sheet })));
+const SheetContent = lazy(() => import("./ui/sheet").then(m => ({ default: m.SheetContent })));
+const DealDetailCard = lazy(() => import("./DealDetailCard").then(m => ({ default: m.DealDetailCard })));
 
 interface UserPreferences {
   categories?: string[];
@@ -379,14 +382,16 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
 
   return (
     <>
-      {/* Deal Detail Sheet */}
-      <Sheet open={!!selectedDeal} onOpenChange={(open) => !open && handleCloseDealCard()}>
-        <SheetContent side="bottom" className="h-auto max-h-[90vh] p-0 rounded-t-2xl overflow-auto">
-          {selectedDeal && (
-            <DealDetailCard deal={selectedDeal} onClose={handleCloseDealCard} />
-          )}
-        </SheetContent>
-      </Sheet>
+      {/* Deal Detail Sheet - lazy loaded when user clicks a deal */}
+      {selectedDeal && (
+        <Suspense fallback={null}>
+          <Sheet open={!!selectedDeal} onOpenChange={(open) => !open && handleCloseDealCard()}>
+            <SheetContent side="bottom" className="h-auto max-h-[90vh] p-0 rounded-t-2xl overflow-auto">
+              <DealDetailCard deal={selectedDeal} onClose={handleCloseDealCard} />
+            </SheetContent>
+          </Sheet>
+        </Suspense>
+      )}
 
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
