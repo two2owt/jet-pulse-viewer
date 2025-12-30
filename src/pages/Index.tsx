@@ -338,15 +338,16 @@ const Index = () => {
     <>
       
       <div 
-        className={`app-wrapper ${activeTab === 'map' ? 'map-container' : 'page-container'}`}
+        className="app-wrapper"
         style={{
-          // Fixed dimensions prevent layout shifts during initial render
+          // Fixed dimensions using CSS variables - consistent across all environments
           height: '100dvh',
           minHeight: '100dvh',
+          maxHeight: '100dvh',
           contain: 'strict',
           transform: 'translateZ(0)',
-          // Isolate stacking context to prevent shift propagation
           isolation: 'isolate',
+          overflow: 'hidden',
         }}
       >
         {/* Header - Show skeleton during initial load before data arrives */}
@@ -376,24 +377,21 @@ const Index = () => {
       <main 
         role="main"
         id="main-content"
-        className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5'}`}
+        className={`${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 overflow-y-auto'}`}
         style={{ 
-          // FIXED dimensions using CSS variables - must match shell-main exactly
-          flex: '1 1 var(--main-height)',
-          height: activeTab === 'map' ? 'var(--main-height)' : 'auto',
-          minHeight: activeTab === 'map' ? 'var(--main-height)' : '400px',
-          maxHeight: activeTab === 'map' ? 'var(--main-height)' : 'none',
+          // FIXED dimensions using centralized CSS variables
+          flex: '1 1 auto',
+          height: 'var(--main-height)',
+          minHeight: 'var(--main-height)',
+          maxHeight: 'var(--main-height)',
           // Strict containment prevents CLS propagation
-          contain: activeTab === 'map' ? 'strict' : 'layout style paint',
-          contentVisibility: 'auto',
-          containIntrinsicSize: activeTab === 'map' ? '100vw var(--main-height)' : '100vw 400px',
+          contain: 'strict',
           // GPU layer for smooth transitions
           transform: 'translateZ(0)',
           boxSizing: 'border-box',
           width: '100%',
           isolation: 'isolate',
-          // Prevent content from affecting layout
-          overflow: activeTab === 'map' ? 'hidden' : 'visible',
+          overflow: activeTab === 'map' ? 'hidden' : 'auto',
         }}
       >
         {activeTab === "map" && (
@@ -401,11 +399,10 @@ const Index = () => {
             className="relative w-full h-full"
             style={{ 
               height: '100%',
-              minHeight: '400px',
-              contain: 'layout style paint',
-              contentVisibility: 'auto',
-              containIntrinsicSize: '100vw 400px',
+              width: '100%',
+              contain: 'strict',
               transform: 'translateZ(0)',
+              overflow: 'hidden',
             }}
           >
 
