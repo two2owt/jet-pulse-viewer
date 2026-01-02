@@ -132,7 +132,7 @@ export const OptimizedImage = memo(({
         {isVisible ? (
           renderImage(true)
         ) : (
-          <div className="absolute inset-0 w-full h-full bg-muted/50 animate-pulse" />
+          <div className="absolute inset-0 w-full h-full bg-muted/50" />
         )}
       </div>
     );
