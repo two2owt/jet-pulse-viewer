@@ -3,7 +3,14 @@ import { Card } from "@/components/ui/card";
 
 export const SocialCardSkeleton = () => {
   return (
-    <Card className="p-4 bg-card/90 backdrop-blur-sm">
+    <Card 
+      className="p-4 bg-card/90 backdrop-blur-sm"
+      style={{
+        // Containment prevents CLS propagation during hydration
+        contain: 'layout style',
+        transform: 'translateZ(0)',
+      }}
+    >
       <div className="flex items-center gap-3">
         {/* Avatar */}
         <Skeleton className="w-12 h-12 rounded-full flex-shrink-0" />
@@ -33,7 +40,14 @@ export const SocialListSkeleton = ({ count = 5 }: { count?: number }) => {
 
 export const SocialPageSkeleton = () => {
   return (
-    <div className="space-y-6 animate-pulse">
+    <div 
+      className="space-y-6 animate-pulse"
+      style={{
+        // Containment prevents CLS propagation during hydration
+        contain: 'layout style',
+        transform: 'translateZ(0)',
+      }}
+    >
       {/* Header */}
       <div className="space-y-2">
         <Skeleton className="h-8 w-48" />

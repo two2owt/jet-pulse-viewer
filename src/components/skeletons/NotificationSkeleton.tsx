@@ -3,7 +3,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const NotificationSkeleton = () => {
   return (
     // Matches NotificationCard: rounded-lg sm:rounded-xl p-3 sm:p-4 border border-border/50
-    <div className="bg-gradient-to-r from-muted/50 to-muted/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-border/50">
+    <div 
+      className="bg-gradient-to-r from-muted/50 to-muted/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-border/50"
+      style={{
+        // Containment prevents CLS propagation during hydration
+        contain: 'layout style',
+        transform: 'translateZ(0)',
+      }}
+    >
       <div className="flex items-start gap-2 sm:gap-3">
         {/* Icon container - matches w-8 h-8 sm:w-10 sm:h-10 */}
         <Skeleton className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0" />

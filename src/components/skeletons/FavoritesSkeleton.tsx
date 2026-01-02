@@ -3,7 +3,14 @@ import { Card } from "@/components/ui/card";
 
 export const FavoritesSkeleton = () => {
   return (
-    <div className="space-y-6 animate-pulse">
+    <div 
+      className="space-y-6 animate-pulse"
+      style={{
+        // Containment prevents CLS propagation during hydration
+        contain: 'layout style',
+        transform: 'translateZ(0)',
+      }}
+    >
       {/* Header */}
       <div className="space-y-2">
         <Skeleton className="h-8 w-40" />

@@ -42,7 +42,14 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
   const tiles = useMemo(() => generateTileGrid(6, 8), []);
 
   return (
-    <div className="relative w-full h-full bg-background overflow-hidden">
+    <div 
+      className="relative w-full h-full bg-background overflow-hidden"
+      style={{
+        // Containment prevents CLS propagation during hydration
+        contain: 'strict',
+        transform: 'translateZ(0)',
+      }}
+    >
       {/* Animated tile-loading grid effect - GPU accelerated */}
       <div className="absolute inset-0 grid grid-cols-8 grid-rows-6 gap-px opacity-60">
         {tiles.map(({ row, col, delay }) => (
