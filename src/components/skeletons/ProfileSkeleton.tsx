@@ -3,7 +3,14 @@ import { Card } from "@/components/ui/card";
 
 export const ProfileSkeleton = () => {
   return (
-    <div className="space-y-6 animate-pulse">
+    <div 
+      className="space-y-6 animate-pulse"
+      style={{
+        // Containment prevents CLS propagation during hydration
+        contain: 'layout style',
+        transform: 'translateZ(0)',
+      }}
+    >
       {/* Avatar and Name */}
       <div className="flex items-center gap-4">
         <Skeleton className="w-20 h-20 rounded-full" />

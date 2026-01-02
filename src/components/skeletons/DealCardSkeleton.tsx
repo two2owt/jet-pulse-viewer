@@ -2,7 +2,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const DealCardSkeleton = () => {
   return (
-    <div className="bg-card rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-[var(--shadow-card)]">
+    <div 
+      className="bg-card rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-[var(--shadow-card)]"
+      style={{
+        // Containment prevents CLS propagation during hydration
+        contain: 'layout style',
+        transform: 'translateZ(0)',
+      }}
+    >
       {/* Image Header - matches h-40 sm:h-48 md:h-56 */}
       <div className="relative h-40 sm:h-48 md:h-56 bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20">
         {/* Favorite button skeleton */}

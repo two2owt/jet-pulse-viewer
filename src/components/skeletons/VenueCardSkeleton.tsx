@@ -3,7 +3,14 @@ import { Card } from "@/components/ui/card";
 
 export const VenueCardSkeleton = () => {
   return (
-    <Card className="overflow-hidden bg-card/90 backdrop-blur-sm">
+    <Card 
+      className="overflow-hidden bg-card/90 backdrop-blur-sm"
+      style={{
+        // Containment prevents CLS propagation during hydration
+        contain: 'layout style',
+        transform: 'translateZ(0)',
+      }}
+    >
       <div className="flex gap-4 p-4">
         {/* Image placeholder */}
         <Skeleton className="w-20 h-20 rounded-lg flex-shrink-0" />
