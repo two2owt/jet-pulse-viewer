@@ -6,8 +6,14 @@ export const HeaderSkeleton = () => {
       className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] animate-fade-in"
       style={{
         paddingTop: 'var(--safe-area-inset-top)',
+        // FIXED dimensions - must match Header.tsx and index.html shell exactly
         height: 'var(--header-total-height)',
         minHeight: 'var(--header-total-height)',
+        maxHeight: 'var(--header-total-height)',
+        // Containment prevents CLS propagation during hydration
+        contain: 'strict',
+        transform: 'translateZ(0)',
+        overflow: 'hidden',
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">
