@@ -41,7 +41,7 @@ export const SocialListSkeleton = ({ count = 5 }: { count?: number }) => {
 export const SocialPageSkeleton = () => {
   return (
     <div 
-      className="space-y-6"
+      className="space-y-6 animate-pulse"
       style={{
         // Containment prevents CLS propagation during hydration
         contain: 'layout style',

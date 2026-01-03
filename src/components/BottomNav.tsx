@@ -57,8 +57,8 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
                 key={i}
                 className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px]"
               >
-                <Skeleton className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md" />
-                <Skeleton className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded" />
+                <Skeleton className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md animate-pulse" />
+                <Skeleton className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded animate-pulse" />
               </div>
             ))}
           </div>

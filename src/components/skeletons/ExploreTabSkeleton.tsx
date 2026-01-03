@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 export const ExploreTabSkeleton = () => {
   return (
     <div 
-      className="space-y-6"
+      className="space-y-6 animate-pulse"
       style={{
         // Containment prevents CLS propagation during hydration
         contain: 'layout style',
