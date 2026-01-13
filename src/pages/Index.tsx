@@ -406,8 +406,17 @@ const Index = () => {
             }}
           >
 
-            {/* Mapbox Heatmap - Edge to edge */}
-            <div className="h-full w-full relative">
+            {/* Mapbox Heatmap - Edge to edge with fixed dimensions */}
+            <div 
+              className="relative"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                contain: 'strict',
+              }}
+            >
               {/* Error state - only show if there's a definite error */}
               {mapboxError && !mapboxLoading && (
                 <div 
