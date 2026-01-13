@@ -137,11 +137,11 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
       <OfflineMapIndicator compact />
       
       {hasBeenVisible ? (
-        <Suspense fallback={<MapSkeleton />}>
+        <Suspense fallback={<MapSkeleton isTokenLoading={props.isTokenLoading} />}>
           <MapboxHeatmap {...props} />
         </Suspense>
       ) : (
-        <MapSkeleton />
+        <MapSkeleton isTokenLoading={props.isTokenLoading} />
       )}
     </div>
   );
