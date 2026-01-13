@@ -116,15 +116,19 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
   return (
     <div 
       ref={containerRef}
-      className="h-full w-full relative"
+      className="relative"
       data-map-container="true"
       style={{
-        // Use parent dimensions - no need for CSS variables here
-        height: '100%',
+        // Explicit dimensions to match skeleton and prevent CLS
+        position: 'absolute',
+        inset: 0,
         width: '100%',
+        height: '100%',
+        minHeight: '100%',
         contain: 'strict',
         transform: 'translateZ(0)',
         overflow: 'hidden',
+        isolation: 'isolate',
       }}
       data-connection-speed={isSlowConnection ? 'slow' : 'fast'}
       data-online={isOnline ? 'true' : 'false'}

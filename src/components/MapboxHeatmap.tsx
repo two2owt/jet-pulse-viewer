@@ -2041,10 +2041,16 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
   return (
     <div 
-      className="relative w-full h-full"
+      className="relative"
       style={{
-        // Use dvh for dynamic viewport height on mobile (handles iOS Safari address bar)
-        minHeight: isMobile ? '100dvh' : '500px',
+        // Match parent container exactly to prevent CLS
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        minHeight: '100%',
+        contain: 'strict',
+        isolation: 'isolate',
       }}
     >
       {/* Map loads directly - no placeholder overlay */}

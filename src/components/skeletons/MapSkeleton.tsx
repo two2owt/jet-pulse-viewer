@@ -43,11 +43,18 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
 
   return (
     <div 
-      className="relative w-full h-full bg-background overflow-hidden"
+      className="bg-background overflow-hidden"
       style={{
+        // Match LazyMapboxHeatmap container exactly to prevent CLS
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        minHeight: '100%',
         // Containment prevents CLS propagation during hydration
         contain: 'strict',
         transform: 'translateZ(0)',
+        isolation: 'isolate',
       }}
     >
       {/* Animated tile-loading grid effect - GPU accelerated */}
