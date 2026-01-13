@@ -1,10 +1,11 @@
 import { Send } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState, useCallback } from "react";
 
 interface MapSkeletonProps {
   phase?: 'token' | 'initializing' | 'loading' | 'ready';
   progress?: number;
+  isTokenLoading?: boolean;
 }
 
 // Generate deterministic tile positions for the grid
@@ -23,23 +24,88 @@ const generateTileGrid = (rows: number, cols: number) => {
   return tiles;
 };
 
-export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) => {
-  const phaseText: Record<string, string> = {
-    token: 'Connecting...',
-    initializing: 'Initializing...',
-    loading: 'Loading map...',
-    ready: 'Almost ready...',
-  };
+// Loading phases with associated progress ranges
+const LOADING_PHASES = {
+  token: { min: 0, max: 25, label: 'Connecting...' },
+  initializing: { min: 25, max: 50, label: 'Initializing map...' },
+  loading: { min: 50, max: 85, label: 'Loading tiles...' },
+  ready: { min: 85, max: 100, label: 'Almost ready...' },
+} as const;
 
-  const displayProgress = progress ?? {
-    token: 10,
-    initializing: 30,
-    loading: 60,
-    ready: 90,
-  }[phase] ?? 50;
+export const MapSkeleton = ({ 
+  phase = 'loading', 
+  progress: externalProgress,
+  isTokenLoading = false,
+}: MapSkeletonProps) => {
+  // Internal progress state for smooth animations
+  const [internalProgress, setInternalProgress] = useState(0);
+  const [currentPhase, setCurrentPhase] = useState<keyof typeof LOADING_PHASES>('token');
+  const [tilesLoaded, setTilesLoaded] = useState(0);
+  
+  // Determine phase based on token loading state
+  useEffect(() => {
+    if (isTokenLoading) {
+      setCurrentPhase('token');
+    } else if (phase) {
+      setCurrentPhase(phase);
+    }
+  }, [isTokenLoading, phase]);
+
+  // Simulate progressive loading with natural easing
+  useEffect(() => {
+    if (externalProgress !== undefined) {
+      setInternalProgress(externalProgress);
+      return;
+    }
+
+    const phaseConfig = LOADING_PHASES[currentPhase];
+    let animationFrame: number;
+    let startTime = Date.now();
+    const duration = currentPhase === 'token' ? 2000 : 3000; // Token phase is faster
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const rawProgress = Math.min(elapsed / duration, 1);
+      
+      // Ease out cubic for natural deceleration
+      const easedProgress = 1 - Math.pow(1 - rawProgress, 3);
+      
+      const newProgress = phaseConfig.min + (phaseConfig.max - phaseConfig.min) * easedProgress;
+      setInternalProgress(newProgress);
+      
+      // Simulate tiles loading based on progress
+      const totalTiles = 48; // 6 rows x 8 cols
+      const loadedTiles = Math.floor((newProgress / 100) * totalTiles);
+      setTilesLoaded(loadedTiles);
+      
+      if (rawProgress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+    
+    animationFrame = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [currentPhase, externalProgress]);
+
+  const displayProgress = externalProgress ?? internalProgress;
+  const phaseLabel = LOADING_PHASES[currentPhase]?.label || 'Loading...';
 
   // Memoize tile grid to prevent recalculation
   const tiles = useMemo(() => generateTileGrid(6, 8), []);
+
+  // Calculate which tiles should appear "loaded" based on progress
+  const getTileOpacity = useCallback((index: number) => {
+    const loadThreshold = (index / tiles.length) * 100;
+    if (displayProgress >= loadThreshold) {
+      return 0.6; // Loaded tile
+    }
+    return 0.15; // Unloaded tile
+  }, [displayProgress, tiles.length]);
 
   return (
     <div 
@@ -58,26 +124,42 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
       }}
     >
       {/* Animated tile-loading grid effect - GPU accelerated */}
-      <div className="absolute inset-0 grid grid-cols-8 grid-rows-6 gap-px opacity-60">
-        {tiles.map(({ row, col, delay }) => (
-          <div
-            key={`${row}-${col}`}
-            className="bg-muted/20 relative overflow-hidden will-change-[opacity]"
-            style={{
-              animation: `tileLoad 2.5s ease-in-out infinite`,
-              animationDelay: `${delay}s`,
-            }}
-          >
-            {/* Shimmer overlay per tile - GPU accelerated */}
-            <div 
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-muted/30 to-transparent will-change-transform"
+      <div className="absolute inset-0 grid grid-cols-8 grid-rows-6 gap-px">
+        {tiles.map(({ row, col, delay }, index) => {
+          const isLoaded = index < tilesLoaded;
+          return (
+            <div
+              key={`${row}-${col}`}
+              className="bg-muted/20 relative overflow-hidden will-change-[opacity]"
               style={{
-                animation: `tileShimmer 2s ease-in-out infinite`,
-                animationDelay: `${delay + 0.5}s`,
+                opacity: isLoaded ? 0.5 : 0.2,
+                transition: 'opacity 0.3s ease-out',
+                animation: isLoaded ? 'none' : `tileLoad 2.5s ease-in-out infinite`,
+                animationDelay: `${delay}s`,
               }}
-            />
-          </div>
-        ))}
+            >
+              {/* Shimmer overlay per tile - GPU accelerated */}
+              {!isLoaded && (
+                <div 
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-muted/30 to-transparent will-change-transform"
+                  style={{
+                    animation: `tileShimmer 2s ease-in-out infinite`,
+                    animationDelay: `${delay + 0.5}s`,
+                  }}
+                />
+              )}
+              {/* Loaded indicator */}
+              {isLoaded && (
+                <div 
+                  className="absolute inset-0 bg-primary/5"
+                  style={{
+                    animation: 'fadeIn 0.3s ease-out',
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
       
       {/* Subtle road-like lines overlay */}
@@ -166,28 +248,46 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
             </div>
           </div>
           
-          {/* Modern progress indicator */}
+          {/* Enhanced progress indicator */}
           <div className="flex flex-col items-center gap-3 mt-2">
-            {/* Progress bar - GPU accelerated */}
-            <div className="w-32 sm:w-40 h-1 bg-muted rounded-full overflow-hidden relative">
+            {/* Progress bar with segmented appearance */}
+            <div className="w-40 sm:w-48 h-1.5 bg-muted rounded-full overflow-hidden relative">
+              {/* Background segments to show total capacity */}
+              <div className="absolute inset-0 flex gap-px">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex-1 bg-muted-foreground/10 first:rounded-l-full last:rounded-r-full" />
+                ))}
+              </div>
+              
               {/* Progress fill - use scaleX for GPU acceleration */}
               <div 
-                className="absolute inset-y-0 left-0 w-full bg-primary/40 rounded-full origin-left"
+                className="absolute inset-y-0 left-0 w-full bg-primary rounded-full origin-left"
                 style={{
                   transform: `scaleX(${displayProgress / 100})`,
-                  transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                  transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               />
+              
+              {/* Leading edge glow effect */}
+              <div 
+                className="absolute top-0 bottom-0 w-4 bg-gradient-to-r from-transparent via-primary to-primary/50 rounded-full blur-sm"
+                style={{
+                  left: `calc(${displayProgress}% - 1rem)`,
+                  opacity: displayProgress < 100 ? 1 : 0,
+                  transition: 'left 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s',
+                }}
+              />
+              
               {/* Shimmer effect - GPU accelerated */}
               <div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-primary to-transparent will-change-transform"
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent will-change-transform"
                 style={{
-                  animation: 'shimmerBar 2s linear infinite',
+                  animation: displayProgress < 100 ? 'shimmerBar 1.5s linear infinite' : 'none',
                 }}
               />
             </div>
             
-            {/* Status text */}
+            {/* Status text with phase indicator */}
             <div className="flex items-center gap-2">
               <div 
                 className="w-1.5 h-1.5 rounded-full bg-primary will-change-[transform,opacity]"
@@ -196,15 +296,16 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
                 }}
               />
               <p className="text-xs sm:text-sm text-muted-foreground font-medium tracking-wide">
-                {phaseText[phase] || 'Loading...'}
+                {phaseLabel}
               </p>
             </div>
             
-            {progress !== undefined && (
-              <p className="text-[10px] sm:text-xs text-muted-foreground/60 tabular-nums font-medium">
-                {Math.round(progress)}%
-              </p>
-            )}
+            {/* Progress percentage and tile count */}
+            <div className="flex items-center gap-3 text-[10px] sm:text-xs text-muted-foreground/60 tabular-nums font-medium">
+              <span>{Math.round(displayProgress)}%</span>
+              <span className="w-px h-3 bg-muted-foreground/20" />
+              <span>{tilesLoaded}/48 tiles</span>
+            </div>
           </div>
         </div>
       </div>
@@ -214,7 +315,7 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
       <style>{`
         @keyframes tileLoad {
           0%, 100% { opacity: 0.2; }
-          50% { opacity: 0.5; }
+          50% { opacity: 0.35; }
         }
         
         @keyframes tileShimmer {
@@ -249,6 +350,11 @@ export const MapSkeleton = ({ phase = 'loading', progress }: MapSkeletonProps) =
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        
+        @keyframes fadeIn {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
         }
       `}</style>
     </div>
