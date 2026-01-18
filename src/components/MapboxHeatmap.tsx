@@ -2575,6 +2575,78 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       )}
 
 
+      {/* Statistics Panel - Shows active data counts */}
+      {(showDensityLayer || showMovementPaths) && (densityData || pathData) && (
+        <div 
+          className={`${isMobile ? 'fixed' : 'absolute'} bg-card/95 backdrop-blur-xl rounded-xl border border-border z-30 shadow-lg transition-all ease-out ${
+            mapLoaded 
+              ? 'opacity-100 translate-y-0 scale-100 duration-500 delay-100' 
+              : 'opacity-0 translate-y-4 scale-95 duration-200 pointer-events-none'
+          } px-3 py-2`}
+          style={{
+            top: isMobile ? 'calc(env(safe-area-inset-top, 0px) + 70px)' : '80px',
+            right: 'var(--map-ui-inset-right)',
+            minWidth: '140px',
+          }}
+        >
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Live Stats</p>
+            
+            {showDensityLayer && densityData && (
+              <div className="flex flex-col gap-1 animate-fade-in">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[10px] text-muted-foreground">Hotspots</span>
+                  <span className="text-xs font-bold text-primary">{densityData.stats.grid_cells}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[10px] text-muted-foreground">Data Points</span>
+                  <span className="text-xs font-bold text-foreground">{densityData.stats.total_points}</span>
+                </div>
+                {densityData.stats.max_density > 0 && (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[10px] text-muted-foreground">Peak Density</span>
+                    <span className="text-xs font-bold text-orange-400">{densityData.stats.max_density}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {showMovementPaths && pathData && (
+              <div className="flex flex-col gap-1 animate-fade-in">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[10px] text-muted-foreground">Active Paths</span>
+                  <span className="text-xs font-bold text-primary">{pathData.stats.total_paths}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[10px] text-muted-foreground">Movements</span>
+                  <span className="text-xs font-bold text-foreground">{pathData.stats.total_movements}</span>
+                </div>
+                {pathData.stats.unique_users > 0 && (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[10px] text-muted-foreground">Users Tracked</span>
+                    <span className="text-xs font-bold text-green-400">{pathData.stats.unique_users}</span>
+                  </div>
+                )}
+                {pathData.stats.max_frequency > 0 && (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[10px] text-muted-foreground">Peak Traffic</span>
+                    <span className="text-xs font-bold text-orange-400">{pathData.stats.max_frequency}x</span>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Loading indicator */}
+            {(densityLoading || pathsLoading) && (
+              <div className="flex items-center gap-1.5 pt-1 border-t border-border/50">
+                <div className="w-2 h-2 border border-primary border-t-transparent rounded-full animate-spin" />
+                <span className="text-[9px] text-muted-foreground">Updating...</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Enhanced Legend - Bottom left, responsive for all devices, collapsible on mobile */}
       <div 
         className={`${isMobile ? 'fixed' : 'absolute'} bg-card/95 backdrop-blur-xl rounded-xl border border-border z-30 shadow-lg transition-all ease-out ${
