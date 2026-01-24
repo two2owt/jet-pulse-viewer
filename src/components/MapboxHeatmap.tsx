@@ -2137,7 +2137,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       />
 
       {/* City Selector with Current Location option - responsive for all devices */}
-      {/* CLS fix: Fixed dimensions and strict containment prevent layout shifts */}
+      {/* City Selector - CLS fix: Defer render until after initial paint */}
+      {controlsReady && (
       <div 
         className="absolute z-10"
         style={{
@@ -2252,6 +2253,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </SelectContent>
         </Select>
       </div>
+      )}
 
       {/* Map Controls - Top left below city selector */}
       {/* CLS fix: Defer render until after initial paint to prevent layout shifts */}
