@@ -445,10 +445,11 @@ const Index = () => {
               {/* Map - lazy loaded with Intersection Observer to reduce TBT */}
               {isMapboxReady && mapboxToken ? (
                 <div 
-                  className="h-full w-full animate-fade-in"
+                  className="h-full w-full"
                   style={{
-                    animationDuration: '400ms',
-                    animationTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                    // CLS-safe: Use opacity transition instead of animation
+                    opacity: 1,
+                    transition: 'opacity 300ms ease-out',
                   }}
                 >
                   <LazyMapboxHeatmap
@@ -474,7 +475,7 @@ const Index = () => {
             {selectedVenue && (
               <div 
                 ref={jetCardRef} 
-                className="fixed z-[60] animate-fade-in animate-scale-in"
+                className="fixed z-[60] animate-fade-in"
                 style={{
                   bottom: 'var(--map-fixed-bottom)',
                   left: 'var(--map-ui-inset-left)',
