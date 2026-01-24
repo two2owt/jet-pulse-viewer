@@ -27,42 +27,8 @@
     <link rel="preload" href="/fonts/kanit-900.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
     <link rel="preload" href="/fonts/kanit-600.woff2" as="font" type="font/woff2" crossorigin>
     
-    <!-- CRITICAL: Early fetch hints for critical JS chunks - reduces chain latency -->
-    <!-- In production, Vite adds modulepreload links for direct imports -->
-    <!-- This script adds Link headers for dynamic imports that would otherwise be late-discovered -->
-    <script>
-      // Priority hints: Tell browser to fetch critical assets with high priority
-      // This reduces the 8.8s chain latency by parallelizing chunk fetches
-      (function() {
-        // After main module loads, boost priority of critical runtime chunks
-        // Using fetch() with keepalive ensures browser prioritizes these
-        var boostPriority = function() {
-          // Find modulepreload links and ensure they have high fetch priority
-          var links = document.querySelectorAll('link[rel="modulepreload"]');
-          links.forEach(function(link) {
-            var href = link.href;
-            // Critical chunks that should load first
-            if (href.includes('vendor-react') || 
-                href.includes('vendor-router') || 
-                href.includes('vendor-query') ||
-                href.includes('index-') ||
-                href.includes('ui-core')) {
-              // Create new link with fetchpriority if not already set
-              if (!link.getAttribute('fetchpriority')) {
-                link.setAttribute('fetchpriority', 'high');
-              }
-            }
-          });
-        };
-        
-        // Run after Vite injects its modulepreload links
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', boostPriority);
-        } else {
-          requestAnimationFrame(boostPriority);
-        }
-      })();
-    </script>
+    <!-- Minified: Boost priority of critical JS chunks -->
+    <script>!function(){var e=function(){document.querySelectorAll('link[rel="modulepreload"]').forEach(function(l){(l.href.includes("vendor-react")||l.href.includes("vendor-router")||l.href.includes("index-"))&&!l.getAttribute("fetchpriority")&&l.setAttribute("fetchpriority","high")})};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",e):requestAnimationFrame(e)}();</script>
     
     <!-- Preconnect hints - establish early connections to critical origins -->
     <link rel="preconnect" href="https://zbrscuoqmkdbmdimdnqu.supabase.co" crossorigin>
@@ -295,111 +261,14 @@
       </div>
     </div>
     
-    <!-- Remove inline shell once React hydrates -->
-    <script>
-      // Clean up shell after React mounts (prevents flash)
-      var shell = document.querySelector('.app-shell');
-      if (shell) {
-        // Use MutationObserver to detect React hydration
-        var observer = new MutationObserver(function(mutations) {
-          // React adds data-reactroot or similar attributes
-          if (document.querySelector('[data-testid]') || 
-              document.getElementById('root').children.length > 1 ||
-              document.querySelector('.app-wrapper')) {
-            shell.remove();
-            observer.disconnect();
-          }
-        });
-        observer.observe(document.getElementById('root'), { childList: true, subtree: true });
-        // Fallback: remove after 5 seconds if React hasn't loaded
-        setTimeout(function() { if (shell.parentNode) shell.remove(); observer.disconnect(); }, 5000);
-      }
-    </script>
+    <!-- Minified: Remove shell on React hydration -->
+    <script>var s=document.querySelector(".app-shell");if(s){var o=new MutationObserver(function(){(document.querySelector(".app-wrapper")||document.getElementById("root").children.length>1)&&(s.remove(),o.disconnect())});o.observe(document.getElementById("root"),{childList:!0,subtree:!0});setTimeout(function(){s.parentNode&&s.remove();o.disconnect()},5e3)}</script>
     
     <!-- Main app script - Vite will transform this -->
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Defer non-critical stylesheet loading to eliminate render blocking -->
-    <script>
-      // Load main stylesheet after first paint to prevent render blocking
-      requestAnimationFrame(function() {
-        requestAnimationFrame(function() {
-          var links = document.querySelectorAll('link[rel="preload"][as="style"]');
-          links.forEach(function(link) {
-            link.rel = 'stylesheet';
-          });
-        });
-      });
-    </script>
-
-    <!-- Defer Mapbox JS loading until user interaction or idle time -->
-    <script>
-      // Load Mapbox GL JS only when needed - reduces LCP blocking
-      (function() {
-        var mapboxLoaded = false;
-        
-        function loadMapbox() {
-          if (mapboxLoaded) return;
-          mapboxLoaded = true;
-          
-          var script = document.createElement('script');
-          script.src = 'https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.js';
-          script.async = true;
-          document.head.appendChild(script);
-        }
-        
-        // Load on user interaction (scroll to map)
-        function onScroll() {
-          if (window.scrollY > 100) {
-            loadMapbox();
-            window.removeEventListener('scroll', onScroll);
-          }
-        }
-        
-        // Load after LCP (3 seconds) or on idle
-        function deferLoad() {
-          if (typeof requestIdleCallback !== 'undefined') {
-            requestIdleCallback(loadMapbox, { timeout: 4000 });
-          } else {
-            setTimeout(loadMapbox, 3000);
-          }
-        }
-        
-        // Start deferred loading after initial paint
-        if (document.readyState === 'complete') {
-          deferLoad();
-        } else {
-          window.addEventListener('load', function() {
-            // Give LCP time to complete first
-            setTimeout(deferLoad, 100);
-          }, { once: true });
-        }
-        
-        window.addEventListener('scroll', onScroll, { passive: true });
-        
-        // Also load if map container becomes visible
-        if ('IntersectionObserver' in window) {
-          var observer = new IntersectionObserver(function(entries) {
-            if (entries[0].isIntersecting) {
-              loadMapbox();
-              observer.disconnect();
-            }
-          }, { rootMargin: '200px' });
-          
-          // Observe after DOM is ready
-          function observeMap() {
-            var mapEl = document.querySelector('[data-map-container]');
-            if (mapEl) observer.observe(mapEl);
-          }
-          
-          if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', observeMap);
-          } else {
-            observeMap();
-          }
-        }
-      })();
-    </script>
+    <!-- Minified: Defer stylesheets + Mapbox JS loading -->
+    <script>requestAnimationFrame(function(){requestAnimationFrame(function(){document.querySelectorAll('link[rel="preload"][as="style"]').forEach(function(l){l.rel="stylesheet"})})});!function(){var m=!1,l=function(){if(!m){m=!0;var s=document.createElement("script");s.src="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.js";s.async=!0;document.head.appendChild(s)}},d=function(){typeof requestIdleCallback!=="undefined"?requestIdleCallback(l,{timeout:4e3}):setTimeout(l,3e3)};document.readyState==="complete"?d():window.addEventListener("load",function(){setTimeout(d,100)},{once:!0});if("IntersectionObserver"in window){var o=new IntersectionObserver(function(e){e[0].isIntersecting&&(l(),o.disconnect())},{rootMargin:"200px"}),b=function(){var e=document.querySelector("[data-map-container]");e&&o.observe(e)};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",b):b()}}();</script>
 
   </body>
 </html>
