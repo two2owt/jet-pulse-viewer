@@ -123,60 +123,14 @@ export const MapSkeleton = ({
         isolation: 'isolate',
       }}
     >
-      {/* Animated tile-loading grid effect - GPU accelerated */}
-      <div className="absolute inset-0 grid grid-cols-8 grid-rows-6 gap-px">
-        {tiles.map(({ row, col, delay }, index) => {
-          const isLoaded = index < tilesLoaded;
-          return (
-            <div
-              key={`${row}-${col}`}
-              className="bg-muted/20 relative overflow-hidden will-change-[opacity]"
-              style={{
-                opacity: isLoaded ? 0.5 : 0.2,
-                transition: 'opacity 0.3s ease-out',
-                animation: isLoaded ? 'none' : `tileLoad 2.5s ease-in-out infinite`,
-                animationDelay: `${delay}s`,
-              }}
-            >
-              {/* Shimmer overlay per tile - GPU accelerated */}
-              {!isLoaded && (
-                <div 
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-muted/30 to-transparent will-change-transform"
-                  style={{
-                    animation: `tileShimmer 2s ease-in-out infinite`,
-                    animationDelay: `${delay + 0.5}s`,
-                  }}
-                />
-              )}
-              {/* Loaded indicator */}
-              {isLoaded && (
-                <div 
-                  className="absolute inset-0 bg-primary/5"
-                  style={{
-                    animation: 'fadeIn 0.3s ease-out',
-                  }}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
+      {/* Simple loading background */}
+      <div 
+        className="absolute inset-0 bg-muted/30"
+        style={{
+          animation: 'pulse 2s ease-in-out infinite',
+        }}
+      />
       
-      {/* Subtle road-like lines overlay */}
-      <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
-        <svg className="w-full h-full" preserveAspectRatio="none">
-          {/* Horizontal roads */}
-          <line x1="0" y1="30%" x2="100%" y2="30%" stroke="hsl(var(--foreground))" strokeWidth="2" />
-          <line x1="0" y1="55%" x2="100%" y2="55%" stroke="hsl(var(--foreground))" strokeWidth="3" />
-          <line x1="0" y1="75%" x2="100%" y2="75%" stroke="hsl(var(--foreground))" strokeWidth="1.5" />
-          {/* Vertical roads */}
-          <line x1="25%" y1="0" x2="25%" y2="100%" stroke="hsl(var(--foreground))" strokeWidth="1.5" />
-          <line x1="50%" y1="0" x2="50%" y2="100%" stroke="hsl(var(--foreground))" strokeWidth="2.5" />
-          <line x1="70%" y1="0" x2="70%" y2="100%" stroke="hsl(var(--foreground))" strokeWidth="1" />
-          {/* Diagonal */}
-          <line x1="10%" y1="80%" x2="40%" y2="20%" stroke="hsl(var(--foreground))" strokeWidth="1.5" />
-        </svg>
-      </div>
       
       {/* Animated scan line effect - GPU accelerated */}
       <div 
