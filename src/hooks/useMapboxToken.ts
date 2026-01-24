@@ -14,9 +14,23 @@ export const getMapboxTokenFromCache = (): string | null => {
   return getCachedToken();
 };
 
+// Check for preloaded token from HTML shell (set before React hydration)
+const getPreloadedToken = (): string | null => {
+  if (typeof window !== 'undefined' && (window as any).__mapboxToken) {
+    return (window as any).__mapboxToken;
+  }
+  return null;
+};
+
 // Use both localStorage and sessionStorage for better mobile persistence
 const getCachedToken = (): string | null => {
   try {
+    // First check for preloaded token from HTML shell
+    const preloaded = getPreloadedToken();
+    if (preloaded) {
+      return preloaded;
+    }
+    
     // Try localStorage first (persists across sessions)
     let cached = localStorage.getItem(TOKEN_CACHE_KEY);
 
@@ -74,14 +88,31 @@ export const useMapboxToken = (options: UseMapboxTokenOptions = {}) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchToken = useCallback(async () => {
-    // Check cache first
+    // Check cache first (includes preloaded token from HTML shell)
     const cachedToken = getCachedToken();
     if (cachedToken) {
-      console.log('useMapboxToken: Using cached token');
+      console.log('useMapboxToken: Using cached/preloaded token');
       setToken(cachedToken);
       setLoading(false);
       setError(null);
       return;
+    }
+    
+    // Check if HTML shell started a fetch we can await
+    if (typeof window !== 'undefined' && (window as any).__mapboxTokenPromise) {
+      try {
+        await (window as any).__mapboxTokenPromise;
+        const preloaded = getPreloadedToken();
+        if (preloaded) {
+          console.log('useMapboxToken: Using preloaded token from HTML shell');
+          setToken(preloaded);
+          setLoading(false);
+          setError(null);
+          return;
+        }
+      } catch {
+        // Continue to normal fetch
+      }
     }
     
     console.log('useMapboxToken: No cached token, fetching from edge function...');
