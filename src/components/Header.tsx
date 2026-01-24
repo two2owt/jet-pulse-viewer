@@ -97,26 +97,44 @@ export const Header = ({
   const handleCloseResults = () => {
     setShowResults(false);
   };
-  return <header className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] header-contained animate-fade-in" role="banner" style={{
-    paddingTop: 'var(--safe-area-inset-top)',
-    // FIXED dimensions using CSS variables - must match shell-header exactly
-    height: 'var(--header-total-height)',
-    minHeight: 'var(--header-total-height)',
-    maxHeight: 'var(--header-total-height)',
-    // Containment prevents CLS propagation
-    contain: 'strict',
-    transform: 'translateZ(0)',
-    overflow: 'hidden',
-  }}>
+  return (
+    <header 
+      className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] header-contained" 
+      role="banner" 
+      style={{
+        paddingTop: 'var(--safe-area-inset-top)',
+        // FIXED dimensions using CSS variables - must match shell-header exactly
+        height: 'var(--header-total-height)',
+        minHeight: 'var(--header-total-height)',
+        maxHeight: 'var(--header-total-height)',
+        // CRITICAL: Prevent flex container from shrinking this element
+        flexShrink: 0,
+        // Containment prevents CLS propagation
+        contain: 'strict',
+        transform: 'translateZ(0)',
+        overflow: 'hidden',
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-full">
           {/* Logo - LCP element with elementtiming for performance tracking */}
-          <a href="/" className="flex items-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md" onClick={e => {
-          e.preventDefault();
-          navigate('/');
-        }} aria-label="JET - Go to home">
+          {/* FIXED dimensions to prevent CLS - must match skeleton */}
+          <a 
+            href="/" 
+            className="flex items-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
+            style={{
+              // Fixed dimensions to prevent layout shift
+              minWidth: '36px',
+              height: '24px',
+            }}
+            onClick={e => {
+              e.preventDefault();
+              navigate('/');
+            }} 
+            aria-label="JET - Go to home"
+          >
             <h1 
-              className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-wider"
+              className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-wider leading-none"
               // @ts-expect-error - elementtiming is a valid HTML attribute for LCP tracking
               elementtiming="lcp-brand"
             >
@@ -124,34 +142,88 @@ export const Header = ({
             </h1>
           </a>
           
-          {/* Search Bar - Responsive width with better scaling */}
-          <div className="min-w-0 w-[100px] sm:w-[140px] md:w-[180px] lg:w-[220px] xl:w-[280px] relative flex-shrink-0">
-            <Search className="absolute left-2 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 text-muted-foreground pointer-events-none" />
-            <Input type="text" placeholder="Search..." value={searchQuery} onChange={handleSearchChange} onFocus={() => searchQuery.trim() && setShowResults(true)} maxLength={100} aria-label="Search venues and deals" className="w-full pl-7 sm:pl-8 md:pl-9 pr-2 sm:pr-3 h-8 sm:h-9 md:h-10 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-all text-xs sm:text-sm md:text-base text-foreground placeholder:text-muted-foreground" />
+          {/* Search Bar - FIXED width with responsive scaling */}
+          <div 
+            className="relative flex-shrink-0"
+            style={{
+              // Fixed widths per breakpoint to prevent CLS
+              width: 'clamp(100px, 20vw, 280px)',
+              minWidth: '100px',
+            }}
+          >
+            <Search className="absolute left-2 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 text-muted-foreground pointer-events-none z-10" />
+            <Input 
+              type="text" 
+              placeholder="Search..." 
+              value={searchQuery} 
+              onChange={handleSearchChange} 
+              onFocus={() => searchQuery.trim() && setShowResults(true)} 
+              maxLength={100} 
+              aria-label="Search venues and deals" 
+              className="w-full pl-7 sm:pl-8 md:pl-9 pr-2 sm:pr-3 h-8 sm:h-9 md:h-10 rounded-full bg-secondary/50 border-border/50 focus:bg-secondary focus:border-primary/50 transition-colors text-xs sm:text-sm md:text-base text-foreground placeholder:text-muted-foreground" 
+            />
             
             {/* Lazy-loaded search results - only loads when user searches */}
             <Suspense fallback={null}>
-              <SearchResults query={searchQuery} venues={venues} deals={deals} onVenueSelect={onVenueSelect} onClose={handleCloseResults} isVisible={showResults} />
+              <SearchResults 
+                query={searchQuery} 
+                venues={venues} 
+                deals={deals} 
+                onVenueSelect={onVenueSelect} 
+                onClose={handleCloseResults} 
+                isVisible={showResults} 
+              />
             </Suspense>
           </div>
 
           {/* Sync Status - Takes remaining width between search and avatar */}
-          <div className="flex-1 min-w-0 px-1 sm:px-2 md:px-3">
-            <Suspense fallback={<Skeleton className="h-4 w-20" />}>
-              <SyncStatusIndicator isLoading={isLoading} lastUpdated={lastUpdated} onRefresh={onRefresh} showTimestamp={true} compact={true} cityName={cityName} isInitializing={!lastUpdated && !isLoading} />
+          <div className="flex-1 min-w-0 px-1 sm:px-2 md:px-3 flex items-center">
+            <Suspense fallback={
+              <div className="flex items-center gap-1.5">
+                <Skeleton className="h-4 w-4 rounded-full" />
+                <Skeleton className="h-3 w-16 sm:w-20 rounded" />
+              </div>
+            }>
+              <SyncStatusIndicator 
+                isLoading={isLoading} 
+                lastUpdated={lastUpdated} 
+                onRefresh={onRefresh} 
+                showTimestamp={true} 
+                compact={true} 
+                cityName={cityName} 
+                isInitializing={!lastUpdated && !isLoading} 
+              />
             </Suspense>
           </div>
 
-          {/* Avatar - Show skeleton while loading to prevent CLS */}
-          {isProfileLoading ? <Skeleton className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full flex-shrink-0" /> : <button onClick={() => navigate('/settings')} className="flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full" aria-label="Open settings">
-              <Avatar className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all">
-                <AvatarImage src={avatarUrl || ""} alt="Your profile picture" />
-                <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-xs sm:text-sm md:text-base">
-                  {displayName.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </button>}
+          {/* Avatar - FIXED dimensions with skeleton matching actual size */}
+          <div 
+            className="flex-shrink-0"
+            style={{
+              // Fixed dimensions to prevent CLS during profile loading
+              width: 'clamp(32px, 8vw, 44px)',
+              height: 'clamp(32px, 8vw, 44px)',
+            }}
+          >
+            {isProfileLoading ? (
+              <Skeleton className="w-full h-full rounded-full" />
+            ) : (
+              <button 
+                onClick={() => navigate('/settings')} 
+                className="w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full"
+                aria-label="Open settings"
+              >
+                <Avatar className="w-full h-full border-2 border-primary/30 cursor-pointer hover:border-primary transition-colors">
+                  <AvatarImage src={avatarUrl || ""} alt="Your profile picture" />
+                  <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-xs sm:text-sm md:text-base">
+                    {displayName.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </header>;
+    </header>
+  );
 };

@@ -31,17 +31,21 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50 nav-contained"
+      className="fixed left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50 nav-contained"
       role="navigation"
       aria-label="Main navigation"
       style={{
-        paddingBottom: 'var(--safe-area-inset-bottom)',
+        // iOS Safari fix: use calc with safe area for bottom positioning
+        bottom: 0,
+        paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 4px)',
         paddingLeft: 'var(--safe-area-inset-left)',
         paddingRight: 'var(--safe-area-inset-right)',
-        // Use CSS variable for responsive height - explicit max prevents overflow
+        // Use CSS variable for responsive height
         height: 'var(--bottom-nav-total-height)',
         minHeight: 'var(--bottom-nav-total-height)',
         maxHeight: 'var(--bottom-nav-total-height)',
+        // CRITICAL: Prevent any flex compression
+        flexShrink: 0,
         contain: 'strict',
         transform: 'translateZ(0)',
         // Prevent any content from causing shifts
@@ -50,23 +54,29 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 h-full flex items-center">
         {isLoading ? (
-          // Skeleton loading state - matches nav item dimensions
-          <div className="flex items-center justify-around w-full animate-fade-in">
+          // Skeleton loading state - MUST match nav item dimensions exactly
+          <div className="flex items-center justify-around w-full">
             {[1, 2, 3, 4, 5].map((i) => (
               <div
                 key={i}
-                className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px]"
+                className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2"
+                style={{
+                  // Fixed dimensions matching actual buttons
+                  minWidth: 'clamp(48px, 12vw, 64px)',
+                  minHeight: 'clamp(48px, 10vw, 56px)',
+                }}
               >
-                <Skeleton className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md animate-pulse" />
-                <Skeleton className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded animate-pulse" />
+                <Skeleton className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md" />
+                <Skeleton className="w-8 sm:w-9 md:w-10 h-2.5 sm:h-3 md:h-3.5 rounded" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex items-center justify-around w-full animate-fade-in">
+          <div className="flex items-center justify-around w-full">
             {navItems.map((item) => {
               const isActive = activeTab === item.id;
               const Icon = item.icon;
+              const hasNotification = item.id === 'notifications' && notificationCount > 0;
               
               return (
                 <button
@@ -74,21 +84,36 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
                   onClick={() => onTabChange(item.id)}
                   onMouseEnter={() => handlePrefetch(item.id)}
                   onTouchStart={() => handlePrefetch(item.id)}
-                  aria-label={`${item.label}${item.id === 'notifications' && notificationCount > 0 ? `, ${notificationCount} unread` : ''}`}
+                  aria-label={`${item.label}${hasNotification ? `, ${notificationCount} unread` : ''}`}
                   aria-current={isActive ? "page" : undefined}
-                  className={`relative flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 rounded-xl transition-all duration-300 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px] touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                  className={`relative flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 rounded-xl transition-colors duration-200 touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                     isActive
-                      ? "bg-gradient-primary shadow-glow text-primary-foreground scale-105"
+                      ? "bg-gradient-primary shadow-glow text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 active:bg-secondary/70 active:text-foreground"
                   }`}
+                  style={{
+                    // Fixed dimensions to prevent CLS during tab switching
+                    minWidth: 'clamp(48px, 12vw, 64px)',
+                    minHeight: 'clamp(48px, 10vw, 56px)',
+                    // Prevent scale transform CLS
+                    transform: isActive ? 'scale(1.02)' : 'scale(1)',
+                  }}
                 >
+                  {/* Notification badge - positioned absolutely to prevent layout shift */}
+                  {hasNotification && (
+                    <span 
+                      className="absolute top-1 right-1 sm:right-2 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-destructive rounded-full"
+                      aria-hidden="true"
+                    />
+                  )}
+                  
                   <Icon 
-                    className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 transition-transform duration-300" 
+                    className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" 
                     strokeWidth={isActive ? 2.5 : 2}
                     aria-hidden="true"
                   />
                   
-                  <span className={`text-[10px] sm:text-xs md:text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
+                  <span className={`text-[10px] sm:text-xs md:text-sm font-semibold whitespace-nowrap ${
                     isActive ? "opacity-100" : "opacity-70"
                   }`}>
                     {item.label}

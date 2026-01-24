@@ -36,42 +36,64 @@ export const LoadingFallback = memo(function LoadingFallback() {
           height: 'var(--header-total-height)',
           minHeight: 'var(--header-total-height)',
           maxHeight: 'var(--header-total-height)',
+          flexShrink: 0,
           contain: 'strict',
           transform: 'translateZ(0)',
           overflow: 'hidden',
-          flexShrink: 0,
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-full">
-            {/* Logo placeholder */}
-            <div className="flex items-center flex-shrink-0">
+            {/* Logo placeholder - MUST match Header logo dimensions */}
+            <div 
+              className="flex items-center flex-shrink-0"
+              style={{
+                minWidth: '36px',
+                height: '24px',
+              }}
+            >
               <div 
-                className="w-10 h-6 sm:w-12 sm:h-7 md:w-14 md:h-8 rounded shimmer-skeleton"
+                className="w-9 h-5 sm:w-10 sm:h-6 md:w-12 md:h-7 rounded shimmer-skeleton"
                 style={{ animationDelay: '0ms' }}
               />
             </div>
             
-            {/* Search placeholder */}
-            <div className="min-w-0 w-[100px] sm:w-[140px] md:w-[180px] lg:w-[220px] xl:w-[280px] flex-shrink-0">
+            {/* Search placeholder - MUST match Header search dimensions */}
+            <div 
+              className="flex-shrink-0"
+              style={{
+                width: 'clamp(100px, 20vw, 280px)',
+                minWidth: '100px',
+              }}
+            >
               <div 
                 className="w-full h-8 sm:h-9 md:h-10 rounded-full shimmer-skeleton"
                 style={{ animationDelay: '100ms' }}
               />
             </div>
 
-            {/* Sync status placeholder */}
-            <div className="flex-1 min-w-0 px-1 sm:px-2 md:px-3">
-              <div 
-                className="h-6 sm:h-7 md:h-8 rounded-full shimmer-skeleton"
-                style={{ animationDelay: '200ms' }}
-              />
+            {/* Sync status placeholder - flexible width */}
+            <div className="flex-1 min-w-0 px-1 sm:px-2 md:px-3 flex items-center">
+              <div className="flex items-center gap-1.5">
+                <div 
+                  className="w-4 h-4 rounded-full shimmer-skeleton"
+                  style={{ animationDelay: '200ms' }}
+                />
+                <div 
+                  className="w-16 sm:w-20 h-3 rounded shimmer-skeleton"
+                  style={{ animationDelay: '250ms' }}
+                />
+              </div>
             </div>
 
-            {/* Avatar placeholder */}
+            {/* Avatar placeholder - MUST match Header avatar dimensions */}
             <div 
-              className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full shimmer-skeleton flex-shrink-0"
-              style={{ animationDelay: '300ms' }}
+              className="flex-shrink-0 rounded-full shimmer-skeleton"
+              style={{ 
+                animationDelay: '300ms',
+                width: 'clamp(32px, 8vw, 44px)',
+                height: 'clamp(32px, 8vw, 44px)',
+              }}
             />
           </div>
         </div>
@@ -94,16 +116,18 @@ export const LoadingFallback = memo(function LoadingFallback() {
       
       {/* Bottom nav shell - MUST match BottomNav.tsx dimensions exactly */}
       <nav 
-        className="fixed bottom-0 left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50 nav-contained"
+        className="fixed left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50 nav-contained"
         role="navigation"
         aria-label="Main navigation"
         style={{
-          paddingBottom: 'var(--safe-area-inset-bottom)',
+          bottom: 0,
+          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 4px)',
           paddingLeft: 'var(--safe-area-inset-left)',
           paddingRight: 'var(--safe-area-inset-right)',
           height: 'var(--bottom-nav-total-height)',
           minHeight: 'var(--bottom-nav-total-height)',
           maxHeight: 'var(--bottom-nav-total-height)',
+          flexShrink: 0,
           contain: 'strict',
           transform: 'translateZ(0)',
           overflow: 'hidden',
@@ -114,14 +138,19 @@ export const LoadingFallback = memo(function LoadingFallback() {
             {[0, 1, 2, 3, 4].map((i) => (
               <div 
                 key={i} 
-                className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2 min-w-[48px] sm:min-w-[56px] md:min-w-[64px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px]"
+                className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2"
+                style={{
+                  // Fixed dimensions matching actual buttons
+                  minWidth: 'clamp(48px, 12vw, 64px)',
+                  minHeight: 'clamp(48px, 10vw, 56px)',
+                }}
               >
                 <div 
                   className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md shimmer-skeleton"
                   style={{ animationDelay: `${i * 100}ms` }}
                 />
                 <div 
-                  className="w-10 h-2.5 sm:h-3 md:h-3.5 rounded shimmer-skeleton"
+                  className="w-8 sm:w-9 md:w-10 h-2.5 sm:h-3 md:h-3.5 rounded shimmer-skeleton"
                   style={{ animationDelay: `${i * 100 + 50}ms` }}
                 />
               </div>
