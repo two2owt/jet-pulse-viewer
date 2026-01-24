@@ -300,11 +300,11 @@ export const MapSkeleton = ({
               </p>
             </div>
             
-            {/* Progress percentage and tile count */}
+            {/* Progress percentage and tile count - CLS fix: use fixed-width containers */}
             <div className="flex items-center gap-3 text-[10px] sm:text-xs text-muted-foreground/60 tabular-nums font-medium">
-              <span>{Math.round(displayProgress)}%</span>
+              <span style={{ width: '28px', textAlign: 'right' }}>{Math.round(displayProgress)}%</span>
               <span className="w-px h-3 bg-muted-foreground/20" />
-              <span>{tilesLoaded}/48 tiles</span>
+              <span style={{ width: '60px', textAlign: 'left' }}>{tilesLoaded}/48 tiles</span>
             </div>
           </div>
         </div>

@@ -2170,10 +2170,25 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             }
           }}
         >
-          <SelectTrigger className="w-auto min-w-[130px] sm:min-w-[150px] md:min-w-[180px] text-[10px] sm:text-xs md:text-sm lg:text-base h-9 sm:h-10 md:h-11 lg:h-12 px-2.5 sm:px-3 md:px-4 rounded-xl shadow-lg bg-card/95 backdrop-blur-xl border-border">
+          <SelectTrigger 
+            className="w-auto text-[10px] sm:text-xs md:text-sm lg:text-base h-9 sm:h-10 md:h-11 lg:h-12 px-2.5 sm:px-3 md:px-4 rounded-xl shadow-lg bg-card/95 backdrop-blur-xl border-border"
+            style={{
+              // CLS fix: Reserve stable width to prevent layout shift when "Locating..." changes to city name
+              minWidth: '160px',
+              contain: 'layout style',
+            }}
+          >
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5">
               <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
-              <span className="font-semibold truncate max-w-[100px] sm:max-w-[140px] md:max-w-[200px] lg:max-w-[240px]">
+              <span 
+                className="font-semibold truncate"
+                style={{
+                  // CLS fix: Fixed width prevents layout shift when text content changes
+                  width: '110px',
+                  minWidth: '110px',
+                  maxWidth: '110px',
+                }}
+              >
                 {isUsingCurrentLocation 
                   ? (detectedLocationName || (detectedCity ? `${detectedCity.name}, ${detectedCity.state}` : "Locating..."))
                   : `${selectedCity.name}, ${selectedCity.state}`}
