@@ -2576,24 +2576,29 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
 
       {/* Statistics Panel - Shows active data counts */}
+      {/* CRITICAL: Uses only opacity transition to avoid CLS - no translate/scale animations */}
       {(showDensityLayer || showMovementPaths) && (densityData || pathData) && (
         <div 
-          className={`${isMobile ? 'fixed' : 'absolute'} bg-card/95 backdrop-blur-xl rounded-xl border border-border z-30 shadow-lg transition-all ease-out ${
-            mapLoaded 
-              ? 'opacity-100 translate-y-0 scale-100 duration-500 delay-100' 
-              : 'opacity-0 translate-y-4 scale-95 duration-200 pointer-events-none'
-          } px-3 py-2`}
+          className={`${isMobile ? 'fixed' : 'absolute'} bg-card/95 backdrop-blur-xl rounded-xl border border-border z-30 shadow-lg px-3 py-2`}
           style={{
             top: isMobile ? 'calc(env(safe-area-inset-top, 0px) + 70px)' : '80px',
             right: 'var(--map-ui-inset-right)',
             minWidth: '140px',
+            // Use opacity-only transition to avoid CLS
+            opacity: mapLoaded ? 1 : 0,
+            visibility: mapLoaded ? 'visible' : 'hidden',
+            transition: 'opacity 300ms ease-out, visibility 300ms ease-out',
+            // GPU acceleration without layout-affecting transforms
+            transform: 'translateZ(0)',
+            willChange: 'opacity',
+            pointerEvents: mapLoaded ? 'auto' : 'none',
           }}
         >
           <div className="flex flex-col gap-1.5">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Live Stats</p>
             
             {showDensityLayer && densityData && (
-              <div className="flex flex-col gap-1 animate-fade-in">
+              <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[10px] text-muted-foreground">Hotspots</span>
                   <span className="text-xs font-bold text-primary">{densityData.stats.grid_cells}</span>
@@ -2612,7 +2617,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
             )}
             
             {showMovementPaths && pathData && (
-              <div className="flex flex-col gap-1 animate-fade-in">
+              <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[10px] text-muted-foreground">Active Paths</span>
                   <span className="text-xs font-bold text-primary">{pathData.stats.total_paths}</span>
@@ -2648,16 +2653,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       )}
 
       {/* Enhanced Legend - Bottom left, responsive for all devices, collapsible on mobile */}
+      {/* CRITICAL: Uses only opacity transition to avoid CLS - no translate animations */}
       <div 
-        className={`${isMobile ? 'fixed' : 'absolute'} bg-card/95 backdrop-blur-xl rounded-xl border border-border z-30 shadow-lg transition-all ease-out ${
-          mapLoaded && (isMobile ? !selectedVenue : !controlsCollapsed) 
-            ? 'opacity-100 translate-x-0 scale-100 duration-500 delay-200' 
-            : 'opacity-0 -translate-x-full scale-95 duration-200 delay-0 pointer-events-none'
-        } ${isMobile ? 'px-2 py-1.5' : 'px-3 py-2 md:px-4 md:py-3'}`}
+        className={`${isMobile ? 'fixed' : 'absolute'} bg-card/95 backdrop-blur-xl rounded-xl border border-border z-30 shadow-lg ${isMobile ? 'px-2 py-1.5' : 'px-3 py-2 md:px-4 md:py-3'}`}
         style={{
           bottom: isMobile ? 'var(--map-fixed-bottom)' : 'var(--map-ui-inset-bottom)',
           left: 'var(--map-ui-inset-left)',
           maxWidth: 'var(--map-control-max-width)',
+          // Use opacity-only transition to avoid CLS
+          opacity: mapLoaded && (isMobile ? !selectedVenue : !controlsCollapsed) ? 1 : 0,
+          visibility: mapLoaded && (isMobile ? !selectedVenue : !controlsCollapsed) ? 'visible' : 'hidden',
+          transition: 'opacity 300ms ease-out, visibility 300ms ease-out',
+          // GPU acceleration without layout-affecting transforms
+          transform: 'translateZ(0)',
+          willChange: 'opacity',
+          pointerEvents: mapLoaded && (isMobile ? !selectedVenue : !controlsCollapsed) ? 'auto' : 'none',
         }}
         onClick={isMobile ? () => { triggerHaptic('light'); setLegendCollapsed(!legendCollapsed); } : undefined}
       >
@@ -2745,8 +2755,20 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       {/* Enhanced Heatmap Loading Overlay */}
       {showDensityLayer && densityLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/30 backdrop-blur-md z-20 animate-fade-in">
-          <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-6 flex flex-col items-center gap-4 shadow-2xl animate-scale-in">
+        <div 
+          className="absolute inset-0 flex items-center justify-center bg-background/30 backdrop-blur-md z-20"
+          style={{
+            // Use opacity-only transition to avoid CLS
+            animation: 'fadeIn 200ms ease-out forwards',
+          }}
+        >
+          <div 
+            className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-6 flex flex-col items-center gap-4 shadow-2xl"
+            style={{
+              // Avoid scale animations that cause CLS
+              transform: 'translateZ(0)',
+            }}
+          >
             <div className="relative">
               <div className="w-12 h-12 border-4 border-primary/30 rounded-full" />
               <div className="absolute inset-0 w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -2761,6 +2783,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
       {/* Enhanced animations and styles */}
       <style>{`
+        /* CLS-safe fadeIn animation - opacity only, no transforms */
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
         @keyframes pulse {
           0%, 100% {
             transform: scale(1);
