@@ -1,5 +1,4 @@
 import { lazy, Suspense, useState, useEffect, useRef } from "react";
-import { MapSkeleton } from "@/components/skeletons";
 import { useConnectionSpeed } from "@/hooks/useConnectionSpeed";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { OfflineMapIndicator } from "@/components/OfflineMapIndicator";
@@ -137,12 +136,10 @@ export const LazyMapboxHeatmap = (props: LazyMapboxHeatmapProps) => {
       <OfflineMapIndicator compact />
       
       {hasBeenVisible ? (
-        <Suspense fallback={<MapSkeleton isTokenLoading={props.isTokenLoading} />}>
+        <Suspense fallback={null}>
           <MapboxHeatmap {...props} />
         </Suspense>
-      ) : (
-        <MapSkeleton isTokenLoading={props.isTokenLoading} />
-      )}
+      ) : null}
     </div>
   );
 };
