@@ -2186,6 +2186,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         >
           <SelectTrigger 
             className="w-auto text-[10px] sm:text-xs md:text-sm lg:text-base h-9 sm:h-10 md:h-11 lg:h-12 px-2.5 sm:px-3 md:px-4 rounded-xl shadow-lg bg-card/95 backdrop-blur-xl border-border"
+            aria-label="Select city location"
             style={{
               // CLS fix: Reserve stable width to prevent layout shift when "Locating..." changes to city name
               minWidth: '160px',
@@ -2386,7 +2387,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
 
               {/* Time filter */}
               <Select value={pathTimeFilter} onValueChange={(v: any) => setPathTimeFilter(v)}>
-                <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200">
+                <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200" aria-label="Filter paths by time period">
                   <SelectValue placeholder="Time" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2469,6 +2470,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                       size="sm"
                       className="h-7 w-7 p-0 transition-transform duration-150 active:scale-90"
                       disabled={timelapse.isPlaying}
+                      aria-label="Step backward one hour"
                     >
                       <SkipBack className="w-3 h-3" />
                     </Button>
@@ -2477,6 +2479,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                       variant={timelapse.isPlaying ? "default" : "outline"}
                       size="sm"
                       className="h-7 flex-1 transition-all duration-200"
+                      aria-label={timelapse.isPlaying ? "Pause time-lapse" : "Play time-lapse"}
                     >
                       {timelapse.isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                     </Button>
@@ -2486,6 +2489,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                       size="sm"
                       className="h-7 w-7 p-0 transition-transform duration-150 active:scale-90"
                       disabled={timelapse.isPlaying}
+                      aria-label="Step forward one hour"
                     >
                       <SkipForward className="w-3 h-3" />
                     </Button>
@@ -2508,7 +2512,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   />
 
                   {/* Speed control */}
-                  <div className="flex gap-1">
+                  <div className="flex gap-1" role="group" aria-label="Time-lapse playback speed">
                     {[2, 1, 0.5].map((speed, i) => (
                       <Button
                         key={speed}
@@ -2517,6 +2521,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                         size="sm"
                         className="h-6 flex-1 text-[9px] px-1 transition-all duration-200"
                         style={{ animationDelay: `${i * 50}ms` }}
+                        aria-label={`Set playback speed to ${speed === 2 ? '0.5x' : speed === 1 ? '1x' : '2x'}`}
+                        aria-pressed={timelapse.speed === speed}
                       >
                         {speed === 2 ? '0.5x' : speed === 1 ? '1x' : '2x'}
                       </Button>
@@ -2542,7 +2548,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               >
                 <div className="space-y-2 animate-fade-in">
                   <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
-                    <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200">
+                    <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200" aria-label="Filter heatmap by time period">
                       <SelectValue placeholder="Time" />
                     </SelectTrigger>
                     <SelectContent>
@@ -2554,7 +2560,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   </Select>
 
                   <Select value={hourFilter?.toString() || "all"} onValueChange={(v) => setHourFilter(v === "all" ? undefined : parseInt(v))}>
-                    <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200">
+                    <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200" aria-label="Filter heatmap by hour of day">
                       <SelectValue placeholder="Hour" />
                     </SelectTrigger>
                     <SelectContent>
@@ -2566,7 +2572,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                   </Select>
 
                   <Select value={dayFilter?.toString() || "all"} onValueChange={(v) => setDayFilter(v === "all" ? undefined : parseInt(v))}>
-                    <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200">
+                    <SelectTrigger className="h-8 text-[10px] bg-background/80 transition-all duration-200" aria-label="Filter heatmap by day of week">
                       <SelectValue placeholder="Day" />
                     </SelectTrigger>
                     <SelectContent>
