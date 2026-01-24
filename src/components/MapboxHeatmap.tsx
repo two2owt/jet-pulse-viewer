@@ -2123,13 +2123,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       />
 
       {/* City Selector with Current Location option - responsive for all devices */}
+      {/* CLS fix: Fixed dimensions and strict containment prevent layout shifts */}
       <div 
         className="absolute z-10"
         style={{
           top: 'var(--map-ui-inset-top)',
           left: 'var(--map-ui-inset-left)',
-          maxWidth: isMobile ? 'calc(100vw - 7rem)' : 'var(--map-control-max-width)',
-          contain: 'layout style',
+          // CLS fix: Fixed dimensions prevent layout shift when "Locating..." changes
+          width: '172px',
+          height: '36px',
+          minWidth: '172px',
+          minHeight: '36px',
+          maxWidth: '172px',
+          maxHeight: '36px',
+          contain: 'strict',
+          overflow: 'hidden',
         }}
       >
         <Select
