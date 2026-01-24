@@ -299,16 +299,6 @@ export const MapSkeleton = ({
                 {phaseLabel}
               </p>
             </div>
-            
-            {/* Progress percentage and tile count - CLS fix: use fixed-width containers with containment */}
-            <div 
-              className="flex items-center gap-3 text-[10px] sm:text-xs text-muted-foreground/60 tabular-nums font-medium"
-              style={{ contain: 'layout style', width: '120px', minWidth: '120px' }}
-            >
-              <span style={{ width: '28px', minWidth: '28px', textAlign: 'right' }}>{Math.round(displayProgress)}%</span>
-              <span className="w-px h-3 bg-muted-foreground/20" aria-hidden="true" />
-              <span style={{ width: '70px', minWidth: '70px', textAlign: 'left' }}>{tilesLoaded}/48 tiles</span>
-            </div>
           </div>
         </div>
       </div>
