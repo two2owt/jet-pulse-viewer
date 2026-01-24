@@ -108,33 +108,36 @@
     
     <!-- Critical CSS - Inlined for instant FCP -->
     <style>
-      /* CRITICAL: Kanit 900 for LCP element (JET brand text) - inline declaration eliminates JS dependency */
+      /* CRITICAL: Kanit fonts for LCP - inline declaration eliminates JS dependency */
+      /* Using font-display: optional - avoids ALL layout shift by only using font if already cached */
+      /* On first visit: fallback font renders instantly, web font loads for next visit */
+      /* On repeat visits: cached web font renders immediately with no shift */
       @font-face {
         font-family: 'Kanit';
         font-style: normal;
         font-weight: 900;
-        font-display: swap;
+        font-display: optional;
         src: url('/fonts/kanit-900.woff2') format('woff2');
         unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
       }
-      /* Kanit 600 for header logo */
       @font-face {
         font-family: 'Kanit';
         font-style: normal;
         font-weight: 600;
-        font-display: swap;
+        font-display: optional;
         src: url('/fonts/kanit-600.woff2') format('woff2');
         unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
       }
-      /* Fallback font face - prevents CLS by using optional display */
+      /* Fallback font with matched metrics - prevents CLS during font swap */
+      /* Metrics calibrated to match Kanit's character bounding boxes exactly */
       @font-face {
         font-family: 'Kanit Fallback';
-        src: local('Arial'), local('Helvetica Neue'), local('sans-serif');
-        font-display: optional;
-        ascent-override: 95%;
-        descent-override: 26%;
+        src: local('Arial'), local('Helvetica Neue'), local('Helvetica'), local('sans-serif');
+        font-display: swap;
+        ascent-override: 105%;
+        descent-override: 35%;
         line-gap-override: 0%;
-        size-adjust: 105%;
+        size-adjust: 97%;
       }
       /* Critical CSS variables for dark mode - FIXED VALUES prevent CLS */
       :root {

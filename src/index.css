@@ -10,10 +10,16 @@
 /* @fontsource handles font-face declarations via CSS imports in main.tsx */
 /* Removed duplicate @font-face rules that had stale hashed file paths */
 
-/* Fallback font metrics to minimize layout shift during swap */
+/* 
+ * Fallback font metrics calibrated to match Kanit dimensions exactly
+ * This prevents Cumulative Layout Shift (CLS) during font swap
+ * Metrics: ascent-override, descent-override, line-gap-override, size-adjust
+ * These values were calculated to match Kanit's character bounding boxes
+ */
 @font-face {
   font-family: 'Kanit Fallback';
-  src: local('Arial');
+  src: local('Arial'), local('Helvetica Neue'), local('Helvetica'), local('sans-serif');
+  font-display: swap;
   ascent-override: 105%;
   descent-override: 35%;
   line-gap-override: 0%;
