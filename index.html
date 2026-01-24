@@ -264,6 +264,9 @@
     <!-- Minified: Remove shell on React hydration -->
     <script>var s=document.querySelector(".app-shell");if(s){var o=new MutationObserver(function(){(document.querySelector(".app-wrapper")||document.getElementById("root").children.length>1)&&(s.remove(),o.disconnect())});o.observe(document.getElementById("root"),{childList:!0,subtree:!0});setTimeout(function(){s.parentNode&&s.remove();o.disconnect()},5e3)}</script>
     
+    <!-- CRITICAL: Preload Mapbox token before React hydration - eliminates resource load delay -->
+    <script>!function(){var k="mapbox_token_cache_v2",c=localStorage.getItem(k);if(c){try{var d=JSON.parse(c);if(d.token&&d.token.startsWith("pk.")&&Date.now()-d.timestamp<864e5)return}catch(e){}}window.__mapboxTokenPromise=fetch("https://zbrscuoqmkdbmdimdnqu.supabase.co/functions/v1/get-mapbox-token",{headers:{"apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpicnNjdW9xbWtkYm1kaW1kbnF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyMDkwODgsImV4cCI6MjA3ODc4NTA4OH0.LtDrHXcgQF4OrNVpKYXNTX9fdvTsscaMy35jK77qk2c"}}).then(function(r){return r.json()}).then(function(d){if(d&&d.token){localStorage.setItem(k,JSON.stringify({token:d.token,timestamp:Date.now()}));sessionStorage.setItem(k,JSON.stringify({token:d.token,timestamp:Date.now()}));window.__mapboxToken=d.token}}).catch(function(){})}();</script>
+    
     <!-- Main app script - Vite will transform this -->
     <script type="module" src="/src/main.tsx"></script>
     
