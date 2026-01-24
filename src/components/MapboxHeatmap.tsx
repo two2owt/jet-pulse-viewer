@@ -2254,12 +2254,15 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
       </div>
 
       {/* Map Controls - Top left below city selector */}
+      {/* CLS fix: Defer render until after initial paint to prevent layout shifts */}
+      {controlsReady && (
       <div 
         className="absolute z-10 space-y-2 sm:space-y-2.5 md:space-y-3"
         style={{
           top: isMobile ? 'calc(var(--map-ui-inset-top) + 3.5rem)' : 'calc(var(--map-ui-inset-top) + 4rem)',
           left: 'var(--map-ui-inset-left)',
           maxWidth: isMobile ? 'calc(50vw - 0.75rem)' : 'var(--map-control-max-width)',
+          contain: 'layout style',
         }}
       >
         <Collapsible defaultOpen={false}>
@@ -2268,17 +2271,18 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               variant="secondary"
               size="sm"
               className="bg-card/95 backdrop-blur-xl border border-border text-[10px] sm:text-xs md:text-sm shadow-lg h-9 sm:h-10 md:h-11 px-2.5 sm:px-3 md:px-4 rounded-xl transition-all duration-200"
+              aria-label="Toggle map style options"
             >
-              <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 sm:mr-1.5" />
+              <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 sm:mr-1.5" aria-hidden="true" />
               <span>Map Style</span>
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-2 sm:mt-2.5 overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
             <div className="bg-card/95 backdrop-blur-xl rounded-xl border border-border p-2 sm:p-2.5 md:p-3 shadow-lg space-y-2.5 sm:space-y-3">
               {/* Map Style Options */}
-              <div className="space-y-1.5">
-                <span className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium uppercase tracking-wider">Base Style</span>
-                <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+              <div className="space-y-1.5" role="group" aria-label="Map base style options">
+                <span id="base-style-label" className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium uppercase tracking-wider">Base Style</span>
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2" role="radiogroup" aria-labelledby="base-style-label">
                   {(['light', 'dark', 'streets', 'satellite'] as const).map((style) => (
                     <Button
                       key={style}
@@ -2286,6 +2290,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                       variant={mapStyle === style ? "default" : "outline"}
                       size="sm"
                       className="h-7 sm:h-8 md:h-9 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2 capitalize"
+                      aria-label={`Set map style to ${style}`}
+                      aria-pressed={mapStyle === style}
                     >
                       {style}
                     </Button>
@@ -2299,6 +2305,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                 variant={show3DTerrain ? "default" : "outline"}
                 size="sm"
                 className="w-full h-8 sm:h-9 md:h-10 text-[10px] sm:text-xs md:text-sm"
+                aria-label={show3DTerrain ? "Disable 3D terrain view" : "Enable 3D terrain view"}
+                aria-pressed={show3DTerrain}
               >
                 {show3DTerrain ? "Disable" : "Enable"} 3D Terrain
               </Button>
@@ -2306,6 +2314,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </CollapsibleContent>
         </Collapsible>
       </div>
+      )}
 
       {/* CLS fix: Only render layer controls after initial paint to prevent layout shifts */}
       {controlsReady && (
@@ -2408,16 +2417,21 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
               {/* Frequency slider */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-muted-foreground">Min. Frequency</span>
-                  <span className="font-semibold text-primary">{minPathFrequency}</span>
+                  <label htmlFor="path-frequency-slider" className="text-muted-foreground">Min. Frequency</label>
+                  <span className="font-semibold text-primary" aria-live="polite">{minPathFrequency}</span>
                 </div>
                 <input
+                  id="path-frequency-slider"
                   type="range"
                   min="1"
                   max="10"
                   value={minPathFrequency}
                   onChange={(e) => setMinPathFrequency(parseInt(e.target.value))}
                   className="path-flow-slider w-full"
+                  aria-label={`Minimum path frequency: ${minPathFrequency}`}
+                  aria-valuemin={1}
+                  aria-valuemax={10}
+                  aria-valuenow={minPathFrequency}
                 />
               </div>
 
@@ -2516,6 +2530,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
                     step={1}
                     className="w-full"
                     disabled={timelapse.isPlaying}
+                    aria-label={`Select hour of day: ${timelapse.formatHour(timelapse.currentHour)}`}
                   />
 
                   {/* Speed control */}
