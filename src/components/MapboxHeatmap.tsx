@@ -228,6 +228,14 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   // Movement paths state
   const [showMovementPaths, setShowMovementPaths] = useState(false);
   const [pathTimeFilter, setPathTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
+  
+  // CLS fix: Defer layer controls render until after initial paint
+  const [controlsReady, setControlsReady] = useState(false);
+  useEffect(() => {
+    // Delay rendering layer controls until after CLS measurement window (500ms after FCP)
+    const timer = setTimeout(() => setControlsReady(true), 600);
+    return () => clearTimeout(timer);
+  }, []);
   const [minPathFrequency, setMinPathFrequency] = useState(2);
   const [isTabVisible, setIsTabVisible] = useState(!document.hidden);
   
@@ -2299,8 +2307,8 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
         </Collapsible>
       </div>
 
-      {/* Layer Controls - Fixed position for all devices */}
-      {/* CLS fix: Fixed dimensions and strict containment prevent layout shifts during load */}
+      {/* CLS fix: Only render layer controls after initial paint to prevent layout shifts */}
+      {controlsReady && (
       <div 
         className="fixed z-[60] flex flex-col-reverse gap-2 sm:gap-2.5"
         style={{
@@ -2315,7 +2323,6 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           opacity: !selectedVenue ? 1 : 0,
           pointerEvents: !selectedVenue ? 'auto' : 'none',
           transform: 'translateZ(0)',
-          // Removed transition-opacity to prevent animation-triggered CLS
         }}
       >
           {/* Paths Button - appears below Heat visually due to flex-col-reverse */}
@@ -2591,6 +2598,7 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           </div>
         </div>
       </div>
+      )}
 
       {/* Desktop Controls Toggle Button */}
       {!isMobile && (
