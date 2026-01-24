@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { ContentSkeleton } from "@/components/LoadingFallback";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Eager load Index for fastest FCP on main route
@@ -59,7 +58,7 @@ const App = () => (
             <ServiceWorkerUpdater />
           </Suspense>
           
-          <Suspense fallback={<ContentSkeleton />}>
+          <Suspense fallback={null}>
             <Routes>
               {/* Main route - eagerly loaded for fastest render */}
               <Route path="/" element={<Index />} />

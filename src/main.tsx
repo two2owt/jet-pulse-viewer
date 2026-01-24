@@ -3,9 +3,7 @@ import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "next-themes";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Suspense } from "react";
 import App from "./App.tsx";
-import { LoadingFallback } from "./components/LoadingFallback";
 
 // Self-hosted Kanit font - eliminates render-blocking Google Fonts request
 import "@fontsource/kanit/400.css";
@@ -46,9 +44,7 @@ root.render(
   <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Suspense fallback={<LoadingFallback />}>
-          <App />
-        </Suspense>
+        <App />
       </BrowserRouter>
     </QueryClientProvider>
   </ThemeProvider>
