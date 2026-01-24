@@ -193,16 +193,23 @@ export const SyncStatusIndicator = ({
                 }}
               />
               
-              {/* Flying airplane - use transform for GPU acceleration */}
+              {/* Flying airplane wrapper - CLS-safe: position via CSS, animate via transform */}
+              {/* Uses inset-x for positioning, translateX(-50%) for centering on position */}
               <div 
-                className="absolute top-1/2"
+                className="absolute top-1/2 h-0 w-0"
                 style={{ 
+                  // Position as percentage of parent width - this is static positioning, not animation
                   left: `${Math.max(5, Math.min(95, syncProgress))}%`,
-                  transform: `translate(-50%, -50%) rotate(-20deg)`,
-                  willChange: 'left',
+                  // Transform for centering and rotation - GPU composited
+                  transform: 'translateY(-50%)',
                 }}
               >
-                <Plane className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary fill-primary drop-shadow-md" />
+                <Plane 
+                  className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary fill-primary drop-shadow-md"
+                  style={{ 
+                    transform: 'translateX(-50%) rotate(-20deg)',
+                  }} 
+                />
               </div>
               
               {/* Progress percentage - fixed position */}
@@ -400,12 +407,12 @@ export const SyncStatusIndicator = ({
               />
             </div>
             
-            {/* Flying airplane on the flight path */}
+            {/* Flying airplane on the flight path - CLS-safe: use translateX instead of left */}
             <div 
-              className="absolute top-0 transition-all duration-200 ease-out"
+              className="absolute top-0 left-0 transition-transform duration-200 ease-out"
               style={{ 
-                left: `calc(${syncProgress}% - 10px)`,
-                transform: `translateY(${Math.sin(syncProgress * 0.15) * 3}px)` // Gentle bobbing
+                transform: `translateX(calc(${syncProgress}% - 10px)) translateY(${Math.sin(syncProgress * 0.15) * 3}px)`,
+                willChange: 'transform',
               }}
             >
               <div className="relative flight-path-airplane">

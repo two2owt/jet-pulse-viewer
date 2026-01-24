@@ -435,19 +435,18 @@ All colors MUST be HSL.
     contain: layout style;
   }
   
-  /* Content fade-in animation keyframes */
+  /* Content fade-in animation keyframes - opacity only for CLS safety */
+  /* Transform animations on page content can cause layout shifts during hydration */
   @keyframes content-fade-in {
     from {
       opacity: 0;
-      transform: translateY(4px);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
     }
   }
   
-  /* Page content fade-in class for route transitions */
+  /* Page content fade-in class for route transitions - opacity only */
   .page-fade-in {
     animation: content-fade-in 0.25s ease-out forwards;
   }
@@ -1148,7 +1147,10 @@ All colors MUST be HSL.
     background: radial-gradient(ellipse, hsl(var(--foreground) / 0.15) 0%, transparent 70%);
     border-radius: 50%;
     filter: blur(3px);
+    /* CLS-safe: use translateX instead of left for composited animation */
+    left: 0;
     animation: passing-cloud 4s linear infinite;
+    will-change: transform, opacity;
   }
 
   .sync-passing-clouds::before {
@@ -1161,9 +1163,10 @@ All colors MUST be HSL.
     animation-delay: 2s;
   }
 
+  /* CLS-safe: translateX is a composited animation, doesn't trigger re-layout */
   @keyframes passing-cloud {
     0% {
-      left: 100%;
+      transform: translateX(250%);
       opacity: 0;
     }
     10% {
@@ -1173,7 +1176,7 @@ All colors MUST be HSL.
       opacity: 0.5;
     }
     100% {
-      left: -40%;
+      transform: translateX(-100%);
       opacity: 0;
     }
   }
