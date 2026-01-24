@@ -27,21 +27,8 @@ export const MapSkeleton = ({
         isolation: 'isolate',
       }}
     >
-      {/* Simple loading background */}
-      <div 
-        className="absolute inset-0 bg-muted/20"
-        style={{
-          animation: 'pulse 2s ease-in-out infinite',
-        }}
-      />
-      
-      {/* Subtle shimmer overlay */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-muted/10 to-transparent pointer-events-none"
-        style={{
-          animation: 'shimmer 2.5s ease-in-out infinite',
-        }}
-      />
+      {/* Static loading background */}
+      <div className="absolute inset-0 bg-muted/20" />
       
       {/* City selector skeleton */}
       <div 
