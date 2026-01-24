@@ -399,6 +399,12 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
           maxZoom: settings.maxZoom,
           // Disable resource timing for performance
           collectResourceTiming: false,
+          // Font optimization: Use system fonts for CJK/ideograph characters
+          // This reduces font glyph requests by ~100KB+
+          localIdeographFontFamily: "'Noto Sans', 'Noto Sans CJK SC', sans-serif",
+          // Reduce font loading by using local font stack for labels
+          // This saves loading DIN Pro fonts from Mapbox CDN
+          localFontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         });
 
         // Add attribution control in a better position
