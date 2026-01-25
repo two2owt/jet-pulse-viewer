@@ -7,7 +7,7 @@ import { CITIES, type City } from "@/types/cities";
 // Critical path: Header and BottomNav are always visible
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
-import { MapSkeleton, HeaderSkeleton } from "@/components/skeletons";
+import { HeaderSkeleton } from "@/components/skeletons";
 
 // Hooks must be imported synchronously (React rules)
 import { useMapboxToken, getMapboxTokenFromCache } from "@/hooks/useMapboxToken";
@@ -417,16 +417,15 @@ const Index = () => {
                 </div>
               )}
               
-              {/* Map - lazy loaded with Intersection Observer to reduce TBT */}
-              {isMapboxReady && mapboxToken ? (
-                <div 
-                  className="h-full w-full"
-                  style={{
-                    // CLS-safe: Use opacity transition instead of animation
-                    opacity: 1,
-                    transition: 'opacity 300ms ease-out',
-                  }}
-                >
+              {/* Map - renders immediately per architecture/mapbox-rendering-immediate-no-conditional-loading */}
+              <div 
+                className="h-full w-full"
+                style={{
+                  opacity: isMapboxReady && mapboxToken ? 1 : 0,
+                  transition: 'opacity 300ms ease-out',
+                }}
+              >
+                {mapboxToken && (
                   <LazyMapboxHeatmap
                     onVenueSelect={handleVenueSelect} 
                     venues={venues} 
@@ -440,10 +439,8 @@ const Index = () => {
                     resetUIKey={mapUIResetKey}
                     isTokenLoading={false}
                   />
-                </div>
-              ) : (
-                <MapSkeleton phase={mapboxLoading ? 'token' : 'loading'} />
-              )}
+                )}
+              </div>
             </div>
 
             {/* Selected Venue Card - Positioned above bottom nav */}
