@@ -196,26 +196,33 @@ const Settings = () => {
     }
   };
 
+  // Shared header component for Settings page
+  const SettingsHeader = () => (
+    <header className="bg-card border-b border-border sticky top-0 z-40 safe-area-top">
+      <div className="max-w-3xl mx-auto px-fluid-md py-fluid-sm">
+        <div className="flex items-center gap-fluid-sm">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/")}
+            className="hover:bg-muted w-8 h-8 sm:w-9 sm:h-9"
+          >
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+          </Button>
+          <h1 className="text-fluid-xl font-bold text-foreground">Settings</h1>
+        </div>
+      </div>
+    </header>
+  );
+
   if (isLoading) {
     return (
-      <div className="main-content page-container">
-        <header className="bg-card border-b border-border sticky top-0 z-40 safe-area-top">
-          <div className="max-w-3xl mx-auto px-fluid-md py-fluid-sm">
-            <div className="flex items-center gap-fluid-sm">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/")}
-                className="hover:bg-muted w-8 h-8 sm:w-9 sm:h-9"
-              >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-              </Button>
-              <h1 className="text-fluid-xl font-bold text-foreground">Settings</h1>
-            </div>
+      <div className="flex flex-col min-h-dvh bg-background">
+        <SettingsHeader />
+        <main className="flex-1 overflow-auto">
+          <div className="max-w-3xl mx-auto px-fluid-md py-fluid-lg">
+            <SettingsSkeleton />
           </div>
-        </header>
-        <main className="max-w-3xl mx-auto px-fluid-md py-fluid-lg">
-          <SettingsSkeleton />
         </main>
       </div>
     );
@@ -223,57 +230,30 @@ const Settings = () => {
 
   if (!preferences) {
     return (
-      <div className="main-content page-container">
-        <header className="bg-card border-b border-border sticky top-0 z-40">
-          <div className="max-w-lg mx-auto px-4 py-4">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/")}
-                className="hover:bg-muted"
-              >
-                <ArrowLeft className="w-5 h-5 text-muted-foreground" />
+      <div className="flex flex-col min-h-dvh bg-background">
+        <SettingsHeader />
+        <main className="flex-1 overflow-auto">
+          <div className="max-w-lg mx-auto px-4 py-6">
+            <Card className="p-6 text-center">
+              <Bell className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground mb-4">Please sign in to access settings</p>
+              <Button onClick={() => navigate("/auth")}>
+                Sign In
               </Button>
-              <h1 className="text-xl font-bold text-foreground">Settings</h1>
-            </div>
+            </Card>
           </div>
-        </header>
-        
-        <main className="max-w-lg mx-auto px-4 py-6">
-          <Card className="p-6 text-center">
-            <Bell className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground mb-4">Please sign in to access settings</p>
-            <Button onClick={() => navigate("/auth")}>
-              Sign In
-            </Button>
-          </Card>
         </main>
       </div>
     );
   }
 
   return (
-    <div className="main-content page-container">
-      {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-40 safe-area-top">
-        <div className="max-w-3xl mx-auto px-fluid-md py-fluid-sm">
-          <div className="flex items-center gap-fluid-sm">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/")}
-              className="hover:bg-muted w-8 h-8 sm:w-9 sm:h-9"
-            >
-              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-            </Button>
-            <h1 className="text-fluid-xl font-bold text-foreground">Settings</h1>
-          </div>
-        </div>
-      </header>
+    <div className="flex flex-col min-h-dvh bg-background">
+      <SettingsHeader />
 
       {/* Content */}
-      <main className="max-w-3xl mx-auto px-fluid-md py-fluid-lg space-y-4 sm:space-y-6">
+      <main className="flex-1 overflow-auto">
+        <div className="max-w-3xl mx-auto px-fluid-md py-fluid-lg space-y-4 sm:space-y-6">
         {/* Profile Link */}
         <Card className="p-4 sm:p-5 md:p-6">
           <Button
@@ -612,6 +592,7 @@ const Settings = () => {
             </>
           )}
         </Button>
+        </div>
       </main>
 
       <Footer />
