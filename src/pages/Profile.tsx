@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Header } from "@/components/Header";
-import { BottomNav } from "@/components/BottomNav";
+import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
-import { useNotifications } from "@/hooks/useNotifications";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useConnections } from "@/hooks/useConnections";
 import { User, Camera, Edit2, X, Save, Settings, Heart, Users, Shield, LogOut, Loader2, Instagram, Twitter, Facebook, Linkedin, Video } from "lucide-react";
@@ -21,6 +19,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+
 const profileSchema = z.object({
   display_name: z.string().trim().min(1, "Display name is required").max(100, "Display name must be less than 100 characters"),
   bio: z.string().trim().max(500, "Bio must be less than 500 characters").optional()
@@ -115,10 +114,6 @@ export default function Profile() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("map");
-  const {
-    notifications
-  } = useNotifications();
   const {
     favorites
   } = useFavorites(user?.id);
@@ -149,20 +144,6 @@ export default function Profile() {
       setIsLoading(false);
     }
   }, [user]);
-  const handleTabChange = (tab: "map" | "explore" | "notifications" | "favorites" | "social") => {
-    setActiveTab(tab);
-    if (tab === "map") {
-      navigate("/");
-    } else if (tab === "explore") {
-      navigate("/?tab=explore");
-    } else if (tab === "notifications") {
-      navigate("/?tab=notifications");
-    } else if (tab === "favorites") {
-      navigate("/favorites");
-    } else if (tab === "social") {
-      navigate("/social");
-    }
-  };
   const loadProfile = async () => {
     if (!user) return;
     try {
@@ -353,31 +334,26 @@ export default function Profile() {
     }
   };
   if (!user) {
-    return <>
-        <Header venues={[]} deals={[]} onVenueSelect={() => {}} />
-        <div className="main-content page-container">
-          <div className="max-w-7xl mx-auto px-4 py-6">
-            <EmptyState icon={User} title="Sign in to view profile" description="Create an account to access your profile, manage settings, and track your activity" actionLabel="Sign In" onAction={() => navigate("/auth")} />
-          </div>
+    return (
+      <PageLayout defaultTab="map" notificationCount={0}>
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <EmptyState icon={User} title="Sign in to view profile" description="Create an account to access your profile, manage settings, and track your activity" actionLabel="Sign In" onAction={() => navigate("/auth")} />
         </div>
-        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} notificationCount={0} />
-      </>;
+      </PageLayout>
+    );
   }
   if (isLoading) {
-    return <>
-        <Header venues={[]} deals={[]} onVenueSelect={() => {}} />
-        <div className="main-content page-container">
-          <div className="max-w-4xl mx-auto px-4 py-6">
-            <ProfileSkeleton />
-          </div>
+    return (
+      <PageLayout defaultTab="map" notificationCount={0}>
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <ProfileSkeleton />
         </div>
-        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} notificationCount={0} />
-      </>;
+      </PageLayout>
+    );
   }
-  return <>
-      <Header venues={[]} deals={[]} onVenueSelect={() => {}} />
-      <div className="main-content page-container">
-        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+  return (
+    <PageLayout defaultTab="map">
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
           {/* Profile Header */}
           <Card className="p-6 bg-card/90 backdrop-blur-sm">
             <div className="flex items-start justify-between mb-6">
@@ -424,7 +400,7 @@ export default function Profile() {
                     <div className="text-xs text-muted-foreground">Connections</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-foreground">{notifications.filter(n => !n.read).length}</div>
+                    <div className="text-2xl font-bold text-foreground">0</div>
                     <div className="text-xs text-muted-foreground">Notifications</div>
                   </div>
                 </div>
@@ -659,8 +635,6 @@ export default function Profile() {
             </AlertDialog>
           </Card>
         </div>
-      </div>
-      
-      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} notificationCount={notifications.filter(n => !n.read).length} />
-    </>;
+    </PageLayout>
+  );
 }
