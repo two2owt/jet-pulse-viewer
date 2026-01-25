@@ -1,10 +1,8 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Search } from "lucide-react";
-import { AuthButton } from "./AuthButton";
 import { Input } from "./ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useNavigate } from "react-router-dom";
-import { Skeleton } from "./ui/skeleton";
 import type { Venue } from "./MapboxHeatmap";
 import type { Database } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,13 +44,11 @@ export const Header = ({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string>("JT");
   const [userId, setUserId] = useState<string | undefined>(undefined);
-  const [isProfileLoading, setIsProfileLoading] = useState(true);
   const {
     addToSearchHistory
   } = useSearchHistory(userId);
   useEffect(() => {
     const fetchProfile = async () => {
-      setIsProfileLoading(true);
       try {
         const {
           data: {
@@ -69,8 +65,8 @@ export const Header = ({
             setDisplayName(profile.display_name || user.email?.substring(0, 2).toUpperCase() || "JT");
           }
         }
-      } finally {
-        setIsProfileLoading(false);
+      } catch {
+        // Profile fetch failed, use defaults
       }
     };
     fetchProfile();
@@ -178,12 +174,7 @@ export const Header = ({
 
           {/* Sync Status - Takes remaining width between search and avatar */}
           <div className="flex-1 min-w-0 px-1 sm:px-2 md:px-3 flex items-center">
-            <Suspense fallback={
-              <div className="flex items-center gap-1.5">
-                <Skeleton className="h-4 w-4 rounded-full" />
-                <Skeleton className="h-3 w-16 sm:w-20 rounded" />
-              </div>
-            }>
+            <Suspense fallback={null}>
               <SyncStatusIndicator 
                 isLoading={isLoading} 
                 lastUpdated={lastUpdated} 
@@ -196,31 +187,27 @@ export const Header = ({
             </Suspense>
           </div>
 
-          {/* Avatar - FIXED dimensions with skeleton matching actual size */}
+          {/* Avatar - FIXED dimensions, renders immediately with fallback */}
           <div 
             className="flex-shrink-0"
             style={{
-              // Fixed dimensions to prevent CLS during profile loading
+              // Fixed dimensions to prevent CLS
               width: 'clamp(32px, 8vw, 44px)',
               height: 'clamp(32px, 8vw, 44px)',
             }}
           >
-            {isProfileLoading ? (
-              <Skeleton className="w-full h-full rounded-full" />
-            ) : (
-              <button 
-                onClick={() => navigate('/settings')} 
-                className="w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full"
-                aria-label="Open settings"
-              >
-                <Avatar className="w-full h-full border-2 border-primary/30 cursor-pointer hover:border-primary transition-colors">
-                  <AvatarImage src={avatarUrl || ""} alt="Your profile picture" />
-                  <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-xs sm:text-sm md:text-base">
-                    {displayName.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </button>
-            )}
+            <button 
+              onClick={() => navigate('/settings')} 
+              className="w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full"
+              aria-label="Open settings"
+            >
+              <Avatar className="w-full h-full border-2 border-primary/30 cursor-pointer hover:border-primary transition-colors">
+                <AvatarImage src={avatarUrl || ""} alt="Your profile picture" />
+                <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-xs sm:text-sm md:text-base">
+                  {displayName.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </button>
           </div>
         </div>
       </div>
