@@ -13,6 +13,12 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        // Primary brand font - used for all text
+        sans: ["'Kanit'", "'Kanit Fallback'", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        // Display variant for headings (same font, explicit declaration)
+        display: ["'Kanit'", "'Kanit Fallback'", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
