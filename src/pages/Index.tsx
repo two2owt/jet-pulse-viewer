@@ -19,6 +19,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useAutoScrapeVenueImages } from "@/hooks/useAutoScrapeVenueImages";
 import { useDeals } from "@/hooks/useDeals";
 import { useVenueActivity } from "@/hooks/useVenueActivity";
+import { useDeferredInit } from "@/hooks/useDeferredInit";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useBottomNavigation, type NavTab } from "@/hooks/useBottomNavigation";
 
@@ -75,10 +76,14 @@ const Index = () => {
   const [deepLinkedDeal, setDeepLinkedDeal] = useState<any>(null);
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
   const { getVenueImage } = useVenueImages();
-  const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
-  const { isScrapingActive } = useAutoScrapeVenueImages(true);
-  const { deals, refresh: refreshDeals, loading: dealsLoading, lastUpdated: dealsLastUpdated } = useDeals();
-  const { venues: realVenues, loading: venuesLoading, refresh: refreshVenues, lastUpdated: venuesLastUpdated } = useVenueActivity();
+  
+  // Defer non-critical data fetching until after first paint to reduce TBT
+  const isDataReady = useDeferredInit(150);
+  
+  const { notifications, loading: notificationsLoading, markAsRead } = useNotifications(isDataReady);
+  const { isScrapingActive } = useAutoScrapeVenueImages(isDataReady);
+  const { deals, refresh: refreshDeals, loading: dealsLoading, lastUpdated: dealsLastUpdated } = useDeals(false, isDataReady);
+  const { venues: realVenues, loading: venuesLoading, refresh: refreshVenues, lastUpdated: venuesLastUpdated } = useVenueActivity(isDataReady);
   const { justInstalled, clearJustInstalled } = usePWAInstall();
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const jetCardRef = useRef<HTMLDivElement>(null);

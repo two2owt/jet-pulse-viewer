@@ -39,7 +39,7 @@ const mapNotificationLogToNotification = (log: NotificationLog): Notification =>
   };
 };
 
-export const useNotifications = () => {
+export const useNotifications = (enabled: boolean = true) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -94,12 +94,13 @@ export const useNotifications = () => {
   };
 
   useEffect(() => {
+    // Skip initialization if disabled (deferred loading)
+    if (!enabled) return;
+    
     // Defer loading notifications slightly to prioritize critical content
     const timer = setTimeout(() => {
       loadNotifications();
     }, 300);
-    
-    const cleanup = () => clearTimeout(timer);
 
     // Set up real-time subscription
     const channel = supabase
@@ -124,11 +125,11 @@ export const useNotifications = () => {
     });
 
     return () => {
-      cleanup();
+      clearTimeout(timer);
       supabase.removeChannel(channel);
       subscription.unsubscribe();
     };
-  }, []);
+  }, [enabled]);
 
   return { notifications, loading, error, refresh: loadNotifications, markAsRead };
 };
