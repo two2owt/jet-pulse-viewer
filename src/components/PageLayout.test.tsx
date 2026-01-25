@@ -183,17 +183,6 @@ describe("PageLayout", () => {
       expect(getByTestId(container, "nav-active-tab")?.textContent).toBe("map");
     });
 
-    it("should pass isBottomNavLoading to BottomNav", () => {
-      const { container } = render(
-        <PageLayout isBottomNavLoading={true}>
-          <div>Content</div>
-        </PageLayout>,
-        { wrapper: createWrapper() }
-      );
-
-      expect(getByTestId(container, "nav-loading")?.textContent).toBe("loading");
-    });
-
     it("should use override notificationCount when provided", () => {
       const { container } = render(
         <PageLayout notificationCount={5}>

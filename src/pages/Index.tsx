@@ -532,7 +532,6 @@ const Index = () => {
           }
         }}
         notificationCount={notifications.filter(n => !n.read).length}
-        isLoading={mapboxLoading && !mapboxToken}
       />
 
       {/* Directions Dialog - Lazy loaded */}
