@@ -410,19 +410,16 @@ export const SyncStatusIndicator = ({
             
             {/* Progress bar track */}
             <div className="absolute bottom-0 left-0 right-0 h-1.5 sm:h-2 bg-muted/40 rounded-full overflow-hidden">
-              {/* Animated gradient background */}
-              <div className="absolute inset-0 sync-progress-shimmer" />
+              {/* Static background - no shimmer animation */}
+              <div className="absolute inset-0 bg-muted/20" />
               
-              {/* Progress fill with gradient */}
+              {/* Progress fill with gradient - use translateX for CLS-safe animation */}
               <div 
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary via-accent to-primary rounded-full transition-all duration-200 ease-out"
-                style={{ width: `${syncProgress}%` }}
-              />
-              
-              {/* Contrail effect following the progress */}
-              <div 
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-transparent via-primary-foreground/30 to-transparent rounded-full transition-all duration-200"
-                style={{ width: `${Math.max(0, syncProgress - 5)}%` }}
+                className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary via-accent to-primary rounded-full"
+                style={{ 
+                  width: `${syncProgress}%`,
+                  transition: 'width 200ms ease-out',
+                }}
               />
             </div>
             
@@ -443,8 +440,8 @@ export const SyncStatusIndicator = ({
                 {/* Airplane with glow */}
                 <div className="relative">
                   <Plane className="w-4 h-4 sm:w-5 sm:h-5 text-primary fill-primary rotate-[-15deg] drop-shadow-lg" />
-                  {/* Engine glow */}
-                  <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-accent rounded-full blur-sm animate-pulse" />
+                  {/* Engine glow - static, no pulse animation */}
+                  <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-accent rounded-full opacity-60 blur-sm" />
                 </div>
               </div>
             </div>
