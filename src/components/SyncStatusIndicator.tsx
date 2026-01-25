@@ -34,6 +34,14 @@ export const SyncStatusIndicator = ({
   const previousLoadingRef = useRef(isLoading);
   const wasReconnectSyncRef = useRef(false);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isFirstLoadRef = useRef(true);
+  
+  // Mark first load as complete when we get data
+  useEffect(() => {
+    if (lastUpdated && isFirstLoadRef.current) {
+      isFirstLoadRef.current = false;
+    }
+  }, [lastUpdated]);
 
   // Simulate progress during sync
   useEffect(() => {
@@ -152,13 +160,25 @@ export const SyncStatusIndicator = ({
 
   // Compact mode rendering - Full width runway with takeoff/landing
   if (compact) {
-    // Show skeleton during initialization to prevent CLS
-    if (isInitializing) {
+    // Show static state during initialization - NO ANIMATIONS on initial load
+    if (isInitializing || (isLoading && isFirstLoadRef.current)) {
       return (
         <div className={cn("flex items-center w-full", className)}>
-          <div className="flex-1 flex items-center gap-1 sm:gap-1.5 md:gap-2">
-            <Skeleton className="flex-1 h-6 sm:h-7 md:h-8 rounded-full" />
-            <Skeleton className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex-shrink-0" />
+          <div className="flex-1 flex items-center gap-1 sm:gap-1.5 md:gap-2" style={{ contain: 'layout style' }}>
+            <div 
+              className="flex-1 relative h-6 sm:h-7 md:h-8 bg-card/60 backdrop-blur-md rounded-full border border-border/40 overflow-hidden"
+              style={{ contain: 'strict' }}
+            >
+              {/* Runway track */}
+              <div className="absolute inset-x-2 sm:inset-x-3 top-1/2 -translate-y-1/2 h-0.5 bg-muted-foreground/10 rounded-full" />
+              
+              {/* Static loading text */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-[8px] sm:text-[9px] md:text-[10px] text-muted-foreground font-medium">
+                  Loading...
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -174,7 +194,7 @@ export const SyncStatusIndicator = ({
           </div>
         )}
 
-        {/* Syncing - Full width runway with flying airplane */}
+        {/* Syncing - Full width runway with flying airplane (only after first load) */}
         {isLoading && isOnline && (
           <div className="flex-1 flex items-center gap-1 sm:gap-1.5 md:gap-2" style={{ contain: 'layout style' }}>
             {/* Runway container - fixed height prevents layout shifts */}
@@ -276,13 +296,12 @@ export const SyncStatusIndicator = ({
   }
 
 
-  // Show skeleton during initialization for full mode
-  if (isInitializing) {
+  // Show static state during initialization for full mode - NO ANIMATIONS on initial load
+  if (isInitializing || (isLoading && isFirstLoadRef.current)) {
     return (
       <div className={cn("flex flex-col gap-1", className)}>
-        <div className="flex items-center gap-1.5">
-          <Skeleton className="h-5 w-20 rounded-full" />
-          <Skeleton className="h-5 w-5 rounded-full" />
+        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
+          <span className="px-2 py-1">Loading...</span>
         </div>
       </div>
     );
@@ -305,7 +324,7 @@ export const SyncStatusIndicator = ({
           </div>
         )}
 
-        {/* Syncing Indicator with Cloud Animation */}
+        {/* Syncing Indicator with Cloud Animation - only after first load */}
         {isLoading && isOnline && (
           <div 
             className={cn(
