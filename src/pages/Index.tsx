@@ -495,7 +495,7 @@ const Index = () => {
                       <div className="w-10 h-1 bg-muted-foreground/40 rounded-full" />
                     </div>
                   )}
-                  <Suspense fallback={<div className="h-32 bg-muted/50 rounded-xl animate-pulse" />}>
+                  <Suspense fallback={<div className="h-32 bg-muted/50 rounded-xl" />}>
                     <JetCard 
                       venue={selectedVenue} 
                       onGetDirections={handleGetDirections}
@@ -522,12 +522,10 @@ const Index = () => {
                 <p className="text-xs sm:text-sm mt-1 sm:mt-2">Enable location tracking to receive deal alerts</p>
               </div>
             ) : (
-              <Suspense fallback={<div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 bg-muted/50 rounded-lg animate-pulse" />)}</div>}>
-                {notifications.map((notification, index) => (
+              <Suspense fallback={<div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 bg-muted/50 rounded-lg" />)}</div>}>
+                {notifications.map((notification) => (
                   <div 
                     key={notification.id}
-                    className="animate-scale-in"
-                    style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <NotificationCard 
                       notification={notification} 

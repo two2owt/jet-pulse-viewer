@@ -28,7 +28,7 @@ export const HeaderSkeleton = () => {
               height: '24px',
             }}
           >
-            <Skeleton className="w-9 h-5 sm:w-10 sm:h-6 md:w-12 md:h-7 rounded-md animate-pulse" />
+            <Skeleton className="w-9 h-5 sm:w-10 sm:h-6 md:w-12 md:h-7 rounded-md" />
           </div>
           
           {/* Search bar skeleton - MUST match Header search dimensions */}
@@ -39,13 +39,13 @@ export const HeaderSkeleton = () => {
               minWidth: '100px',
             }}
           >
-            <Skeleton className="w-full h-8 sm:h-9 md:h-10 rounded-full animate-pulse" />
+            <Skeleton className="w-full h-8 sm:h-9 md:h-10 rounded-full" />
           </div>
           
           {/* Sync status skeleton - flexible width */}
           <div className="flex-1 min-w-0 px-1 sm:px-2 md:px-3 flex items-center gap-1.5">
-            <Skeleton className="h-4 w-4 rounded-full animate-pulse" />
-            <Skeleton className="h-3 w-16 sm:w-20 rounded animate-pulse" />
+            <Skeleton className="h-4 w-4 rounded-full" />
+            <Skeleton className="h-3 w-16 sm:w-20 rounded" />
           </div>
           
           {/* Avatar skeleton - MUST match Header avatar dimensions */}
@@ -56,7 +56,7 @@ export const HeaderSkeleton = () => {
               height: 'clamp(32px, 8vw, 44px)',
             }}
           >
-            <Skeleton className="w-full h-full rounded-full animate-pulse" />
+            <Skeleton className="w-full h-full rounded-full" />
           </div>
         </div>
       </div>

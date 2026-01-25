@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 export const SettingsSkeleton = () => {
   return (
     <div 
-      className="space-y-6 animate-pulse"
+      className="space-y-6"
       style={{
         // Containment prevents CLS propagation during hydration
         contain: 'layout style',
