@@ -350,8 +350,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Kanit', 'Kanit Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    @apply bg-background text-foreground font-sans;
     overflow-x: hidden;
     overflow-y: hidden; /* Prevent body scroll - app handles its own scrolling */
     width: 100%;
