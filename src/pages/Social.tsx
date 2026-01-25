@@ -1,15 +1,12 @@
-import { useEffect, useState, memo } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useConnections } from "@/hooks/useConnections";
-import { useNotifications } from "@/hooks/useNotifications";
-import { useBottomNavigation } from "@/hooks/useBottomNavigation";
 import { Users, UserPlus, Check, X, UserX, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Header } from "@/components/Header";
-import { BottomNav } from "@/components/BottomNav";
+import { PageLayout } from "@/components/PageLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { ConnectionProfileDialog } from "@/components/ConnectionProfileDialog";
 import { UpgradePrompt, useFeatureAccess } from "@/components/UpgradePrompt";
@@ -27,10 +24,8 @@ export default function Social() {
   const [user, setUser] = useState<any>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
-  const { activeTab, handleTabChange } = useBottomNavigation({ defaultTab: "social" });
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
-  const { notifications } = useNotifications();
   const { canAccessSocialFeatures, loading: subscriptionLoading } = useFeatureAccess();
 
   useEffect(() => {
@@ -66,8 +61,6 @@ export default function Social() {
 
   const fetchProfiles = async () => {
     try {
-      // Use discoverable_profiles view which only shows users who opted into discovery
-      // and excludes already connected or pending users
       const { data, error } = await supabase
         .from("discoverable_profiles")
         .select("id, display_name, avatar_url")
@@ -109,102 +102,58 @@ export default function Social() {
     }
   };
 
-  // handleTabChange is provided by useBottomNavigation hook
-
   if (!user) {
     return (
-      <>
-        <Header 
-          venues={[]}
-          deals={[]}
-          onVenueSelect={() => {}}
-        />
-        <main className="main-content page-container" role="main">
-          <div className="max-w-7xl mx-auto px-4 py-6">
-            <EmptyState
-              icon={Users}
-              title="Sign in to connect"
-              description="Create an account to find and connect with friends, share deals, and build your social network"
-              actionLabel="Sign In"
-              onAction={() => navigate("/auth")}
-            />
-          </div>
-        </main>
-        <BottomNav 
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={0}
-        />
-      </>
+      <PageLayout defaultTab="social" notificationCount={0}>
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <EmptyState
+            icon={Users}
+            title="Sign in to connect"
+            description="Create an account to find and connect with friends, share deals, and build your social network"
+            actionLabel="Sign In"
+            onAction={() => navigate("/auth")}
+          />
+        </div>
+      </PageLayout>
     );
   }
 
   if (loading || connectionsLoading || subscriptionLoading) {
     return (
-      <>
-        <Header 
-          venues={[]}
-          deals={[]}
-          onVenueSelect={() => {}}
-        />
-        <main className="main-content page-container" role="main">
-          <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
-            <SocialPageSkeleton />
-          </div>
-        </main>
-        <BottomNav 
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={0}
-        />
-      </>
+      <PageLayout defaultTab="social" notificationCount={0}>
+        <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
+          <SocialPageSkeleton />
+        </div>
+      </PageLayout>
     );
   }
 
   // Show upgrade prompt for users without JET+ subscription
   if (!canAccessSocialFeatures()) {
     return (
-      <>
-        <Header 
-          venues={[]}
-          deals={[]}
-          onVenueSelect={() => {}}
-        />
-        <main className="main-content page-container" role="main">
-          <div className="max-w-7xl mx-auto px-4 py-6">
-            <EmptyState
-              icon={Crown}
-              title="Unlock Social Features"
-              description="Connect with friends, share deals, and discover new spots together. Upgrade to JET+ to access all social features."
-              actionLabel="Upgrade to JET+"
-              onAction={() => setShowUpgradePrompt(true)}
-            />
-          </div>
-        </main>
-        <BottomNav 
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={notifications.filter(n => !n.read).length}
-        />
+      <PageLayout defaultTab="social">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <EmptyState
+            icon={Crown}
+            title="Unlock Social Features"
+            description="Connect with friends, share deals, and discover new spots together. Upgrade to JET+ to access all social features."
+            actionLabel="Upgrade to JET+"
+            onAction={() => setShowUpgradePrompt(true)}
+          />
+        </div>
         <UpgradePrompt
           requiredTier="jet_plus"
           featureName="Social features"
           isOpen={showUpgradePrompt}
           onClose={() => setShowUpgradePrompt(false)}
         />
-      </>
+      </PageLayout>
     );
   }
 
   return (
-    <>
-      <Header 
-        venues={[]}
-        deals={[]}
-        onVenueSelect={() => {}}
-      />
-      <main className="main-content page-container" role="main">
-        <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg gap-fluid-xl">
+    <PageLayout defaultTab="social">
+      <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg gap-fluid-xl">
         {/* Pending Requests */}
         {pendingRequests.length > 0 && (
           <div>
@@ -344,14 +293,7 @@ export default function Social() {
             )}
           />
         </div>
-        </div>
-      </main>
-      
-      <BottomNav 
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        notificationCount={notifications.filter(n => !n.read).length}
-      />
+      </div>
 
       {/* Connection Profile Dialog */}
       <ConnectionProfileDialog
@@ -359,6 +301,6 @@ export default function Social() {
         isOpen={!!selectedProfileId}
         onClose={() => setSelectedProfileId(null)}
       />
-    </>
+    </PageLayout>
   );
 }

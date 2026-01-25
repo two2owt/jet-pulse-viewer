@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useFavorites } from "@/hooks/useFavorites";
-import { useNotifications } from "@/hooks/useNotifications";
-import { useBottomNavigation } from "@/hooks/useBottomNavigation";
 import { Heart, Compass } from "lucide-react";
 import { DealCard } from "@/components/DealCard";
 import { useNavigate } from "react-router-dom";
-import { BottomNav } from "@/components/BottomNav";
-import { Header } from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { VirtualGrid } from "@/components/ui/virtual-list";
 import { FavoritesSkeleton } from "@/components/skeletons";
@@ -29,8 +26,6 @@ export default function Favorites() {
   const [user, setUser] = useState<any>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
-  const { activeTab, handleTabChange } = useBottomNavigation({ defaultTab: "favorites" });
-  const { notifications } = useNotifications();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -61,8 +56,6 @@ export default function Favorites() {
     }
   }, [favorites, favoritesLoading, user]);
 
-  // handleTabChange is provided by useBottomNavigation hook
-
   const fetchFavoriteDeals = async () => {
     try {
       const dealIds = favorites.map((fav) => fav.deal_id);
@@ -83,63 +76,33 @@ export default function Favorites() {
 
   if (!user) {
     return (
-      <>
-        <Header 
-          venues={[]}
-          deals={[]}
-          onVenueSelect={() => {}}
-        />
-        <main className="main-content page-container" role="main">
-          <div className="max-w-7xl mx-auto px-4 py-6">
-            <EmptyState
-              icon={Heart}
-              title="Sign in to view favorites"
-              description="Create an account to save and track your favorite deals across all venues"
-              actionLabel="Sign In"
-              onAction={() => navigate("/auth")}
-            />
-          </div>
-        </main>
-        <BottomNav 
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={0}
-        />
-      </>
+      <PageLayout defaultTab="favorites" notificationCount={0}>
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <EmptyState
+            icon={Heart}
+            title="Sign in to view favorites"
+            description="Create an account to save and track your favorite deals across all venues"
+            actionLabel="Sign In"
+            onAction={() => navigate("/auth")}
+          />
+        </div>
+      </PageLayout>
     );
   }
 
   if (loading) {
     return (
-      <>
-        <Header 
-          venues={[]}
-          deals={[]}
-          onVenueSelect={() => {}}
-        />
-        <main className="main-content page-container" role="main">
-          <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
-            <FavoritesSkeleton />
-          </div>
-        </main>
-        <BottomNav 
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={0}
-        />
-      </>
+      <PageLayout defaultTab="favorites" notificationCount={0}>
+        <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
+          <FavoritesSkeleton />
+        </div>
+      </PageLayout>
     );
   }
 
   return (
-    <>
-      <Header 
-        venues={[]}
-        deals={[]}
-        onVenueSelect={() => {}}
-      />
-      <main className="main-content page-container" role="main">
-        <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
+    <PageLayout defaultTab="favorites">
+      <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground mb-2">My Favorites</h1>
           <p className="text-muted-foreground">
@@ -165,14 +128,7 @@ export default function Favorites() {
             renderItem={(deal, index) => <DealCard deal={deal} index={index} />}
           />
         )}
-        </div>
-      </main>
-      
-      <BottomNav
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        notificationCount={notifications.filter(n => !n.read).length}
-      />
-    </>
+      </div>
+    </PageLayout>
   );
 }
