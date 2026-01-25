@@ -1,15 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Venue } from "@/types/venue";
 
 interface Deal {
   id: string;
   title: string;
   venue_name: string;
   description: string;
-}
-
-interface Venue {
-  id?: string;
-  name: string;
 }
 
 export const shareDeal = async (deal: Deal, userId: string | undefined) => {
@@ -56,7 +52,7 @@ export const shareDeal = async (deal: Deal, userId: string | undefined) => {
   }
 };
 
-export const shareVenue = async (venue: Venue) => {
+export const shareVenue = async (venue: Pick<Venue, 'id' | 'name'>) => {
   const shareUrl = `${window.location.origin}/?venue=${encodeURIComponent(venue.name)}`;
   const shareText = `Check out ${venue.name} on JET!`;
 
