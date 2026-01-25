@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Venue } from "./MapboxHeatmap";
 import { UpgradePrompt, useFeatureAccess } from "./UpgradePrompt";
+import { shareVenue } from "@/utils/shareUtils";
 
 interface JetCardProps {
   venue: Venue;
@@ -55,47 +56,24 @@ export const JetCard = memo(({ venue, onGetDirections, onClose }: JetCardProps) 
 
     await glideHaptic();
     
-    const shareUrl = venue.address
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}`
-      : `https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`;
+    const result = await shareVenue({ id: venue.id, name: venue.name });
     
-    const shareText = venue.address 
-      ? `Check out ${venue.name} at ${venue.address}!`
-      : `Check out ${venue.name} in ${venue.neighborhood}!`;
-
-    // Use Web Share API if available
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: venue.name,
-          text: shareText,
-          url: shareUrl,
-        });
+    if (result.success) {
+      if (result.method === "native") {
         toast.success("Shared successfully!", {
           description: `${venue.name} shared with others`,
         });
-      } catch (error) {
-        // User cancelled or share failed
-        if ((error as Error).name !== "AbortError") {
-          console.error("Error sharing:", error);
-          toast.error("Couldn't share", {
-            description: "Please try again",
-          });
-        }
-      }
-    } else {
-      // Fallback: Copy to clipboard
-      try {
-        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      } else {
         toast.success("Copied to clipboard!", {
           description: "Share link copied - paste it anywhere",
         });
-      } catch (error) {
-        console.error("Error copying to clipboard:", error);
-        toast.error("Couldn't share", {
-          description: "Please try again",
-        });
       }
+    } else if (result.method === "native") {
+      // Native share was cancelled, don't show error
+    } else {
+      toast.error("Couldn't share", {
+        description: "Please try again",
+      });
     }
   };
 
