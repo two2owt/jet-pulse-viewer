@@ -39,8 +39,6 @@ interface PageLayoutProps {
   onPrefetch?: (tab: NavTab) => void;
   /** Override notification count (otherwise uses unread from useNotifications) */
   notificationCount?: number;
-  /** Show loading state for bottom nav */
-  isBottomNavLoading?: boolean;
 }
 
 /**
@@ -59,7 +57,6 @@ export function PageLayout({
   mainClassName = "",
   onPrefetch,
   notificationCount,
-  isBottomNavLoading = false,
 }: PageLayoutProps) {
   const { activeTab, handleTabChange } = useBottomNavigation({ defaultTab });
   const { notifications } = useNotifications();
@@ -116,7 +113,6 @@ export function PageLayout({
         activeTab={activeTab}
         onTabChange={handleTabChange}
         notificationCount={unreadCount}
-        isLoading={isBottomNavLoading}
         onPrefetch={onPrefetch}
       />
     </>

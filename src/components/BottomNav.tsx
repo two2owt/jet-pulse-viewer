@@ -1,6 +1,5 @@
 import { Map, Compass, Bell, Star, Users } from "lucide-react";
 import { useCallback } from "react";
-import { Skeleton } from "./ui/skeleton";
 
 type NavItem = "map" | "explore" | "notifications" | "favorites" | "social";
 
@@ -8,13 +7,11 @@ interface BottomNavProps {
   activeTab: NavItem;
   onTabChange: (tab: NavItem) => void;
   notificationCount?: number;
-  /** Show skeleton loading state */
-  isLoading?: boolean;
   /** Callback to prefetch heavy resources on hover/touch */
   onPrefetch?: (tab: NavItem) => void;
 }
 
-export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoading = false, onPrefetch }: BottomNavProps) => {
+export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, onPrefetch }: BottomNavProps) => {
   // Track if we've already prefetched to avoid redundant calls
   const handlePrefetch = useCallback((tab: NavItem) => {
     if (onPrefetch && tab !== activeTab) {
@@ -53,30 +50,11 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
       }}
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 h-full flex items-center">
-        {isLoading ? (
-          // Skeleton loading state - MUST match nav item dimensions exactly
-          <div className="flex items-center justify-around w-full">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="flex flex-col items-center justify-center gap-1 px-3 sm:px-4 md:px-5 py-2"
-                style={{
-                  // Fixed dimensions matching actual buttons
-                  minWidth: 'clamp(48px, 12vw, 64px)',
-                  minHeight: 'clamp(48px, 10vw, 56px)',
-                }}
-              >
-                <Skeleton className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md" />
-                <Skeleton className="w-8 sm:w-9 md:w-10 h-2.5 sm:h-3 md:h-3.5 rounded" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-center justify-around w-full">
-            {navItems.map((item) => {
-              const isActive = activeTab === item.id;
-              const Icon = item.icon;
-              const hasNotification = item.id === 'notifications' && notificationCount > 0;
+        <div className="flex items-center justify-around w-full">
+          {navItems.map((item) => {
+            const isActive = activeTab === item.id;
+            const Icon = item.icon;
+            const hasNotification = item.id === 'notifications' && notificationCount > 0;
               
               return (
                 <button
@@ -118,11 +96,10 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, isLoa
                   }`}>
                     {item.label}
                   </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );
