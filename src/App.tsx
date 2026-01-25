@@ -22,8 +22,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const VerificationSuccess = lazy(() => import("./pages/VerificationSuccess"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Lazy load ServiceWorkerUpdater - not critical for initial render
-const ServiceWorkerUpdater = lazy(() => import("@/components/ServiceWorkerUpdater").then(m => ({ default: m.ServiceWorkerUpdater })));
+
 
 const PageTracker = memo(function PageTracker() {
   const location = useLocation();
@@ -53,10 +52,6 @@ const App = () => (
           <Sonner />
           <PageTracker />
           
-          {/* Lazy load ServiceWorkerUpdater */}
-          <Suspense fallback={null}>
-            <ServiceWorkerUpdater />
-          </Suspense>
           
           <Suspense fallback={null}>
             <Routes>

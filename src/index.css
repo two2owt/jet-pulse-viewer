@@ -1268,11 +1268,6 @@ All colors MUST be HSL.
     }
   }
 
-  /* Unused sync animation classes removed for bundle size optimization */
-
-  /* Unused compact sync animation classes removed for bundle size optimization */
-
-  /* Unused runway cloud animation classes removed for bundle size optimization */
 
   .runway-landing-flash {
     animation: runway-landing 0.6s ease-out forwards;
