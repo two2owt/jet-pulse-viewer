@@ -1,6 +1,6 @@
 // Skeleton components for loading states
 export { DealCardSkeleton } from "./DealCardSkeleton";
-export { HeaderSkeleton } from "./HeaderSkeleton";
+
 
 export { NotificationSkeleton, NotificationListSkeleton } from "./NotificationSkeleton";
 export { ProfileSkeleton } from "./ProfileSkeleton";
