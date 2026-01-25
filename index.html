@@ -72,6 +72,28 @@
     <meta name="twitter:site" content="@JETaround" />
     <meta name="twitter:image" content="https://jet-around.com/pwa-512x512.png">
     
+    <!-- CRITICAL: Theme initialization script - MUST run before any rendering -->
+    <!-- Prevents flash of wrong theme by reading localStorage before React hydrates -->
+    <script>
+      (function() {
+        var theme = 'dark'; // Default theme
+        try {
+          var stored = localStorage.getItem('theme');
+          if (stored === 'light' || stored === 'dark') {
+            theme = stored;
+          } else if (stored === 'system' || !stored) {
+            // For system preference or no stored value, default to dark
+            theme = 'dark';
+          }
+        } catch (e) {}
+        
+        // Apply theme class immediately
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
+    
     <!-- Critical CSS - Inlined for instant FCP -->
     <style>
       /* CRITICAL: Kanit fonts for LCP - inline declaration eliminates JS dependency */
@@ -105,15 +127,9 @@
         line-gap-override: 0%;
         size-adjust: 97%;
       }
-      /* Critical CSS variables for dark mode - FIXED VALUES prevent CLS */
+      /* Critical CSS variables - FIXED VALUES prevent CLS */
+      /* Shared dimensions for all themes */
       :root {
-        color-scheme: dark;
-        --background: 0 0% 6%;
-        --foreground: 0 0% 98%;
-        --primary: 24 100% 50%;
-        --muted: 0 0% 15%;
-        --muted-foreground: 0 0% 64%;
-        --border: 0 0% 20%;
         /* Fixed shell dimensions - must match React components exactly */
         --header-height: 52px;
         --header-total-height: calc(52px + env(safe-area-inset-top, 0px));
@@ -123,6 +139,31 @@
         --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
         /* Map main area height - calculated to prevent CLS */
         --main-height: calc(100dvh - var(--header-total-height) - var(--bottom-nav-total-height));
+        --primary: 24 100% 50%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 0 0% 15%;
+      }
+      
+      /* Light theme variables */
+      :root.light, html.light {
+        color-scheme: light;
+        --background: 0 0% 98%;
+        --foreground: 0 0% 10%;
+        --muted: 0 0% 94%;
+        --muted-foreground: 0 0% 40%;
+        --border: 0 0% 85%;
+        --secondary: 0 0% 92%;
+      }
+      
+      /* Dark theme variables (default) */
+      :root.dark, :root:not(.light), html.dark, html:not(.light) {
+        color-scheme: dark;
+        --background: 0 0% 6%;
+        --foreground: 0 0% 98%;
+        --muted: 0 0% 15%;
+        --muted-foreground: 0 0% 64%;
+        --border: 0 0% 20%;
+        --secondary: 0 0% 15%;
       }
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html { 
