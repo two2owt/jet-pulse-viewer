@@ -65,7 +65,7 @@ const cacheDealsForOffline = (deals: Deal[]) => {
   }
 };
 
-export const useDeals = (enablePreferenceFilter: boolean = false) => {
+export const useDeals = (enablePreferenceFilter: boolean = false, enabled: boolean = true) => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -269,6 +269,9 @@ export const useDeals = (enablePreferenceFilter: boolean = false) => {
   }, [deals, userPreferences, filterDealsByPreferences]);
 
   useEffect(() => {
+    // Skip initialization if disabled (deferred loading)
+    if (!enabled) return;
+    
     // Load preferences first, then deals
     const init = async () => {
       setLoading(true);
@@ -276,11 +279,11 @@ export const useDeals = (enablePreferenceFilter: boolean = false) => {
     };
     
     init();
-  }, [loadUserPreferences]);
+  }, [loadUserPreferences, enabled]);
 
   useEffect(() => {
-    // Load deals after preferences are loaded
-    if (!preferencesLoaded) return;
+    // Skip initialization if disabled or preferences not loaded
+    if (!enabled || !preferencesLoaded) return;
 
     const timer = setTimeout(() => {
       loadDeals();
@@ -318,7 +321,7 @@ export const useDeals = (enablePreferenceFilter: boolean = false) => {
       supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [preferencesLoaded, loadDeals, loadUserPreferences]);
+  }, [enabled, preferencesLoaded, loadDeals, loadUserPreferences]);
 
   return { 
     deals: enablePreferenceFilter ? filteredDeals : deals,

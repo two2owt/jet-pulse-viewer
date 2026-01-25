@@ -169,7 +169,7 @@ const getNeighborhoodFromCoords = (lat: number, lng: number): string => {
 /**
  * Hook to fetch real venue activity data from Supabase and Google Places
  */
-export const useVenueActivity = () => {
+export const useVenueActivity = (enabled: boolean = true) => {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -307,6 +307,9 @@ export const useVenueActivity = () => {
   };
 
   useEffect(() => {
+    // Skip initialization if disabled (deferred loading)
+    if (!enabled) return;
+    
     loadVenueActivity();
 
     // Set up real-time subscription for deal changes
@@ -374,7 +377,7 @@ export const useVenueActivity = () => {
       supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [enabled]);
 
   return { venues, loading, error, refresh: loadVenueActivity, lastUpdated };
 };
