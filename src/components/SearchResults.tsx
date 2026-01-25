@@ -106,7 +106,7 @@ export const SearchResults = ({
                           venue.activity >= 80 ? 'bg-sunset-orange' :
                           venue.activity >= 60 ? 'bg-warm' :
                           venue.activity >= 40 ? 'bg-sunset-pink' : 'bg-cool'
-                        } animate-pulse`} />
+                        }`} />
                       </div>
                     </div>
                   </button>

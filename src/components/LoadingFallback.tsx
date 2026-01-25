@@ -6,6 +6,8 @@ import { memo } from "react";
  * 
  * CRITICAL: This component must exactly match the Header and BottomNav dimensions
  * to prevent Cumulative Layout Shift (CLS) during hydration
+ * 
+ * NOTE: All animations removed for static initial load - no shimmer, no pulse
  */
 export const LoadingFallback = memo(function LoadingFallback() {
   return (
@@ -52,10 +54,7 @@ export const LoadingFallback = memo(function LoadingFallback() {
                 height: '24px',
               }}
             >
-              <div 
-                className="w-9 h-5 sm:w-10 sm:h-6 md:w-12 md:h-7 rounded shimmer-skeleton"
-                style={{ animationDelay: '0ms' }}
-              />
+              <div className="w-9 h-5 sm:w-10 sm:h-6 md:w-12 md:h-7 rounded bg-muted" />
             </div>
             
             {/* Search placeholder - MUST match Header search dimensions */}
@@ -66,31 +65,21 @@ export const LoadingFallback = memo(function LoadingFallback() {
                 minWidth: '100px',
               }}
             >
-              <div 
-                className="w-full h-8 sm:h-9 md:h-10 rounded-full shimmer-skeleton"
-                style={{ animationDelay: '100ms' }}
-              />
+              <div className="w-full h-8 sm:h-9 md:h-10 rounded-full bg-muted" />
             </div>
 
             {/* Sync status placeholder - flexible width */}
             <div className="flex-1 min-w-0 px-1 sm:px-2 md:px-3 flex items-center">
               <div className="flex items-center gap-1.5">
-                <div 
-                  className="w-4 h-4 rounded-full shimmer-skeleton"
-                  style={{ animationDelay: '200ms' }}
-                />
-                <div 
-                  className="w-16 sm:w-20 h-3 rounded shimmer-skeleton"
-                  style={{ animationDelay: '250ms' }}
-                />
+                <div className="w-4 h-4 rounded-full bg-muted" />
+                <div className="w-16 sm:w-20 h-3 rounded bg-muted" />
               </div>
             </div>
 
             {/* Avatar placeholder - MUST match Header avatar dimensions */}
             <div 
-              className="flex-shrink-0 rounded-full shimmer-skeleton"
+              className="flex-shrink-0 rounded-full bg-muted"
               style={{ 
-                animationDelay: '300ms',
                 width: 'clamp(32px, 8vw, 44px)',
                 height: 'clamp(32px, 8vw, 44px)',
               }}
@@ -145,14 +134,8 @@ export const LoadingFallback = memo(function LoadingFallback() {
                   minHeight: 'clamp(48px, 10vw, 56px)',
                 }}
               >
-                <div 
-                  className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md shimmer-skeleton"
-                  style={{ animationDelay: `${i * 100}ms` }}
-                />
-                <div 
-                  className="w-8 sm:w-9 md:w-10 h-2.5 sm:h-3 md:h-3.5 rounded shimmer-skeleton"
-                  style={{ animationDelay: `${i * 100 + 50}ms` }}
-                />
+                <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-md bg-muted" />
+                <div className="w-8 sm:w-9 md:w-10 h-2.5 sm:h-3 md:h-3.5 rounded bg-muted" />
               </div>
             ))}
           </div>
@@ -163,7 +146,7 @@ export const LoadingFallback = memo(function LoadingFallback() {
 });
 
 /**
- * Compact loading spinner for inline content
+ * Compact loading spinner for inline content - kept for action-triggered loading states
  */
 export const LoadingSpinner = memo(function LoadingSpinner({ 
   size = "md",
@@ -188,14 +171,14 @@ export const LoadingSpinner = memo(function LoadingSpinner({
 });
 
 /**
- * Content area loading placeholder - minimal version with shimmer
+ * Content area loading placeholder - static version
  */
 export const ContentSkeleton = memo(function ContentSkeleton() {
   return (
     <div className="flex-1 flex items-center justify-center min-h-[400px] bg-background">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-16 h-16 rounded-full shimmer-skeleton" />
-        <div className="w-24 h-3 rounded shimmer-skeleton" style={{ animationDelay: '100ms' }} />
+        <div className="w-16 h-16 rounded-full bg-muted" />
+        <div className="w-24 h-3 rounded bg-muted" />
       </div>
     </div>
   );

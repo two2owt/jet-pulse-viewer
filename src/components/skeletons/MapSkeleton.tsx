@@ -53,18 +53,6 @@ export const MapSkeleton = ({
         <Skeleton className="h-8 w-8 rounded-md" />
       </div>
       
-      {/* Keyframe animations */}
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.5; }
-        }
-        
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-      `}</style>
     </div>
   );
 };
