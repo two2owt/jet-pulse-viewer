@@ -7,7 +7,7 @@ import { CITIES, type City } from "@/types/cities";
 // Critical path: Header and BottomNav are always visible
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
-import { HeaderSkeleton } from "@/components/skeletons";
+
 
 // Hooks must be imported synchronously (React rules)
 import { useMapboxToken, getMapboxTokenFromCache } from "@/hooks/useMapboxToken";
@@ -325,23 +325,19 @@ const Index = () => {
           overflow: 'hidden',
         }}
       >
-        {/* Header - Show skeleton during initial load before data arrives */}
-        {mapboxLoading && !mapboxToken ? (
-          <HeaderSkeleton />
-        ) : (
-          <Header 
-            venues={venues}
-            deals={deals}
-            onVenueSelect={handleVenueSelect}
-            isLoading={dealsLoading || venuesLoading}
-            lastUpdated={dealsLastUpdated || venuesLastUpdated}
-            onRefresh={() => {
-              refreshDeals();
-              refreshVenues();
-            }}
-            cityName={detectedLocationName || `${selectedCity.name}, ${selectedCity.state}`}
-          />
-        )}
+        {/* Header - renders directly per direct-rendering-no-fallbacks architecture */}
+        <Header 
+          venues={venues}
+          deals={deals}
+          onVenueSelect={handleVenueSelect}
+          isLoading={dealsLoading || venuesLoading}
+          lastUpdated={dealsLastUpdated || venuesLastUpdated}
+          onRefresh={() => {
+            refreshDeals();
+            refreshVenues();
+          }}
+          cityName={detectedLocationName || `${selectedCity.name}, ${selectedCity.state}`}
+        />
 
         {/* Offline Banner - lazy loaded, non-critical */}
         <Suspense fallback={null}>
