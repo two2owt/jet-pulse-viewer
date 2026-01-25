@@ -1,34 +1,30 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 
-export const SocialCardSkeleton = () => {
+// Internal component - not exported
+const SocialCardSkeleton = () => {
   return (
     <Card 
       className="p-4 bg-card/90 backdrop-blur-sm"
       style={{
-        // Containment prevents CLS propagation during hydration
         contain: 'layout style',
         transform: 'translateZ(0)',
       }}
     >
       <div className="flex items-center gap-3">
-        {/* Avatar */}
         <Skeleton className="w-12 h-12 rounded-full flex-shrink-0" />
-        
-        {/* Content */}
         <div className="flex-1 space-y-2">
           <Skeleton className="h-5 w-32" />
           <Skeleton className="h-4 w-24" />
         </div>
-        
-        {/* Action button */}
         <Skeleton className="h-9 w-20 rounded-lg" />
       </div>
     </Card>
   );
 };
 
-export const SocialListSkeleton = ({ count = 5 }: { count?: number }) => {
+// Internal component - not exported
+const SocialListSkeleton = ({ count = 5 }: { count?: number }) => {
   return (
     <div className="space-y-3">
       {Array.from({ length: count }).map((_, i) => (
