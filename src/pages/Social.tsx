@@ -2,6 +2,7 @@ import { useEffect, useState, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useConnections } from "@/hooks/useConnections";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useBottomNavigation } from "@/hooks/useBottomNavigation";
 import { Users, UserPlus, Check, X, UserX, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,7 +27,7 @@ export default function Social() {
   const [user, setUser] = useState<any>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("social");
+  const { activeTab, handleTabChange } = useBottomNavigation({ defaultTab: "social" });
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const { notifications } = useNotifications();
@@ -108,18 +109,7 @@ export default function Social() {
     }
   };
 
-  const handleTabChange = (tab: "map" | "explore" | "notifications" | "favorites" | "social") => {
-    setActiveTab(tab);
-    if (tab === "map") {
-      navigate("/");
-    } else if (tab === "explore") {
-      navigate("/?tab=explore");
-    } else if (tab === "notifications") {
-      navigate("/?tab=notifications");
-    } else if (tab === "favorites") {
-      navigate("/favorites");
-    }
-  };
+  // handleTabChange is provided by useBottomNavigation hook
 
   if (!user) {
     return (
