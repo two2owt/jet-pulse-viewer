@@ -210,7 +210,7 @@ const Index = () => {
         if ('requestIdleCallback' in window) {
           (window as any).requestIdleCallback(() => {
             setIsMapboxReady(true);
-          }, { timeout: 500 }); // 500ms delay to allow initial paint to complete
+          }, { timeout: 800 }); // 800ms delay to allow LCP to complete
         } else {
           // Fallback for Safari - use setTimeout after paint
           requestAnimationFrame(() => {
