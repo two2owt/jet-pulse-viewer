@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useBottomNavigation } from "@/hooks/useBottomNavigation";
 import { Heart, Compass } from "lucide-react";
 import { DealCard } from "@/components/DealCard";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +11,7 @@ import { Header } from "@/components/Header";
 import { EmptyState } from "@/components/EmptyState";
 import { VirtualGrid } from "@/components/ui/virtual-list";
 import { FavoritesSkeleton } from "@/components/skeletons";
+
 interface Deal {
   id: string;
   title: string;
@@ -27,7 +29,7 @@ export default function Favorites() {
   const [user, setUser] = useState<any>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">("favorites");
+  const { activeTab, handleTabChange } = useBottomNavigation({ defaultTab: "favorites" });
   const { notifications } = useNotifications();
 
   useEffect(() => {
@@ -59,18 +61,7 @@ export default function Favorites() {
     }
   }, [favorites, favoritesLoading, user]);
 
-  const handleTabChange = (tab: "map" | "explore" | "notifications" | "favorites" | "social") => {
-    setActiveTab(tab);
-    if (tab === "map") {
-      navigate("/");
-    } else if (tab === "explore") {
-      navigate("/?tab=explore");
-    } else if (tab === "notifications") {
-      navigate("/?tab=notifications");
-    } else if (tab === "social") {
-      navigate("/social");
-    }
-  };
+  // handleTabChange is provided by useBottomNavigation hook
 
   const fetchFavoriteDeals = async () => {
     try {

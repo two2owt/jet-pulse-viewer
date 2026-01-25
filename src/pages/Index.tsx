@@ -20,6 +20,7 @@ import { useAutoScrapeVenueImages } from "@/hooks/useAutoScrapeVenueImages";
 import { useDeals } from "@/hooks/useDeals";
 import { useVenueActivity } from "@/hooks/useVenueActivity";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { useBottomNavigation, type NavTab } from "@/hooks/useBottomNavigation";
 
 // Lazy load MapboxHeatmap with viewport detection - only loads when visible
 import { LazyMapboxHeatmap } from "@/components/LazyMapboxHeatmap";
@@ -62,19 +63,8 @@ const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Initialize activeTab from URL parameter synchronously to prevent flash
-  // Map is the primary tab - Mapbox loading is deferred via requestIdleCallback
-  const getInitialTab = (): "map" | "explore" | "notifications" | "favorites" | "social" => {
-    const searchParams = new URLSearchParams(location.search);
-    const tabParam = searchParams.get('tab');
-    if (tabParam === "explore") return "explore";
-    if (tabParam === "notifications") return "notifications";
-    if (tabParam === "favorites") return "favorites";
-    if (tabParam === "social") return "social";
-    return "map"; // Map is the primary default tab
-  };
-  
-  const [activeTab, setActiveTab] = useState<"map" | "explore" | "notifications" | "favorites" | "social">(getInitialTab);
+  // Use shared navigation hook for consistent tab handling
+  const { activeTab, setActiveTab, handleTabChange } = useBottomNavigation({ defaultTab: "map" });
   // Defer Mapbox loading until browser is idle to reduce TBT while keeping map as primary
   const [isMapboxReady, setIsMapboxReady] = useState(false);
   const [mapUIResetKey, setMapUIResetKey] = useState(0); // Increments when switching to map tab to reset collapsed UI
@@ -198,22 +188,7 @@ const Index = () => {
     checkOnboarding();
   }, [navigate]);
 
-  // Sync activeTab with URL when navigating back/forward
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const tabParam = searchParams.get('tab');
-    
-    // Only update if we're on the Index page and URL changed (e.g., browser back/forward)
-    if (location.pathname === "/") {
-      if (tabParam === "explore" && activeTab !== "explore") {
-        setActiveTab("explore");
-      } else if (tabParam === "notifications" && activeTab !== "notifications") {
-        setActiveTab("notifications");
-      } else if (!tabParam && activeTab !== "map") {
-        setActiveTab("map");
-      }
-    }
-  }, [location.search, location.pathname]);
+  // URL sync is now handled by useBottomNavigation hook
 
   // Reset map UI collapsed state when switching to map tab
   useEffect(() => {
@@ -551,24 +526,7 @@ const Index = () => {
       {/* Bottom Navigation - Show skeleton during initial load */}
       <BottomNav 
         activeTab={activeTab} 
-        onTabChange={(tab) => {
-          // For map, explore, and notifications, stay on Index page but update URL
-          if (tab === "map") {
-            setActiveTab(tab);
-            // Update URL to remove tab param for map (default)
-            navigate("/", { replace: true });
-          } else if (tab === "explore" || tab === "notifications") {
-            setActiveTab(tab);
-            // Update URL with tab parameter
-            navigate(`/?tab=${tab}`, { replace: true });
-          } else if (tab === "favorites") {
-            // Navigate to favorites page
-            navigate("/favorites");
-          } else if (tab === "social") {
-            // Navigate to social page
-            navigate("/social");
-          }
-        }}
+        onTabChange={handleTabChange}
         onPrefetch={(tab) => {
           // Prefetch Mapbox chunk on hover/touch of map tab
           if (tab === "map" && !isMapboxReady) {

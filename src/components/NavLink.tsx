@@ -2,8 +2,9 @@ import { NavLink as RouterNavLink, NavLinkProps } from "react-router-dom";
 import { forwardRef, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 
-// Route import map for prefetching
+// Route import map for prefetching - includes Index for back navigation
 const ROUTE_IMPORTS: Record<string, () => Promise<unknown>> = {
+  "/": () => import("@/pages/Index"),
   "/favorites": () => import("@/pages/Favorites"),
   "/social": () => import("@/pages/Social"),
   "/profile": () => import("@/pages/Profile"),
