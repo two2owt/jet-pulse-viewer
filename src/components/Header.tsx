@@ -95,7 +95,7 @@ export const Header = ({
   };
   return (
     <header 
-      className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] header-contained" 
+      className="bg-card/98 backdrop-blur-xl border-b border-border/50 sticky top-0 z-[60] header-contained text-foreground" 
       role="banner" 
       style={{
         paddingTop: 'var(--safe-area-inset-top)',
@@ -105,15 +105,15 @@ export const Header = ({
         maxHeight: 'var(--header-total-height)',
         // CRITICAL: Prevent flex container from shrinking this element
         flexShrink: 0,
-        // Containment prevents CLS propagation and isolates from map rendering
-        contain: 'strict',
+        // Containment prevents CLS - use 'layout paint' to allow color inheritance
+        contain: 'layout paint',
         transform: 'translateZ(0)',
         overflow: 'hidden',
-        // Create isolated stacking context to prevent map z-index bleed
-        isolation: 'isolate',
         // Explicit positioning to prevent layout recalculation
         position: 'sticky',
         top: 0,
+        // Ensure color inheritance works for SVG currentColor
+        color: 'inherit',
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">

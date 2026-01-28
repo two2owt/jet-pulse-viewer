@@ -28,7 +28,7 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, onPre
 
   return (
     <nav 
-      className="fixed left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50 nav-contained"
+      className="fixed left-0 right-0 bg-card/98 backdrop-blur-xl border-t border-border/50 z-50 nav-contained text-foreground"
       role="navigation"
       aria-label="Main navigation"
       style={{
@@ -43,10 +43,13 @@ export const BottomNav = ({ activeTab, onTabChange, notificationCount = 3, onPre
         maxHeight: 'var(--bottom-nav-total-height)',
         // CRITICAL: Prevent any flex compression
         flexShrink: 0,
-        contain: 'strict',
+        // Use 'layout paint' instead of 'strict' to allow color inheritance for SVGs
+        contain: 'layout paint',
         transform: 'translateZ(0)',
         // Prevent any content from causing shifts
         overflow: 'hidden',
+        // Ensure color inheritance works for SVG currentColor
+        color: 'inherit',
       }}
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 h-full flex items-center">
