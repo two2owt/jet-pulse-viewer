@@ -306,41 +306,49 @@
       </div>
     </div>
     
-    <!-- Hydration handoff: wait for React Header to fully mount before removing shell -->
-    <!-- This prevents flash by ensuring navigation components are fully styled -->
+    <!-- Hydration handoff: Hide React app until fully styled, then swap with shell -->
+    <!-- CRITICAL: app-wrapper starts HIDDEN to prevent double-render flash -->
+    <style>
+      /* React app starts hidden - revealed only after header/nav are mounted */
+      .app-wrapper { visibility: hidden; }
+      .app-wrapper.hydrated { visibility: visible; }
+    </style>
     <script>
       (function() {
         var shell = document.querySelector(".app-shell");
         if (!shell) return;
         
-        // Look for the actual React Header component, not just app-wrapper
-        // The Header has role="banner" and the class "header-contained"
-        var checkForHeader = function() {
+        var swapToReact = function() {
+          var wrapper = document.querySelector(".app-wrapper");
           var header = document.querySelector('header[role="banner"].header-contained');
           var nav = document.querySelector('nav[role="navigation"].nav-contained');
           
-          // Only remove shell when BOTH header and nav are mounted
-          if (header && nav) {
+          // Only swap when React components are fully mounted and styled
+          if (wrapper && header && nav) {
+            // Single atomic swap: hide shell, show React
             shell.style.display = "none";
+            wrapper.classList.add("hydrated");
             shell.remove();
             return true;
           }
           return false;
         };
         
-        // Check immediately in case React already mounted
-        if (checkForHeader()) return;
+        // Check immediately
+        if (swapToReact()) return;
         
         var observer = new MutationObserver(function() {
-          if (checkForHeader()) {
+          if (swapToReact()) {
             observer.disconnect();
           }
         });
         
         observer.observe(document.getElementById("root"), { childList: true, subtree: true });
         
-        // Fallback: force remove after 5s
+        // Fallback: force swap after 5s
         setTimeout(function() {
+          var wrapper = document.querySelector(".app-wrapper");
+          if (wrapper) wrapper.classList.add("hydrated");
           if (shell.parentNode) shell.remove();
           observer.disconnect();
         }, 5000);
