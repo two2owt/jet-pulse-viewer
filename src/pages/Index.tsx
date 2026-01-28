@@ -315,8 +315,15 @@ const Index = () => {
   }, [selectedVenue]);
 
   return (
-    <>
-        {/* Header - renders directly per direct-rendering-no-fallbacks architecture */}
+    <div 
+      className="flex flex-col w-full h-full"
+      style={{
+        flex: '1 1 0%',
+        minHeight: 0,
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header - renders directly per direct-rendering-no-fallbacks architecture */}
         <Header 
           venues={venues}
           deals={deals}
@@ -544,7 +551,7 @@ const Index = () => {
           }}
         />
       </Suspense>
-    </>
+    </div>
   );
 };
 
