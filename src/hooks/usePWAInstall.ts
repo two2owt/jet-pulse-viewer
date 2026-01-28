@@ -56,6 +56,9 @@ export const usePWAInstall = () => {
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
+      // Capture the event for later use - browser will show native prompt when we call prompt()
+      // Note: preventDefault() defers the native banner, allowing us to show a custom prompt
+      // The browser warning is expected - we'll call prompt() from our custom UI
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       
