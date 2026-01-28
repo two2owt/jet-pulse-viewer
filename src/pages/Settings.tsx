@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Bell, MapPin, Radio, Loader2, Save, Sun, Moon, Monitor, Smartphone, User, Heart, Shield, Trash2, CreditCard, ShieldCheck } from "lucide-react";
-import { SettingsSkeleton } from "@/components/skeletons";
+
 import { toast } from "sonner";
 import { z } from "zod";
 import { useTheme } from "next-themes";
@@ -215,18 +215,7 @@ const Settings = () => {
     </header>
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col min-h-dvh bg-background">
-        <SettingsHeader />
-        <main className="flex-1 overflow-auto">
-          <div className="max-w-3xl mx-auto px-fluid-md py-fluid-lg">
-            <SettingsSkeleton />
-          </div>
-        </main>
-      </div>
-    );
-  }
+  // Direct rendering - no loading fallback per architecture requirements
 
   if (!preferences) {
     return (
