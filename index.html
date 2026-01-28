@@ -260,8 +260,8 @@
     <!-- Fonts loaded via @fontsource/kanit in main.tsx - no external requests needed -->
     
     <!-- Mapbox GL CSS - loaded async to not block rendering -->
-    <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css" rel="stylesheet"></noscript>
+    <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.18.1/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://api.mapbox.com/mapbox-gl-js/v3.18.1/mapbox-gl.css" rel="stylesheet"></noscript>
     <!-- Mapbox GL JS - defer load until after LCP to prioritize brand text rendering -->
     <!-- Removed fetchpriority="high" - mapbox should NOT compete with LCP element -->
     <meta property="og:title" content="JET - Discover What&#39;s Hot Right Now">
@@ -293,7 +293,7 @@
     <script type="module" src="/src/main.tsx"></script>
     
     <!-- Minified: Defer stylesheets + Mapbox JS loading -->
-    <script>requestAnimationFrame(function(){requestAnimationFrame(function(){document.querySelectorAll('link[rel="preload"][as="style"]').forEach(function(l){l.rel="stylesheet"})})});!function(){var m=!1,l=function(){if(!m){m=!0;var s=document.createElement("script");s.src="https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.js";s.async=!0;document.head.appendChild(s)}},d=function(){typeof requestIdleCallback!=="undefined"?requestIdleCallback(l,{timeout:4e3}):setTimeout(l,3e3)};document.readyState==="complete"?d():window.addEventListener("load",function(){setTimeout(d,100)},{once:!0});if("IntersectionObserver"in window){var o=new IntersectionObserver(function(e){e[0].isIntersecting&&(l(),o.disconnect())},{rootMargin:"200px"}),b=function(){var e=document.querySelector("[data-map-container]");e&&o.observe(e)};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",b):b()}}();</script>
+    <script>requestAnimationFrame(function(){requestAnimationFrame(function(){document.querySelectorAll('link[rel="preload"][as="style"]').forEach(function(l){l.rel="stylesheet"})})});!function(){var m=!1,l=function(){if(!m){m=!0;var s=document.createElement("script");s.src="https://api.mapbox.com/mapbox-gl-js/v3.18.1/mapbox-gl.js";s.async=!0;document.head.appendChild(s)}},d=function(){typeof requestIdleCallback!=="undefined"?requestIdleCallback(l,{timeout:4e3}):setTimeout(l,3e3)};document.readyState==="complete"?d():window.addEventListener("load",function(){setTimeout(d,100)},{once:!0});if("IntersectionObserver"in window){var o=new IntersectionObserver(function(e){e[0].isIntersecting&&(l(),o.disconnect())},{rootMargin:"200px"}),b=function(){var e=document.querySelector("[data-map-container]");e&&o.observe(e)};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",b):b()}}();</script>
 
   </body>
 </html>
