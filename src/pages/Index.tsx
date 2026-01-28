@@ -316,20 +316,6 @@ const Index = () => {
 
   return (
     <>
-      
-      <div 
-        className="app-wrapper"
-        style={{
-          // Fixed dimensions using CSS variables - consistent across all environments
-          height: '100dvh',
-          minHeight: '100dvh',
-          maxHeight: '100dvh',
-          contain: 'strict',
-          transform: 'translateZ(0)',
-          isolation: 'isolate',
-          overflow: 'hidden',
-        }}
-      >
         {/* Header - renders directly per direct-rendering-no-fallbacks architecture */}
         <Header 
           venues={venues}
@@ -558,7 +544,6 @@ const Index = () => {
           }}
         />
       </Suspense>
-    </div>
     </>
   );
 };
