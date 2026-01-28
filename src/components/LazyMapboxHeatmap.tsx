@@ -25,11 +25,12 @@ const preloadMapboxChunk = (shouldPreloadExtras: boolean) => {
   import("mapbox-gl").catch(() => {});
   
   // On fast connections, also preload the CSS (redundant if CDN script loads it)
+  // IMPORTANT: Version must match index.html CDN version
   if (shouldPreloadExtras) {
     const link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'style';
-    link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.16.0/mapbox-gl.css';
+    link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.18.1/mapbox-gl.css';
     document.head.appendChild(link);
   }
 };
