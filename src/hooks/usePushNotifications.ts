@@ -17,9 +17,8 @@ export const usePushNotifications = () => {
     
     if (nativePlatform) {
       initializePushNotifications();
-    } else {
-      console.log('Push notifications only available on native iOS/Android apps');
     }
+    // Web push is handled by useWebPushNotifications - no logging needed here
   }, []);
 
   const initializePushNotifications = async () => {
