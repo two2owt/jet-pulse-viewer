@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt";
 
 // Eager load Index for fastest FCP on main route
 import Index from "./pages/Index";
@@ -50,6 +51,7 @@ const App = () => (
         <div className="app-wrapper">
           <Toaster />
           <Sonner />
+          <PWAUpdatePrompt />
           <PageTracker />
           
           
