@@ -99,17 +99,7 @@
     <!-- This CSS renders BEFORE any JavaScript executes -->
     <style>
       /* ===== FONTS - handled by @fontsource/kanit in main.tsx ===== */
-      /* Fallback font with matched metrics */
-      @font-face {
-        font-family: 'Kanit Fallback';
-        src: local('Arial'), local('Helvetica Neue'), local('Helvetica'), local('sans-serif');
-        font-display: swap;
-        ascent-override: 105%;
-        descent-override: 35%;
-        line-gap-override: 0%;
-        size-adjust: 97%;
-      }
-      /* Fallback font with matched metrics */
+      /* Fallback font with matched metrics - prevents CLS during font swap */
       @font-face {
         font-family: 'Kanit Fallback';
         src: local('Arial'), local('Helvetica Neue'), local('Helvetica'), local('sans-serif');
