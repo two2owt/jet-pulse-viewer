@@ -306,20 +306,33 @@
       </div>
     </div>
     
-    <!-- Instant hydration handoff: immediately hide shell when React mounts -->
-    <!-- No opacity transitions - React app renders fully styled from first frame -->
+    <!-- Hydration handoff: wait for React Header to fully mount before removing shell -->
+    <!-- This prevents flash by ensuring navigation components are fully styled -->
     <script>
       (function() {
         var shell = document.querySelector(".app-shell");
         if (!shell) return;
         
-        var observer = new MutationObserver(function() {
-          var reactApp = document.querySelector(".app-wrapper");
+        // Look for the actual React Header component, not just app-wrapper
+        // The Header has role="banner" and the class "header-contained"
+        var checkForHeader = function() {
+          var header = document.querySelector('header[role="banner"].header-contained');
+          var nav = document.querySelector('nav[role="navigation"].nav-contained');
           
-          if (reactApp) {
-            // INSTANT removal - no transition delay that could cause flash
+          // Only remove shell when BOTH header and nav are mounted
+          if (header && nav) {
             shell.style.display = "none";
             shell.remove();
+            return true;
+          }
+          return false;
+        };
+        
+        // Check immediately in case React already mounted
+        if (checkForHeader()) return;
+        
+        var observer = new MutationObserver(function() {
+          if (checkForHeader()) {
             observer.disconnect();
           }
         });
