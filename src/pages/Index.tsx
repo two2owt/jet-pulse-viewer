@@ -19,12 +19,11 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useAutoScrapeVenueImages } from "@/hooks/useAutoScrapeVenueImages";
 import { useDeals } from "@/hooks/useDeals";
 import { useVenueActivity } from "@/hooks/useVenueActivity";
-import { useDeferredInit } from "@/hooks/useDeferredInit";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useBottomNavigation, type NavTab } from "@/hooks/useBottomNavigation";
 
-// Lazy load MapboxHeatmap with viewport detection - only loads when visible
-import { LazyMapboxHeatmap } from "@/components/LazyMapboxHeatmap";
+// Direct import for MapboxHeatmap
+import { MapboxHeatmap } from "@/components/MapboxHeatmap";
 
 // Lazy load all secondary components - breaks up critical request chain
 const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
@@ -77,13 +76,11 @@ const Index = () => {
   const { token: mapboxToken, loading: mapboxLoading, error: mapboxError } = useMapboxToken();
   const { getVenueImage } = useVenueImages();
   
-  // Defer non-critical data fetching until after first paint to reduce TBT
-  const isDataReady = useDeferredInit(150);
-  
-  const { notifications, loading: notificationsLoading, markAsRead } = useNotifications(isDataReady);
-  const { isScrapingActive } = useAutoScrapeVenueImages(isDataReady);
-  const { deals, refresh: refreshDeals, loading: dealsLoading, lastUpdated: dealsLastUpdated } = useDeals(false, isDataReady);
-  const { venues: realVenues, loading: venuesLoading, refresh: refreshVenues, lastUpdated: venuesLastUpdated } = useVenueActivity(isDataReady);
+  // Data hooks - load immediately without deferral
+  const { notifications, loading: notificationsLoading, markAsRead } = useNotifications(true);
+  const { isScrapingActive } = useAutoScrapeVenueImages(true);
+  const { deals, refresh: refreshDeals, loading: dealsLoading, lastUpdated: dealsLastUpdated } = useDeals(false, true);
+  const { venues: realVenues, loading: venuesLoading, refresh: refreshVenues, lastUpdated: venuesLastUpdated } = useVenueActivity(true);
   const { justInstalled, clearJustInstalled } = usePWAInstall();
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const jetCardRef = useRef<HTMLDivElement>(null);
@@ -429,7 +426,7 @@ const Index = () => {
                 }}
               >
                 {mapboxToken && (
-                  <LazyMapboxHeatmap
+                  <MapboxHeatmap
                     onVenueSelect={handleVenueSelect} 
                     venues={venues} 
                     mapboxToken={mapboxToken}

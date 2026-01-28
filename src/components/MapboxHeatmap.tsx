@@ -77,7 +77,6 @@ import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Slider } from "./ui/slider";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
-import { TimelapseSwipeControl } from "./TimelapseSwipeControl";
 
 import { CITIES, type City, getDistanceKm, getNearestCity, getCitiesSortedByDistance, kmToMiles } from "@/types/cities";
 import { getCachedReverseGeocode, type GeocodedLocation } from "@/utils/reverseGeocode";
