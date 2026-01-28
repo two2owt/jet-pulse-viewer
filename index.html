@@ -306,38 +306,20 @@
       </div>
     </div>
     
-    <!-- Smooth hydration transition: fade out shell, fade in React -->
+    <!-- Instant hydration handoff: immediately hide shell when React mounts -->
+    <!-- No opacity transitions - React app renders fully styled from first frame -->
     <script>
       (function() {
         var shell = document.querySelector(".app-shell");
         if (!shell) return;
         
-        // Add transition styles to shell
-        shell.style.transition = "opacity 150ms ease-out";
-        shell.style.opacity = "1";
-        
         var observer = new MutationObserver(function() {
           var reactApp = document.querySelector(".app-wrapper");
-          var hasMultipleChildren = document.getElementById("root").children.length > 1;
           
-          if (reactApp || hasMultipleChildren) {
-            // Fade out shell smoothly
-            shell.style.opacity = "0";
-            
-            // If React app exists, ensure it fades in
-            if (reactApp) {
-              reactApp.style.opacity = "0";
-              reactApp.style.transition = "opacity 150ms ease-out";
-              // Trigger reflow then fade in
-              void reactApp.offsetWidth;
-              reactApp.style.opacity = "1";
-            }
-            
-            // Remove shell after transition completes
-            setTimeout(function() {
-              if (shell.parentNode) shell.remove();
-            }, 160);
-            
+          if (reactApp) {
+            // INSTANT removal - no transition delay that could cause flash
+            shell.style.display = "none";
+            shell.remove();
             observer.disconnect();
           }
         });
@@ -346,10 +328,7 @@
         
         // Fallback: force remove after 5s
         setTimeout(function() {
-          if (shell.parentNode) {
-            shell.style.opacity = "0";
-            setTimeout(function() { shell.remove(); }, 160);
-          }
+          if (shell.parentNode) shell.remove();
           observer.disconnect();
         }, 5000);
       })();
