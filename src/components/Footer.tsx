@@ -3,11 +3,15 @@ import { Link } from "react-router-dom";
 export const Footer = () => {
   return (
     <footer 
-      className="border-t border-border/50 mt-12 py-6 px-4"
+      className="border-t border-border/50 mt-12 py-6 px-4 bg-background"
       style={{
-        // Containment prevents CLS propagation
+        // Containment prevents CLS propagation and isolates from map rendering
         contain: 'layout style',
         transform: 'translateZ(0)',
+        // Create isolated stacking context to prevent map z-index bleed
+        isolation: 'isolate',
+        // Explicit position to prevent layout recalculation
+        position: 'relative',
       }}
     >
       <div className="max-w-4xl mx-auto">
