@@ -342,24 +342,26 @@ const Index = () => {
           <OfflineBanner />
         </Suspense>
 
-      {/* Main Content - FIXED height using CSS variables to prevent CLS */}
+      {/* Main Content - FIXED height using CSS variables, positioned BETWEEN header and bottom nav */}
       <main 
         role="main"
         id="main-content"
-        className={`page-fade-in ${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 overflow-y-auto'}`}
+        className={`page-fade-in ${activeTab === 'map' ? 'w-full' : 'max-w-7xl mx-auto px-fluid-sm sm:px-fluid-md md:px-fluid-lg py-fluid-sm sm:py-fluid-md overflow-y-auto'}`}
         style={{ 
-          // FIXED dimensions using centralized CSS variables
+          // FIXED dimensions - strictly between header and bottom nav
           flex: '1 1 auto',
           height: 'var(--main-height)',
           minHeight: 'var(--main-height)',
           maxHeight: 'var(--main-height)',
-          // Strict containment prevents CLS propagation
+          // Strict containment prevents map from escaping bounds
           contain: 'strict',
           // GPU layer for smooth transitions
           transform: 'translateZ(0)',
           boxSizing: 'border-box',
           width: '100%',
-          isolation: 'isolate',
+          // Stacking context - main content is between header (z-60) and bottom nav (z-50)
+          zIndex: 1,
+          position: 'relative',
           overflow: activeTab === 'map' ? 'hidden' : 'auto',
         }}
       >
@@ -367,15 +369,20 @@ const Index = () => {
           <div 
             className="relative w-full h-full"
             style={{ 
+              // Map container is strictly bounded within main content - never overlays nav
+              position: 'absolute',
+              inset: 0,
               height: '100%',
               width: '100%',
               contain: 'strict',
               transform: 'translateZ(0)',
               overflow: 'hidden',
+              // Ensure map stays below header/nav z-index
+              zIndex: 0,
             }}
           >
 
-            {/* Mapbox Heatmap - Edge to edge with fixed dimensions */}
+            {/* Mapbox Heatmap - Strictly contained within main area */}
             <div 
               className="relative"
               style={{
@@ -384,6 +391,8 @@ const Index = () => {
                 width: '100%',
                 height: '100%',
                 contain: 'strict',
+                // Map content layer - below all overlays
+                zIndex: 1,
               }}
             >
               {/* Error state - only show if there's a definite error */}

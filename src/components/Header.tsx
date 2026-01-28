@@ -116,7 +116,8 @@ export const Header = ({
         color: 'inherit',
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-5 lg:px-6 h-full flex items-center">
+      {/* Use fluid spacing that adapts to device size */}
+      <div className="max-w-7xl mx-auto px-fluid-sm sm:px-fluid-md md:px-fluid-lg h-full flex items-center">
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-full">
           {/* Logo - LCP element with elementtiming for performance tracking */}
           {/* FIXED dimensions to prevent CLS - must match skeleton */}
