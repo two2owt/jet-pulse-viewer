@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { type Venue } from "@/types/venue";
@@ -8,9 +8,8 @@ import { CITIES, type City } from "@/types/cities";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 
-
 // Hooks must be imported synchronously (React rules)
-import { useMapboxToken, getMapboxTokenFromCache } from "@/hooks/useMapboxToken";
+import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { useSwipeToDismiss } from "@/hooks/useSwipeToDismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -20,30 +19,23 @@ import { useAutoScrapeVenueImages } from "@/hooks/useAutoScrapeVenueImages";
 import { useDeals } from "@/hooks/useDeals";
 import { useVenueActivity } from "@/hooks/useVenueActivity";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
-import { useBottomNavigation, type NavTab } from "@/hooks/useBottomNavigation";
+import { useBottomNavigation } from "@/hooks/useBottomNavigation";
 
-// Direct import for MapboxHeatmap
+// Direct imports - no lazy loading
 import { MapboxHeatmap } from "@/components/MapboxHeatmap";
-
-// Lazy load all secondary components - breaks up critical request chain
-const UserProfile = lazy(() => import("@/components/UserProfile").then(m => ({ default: m.UserProfile })));
-const ExploreTab = lazy(() => import("@/components/ExploreTab").then(m => ({ default: m.ExploreTab })));
-const JetCard = lazy(() => import("@/components/JetCard").then(m => ({ default: m.JetCard })));
-const NotificationCard = lazy(() => import("@/components/NotificationCard").then(m => ({ default: m.NotificationCard })));
-const DirectionsDialog = lazy(() => import("@/components/DirectionsDialog"));
-
-// Lazy load non-critical UI - deferred until after FCP
-const OfflineBanner = lazy(() => import("@/components/OfflineBanner").then(m => ({ default: m.OfflineBanner })));
-const PWAInstallPrompt = lazy(() => import("@/components/PWAInstallPrompt").then(m => ({ default: m.PWAInstallPrompt })));
-const PushNotificationPrompt = lazy(() => import("@/components/PushNotificationPrompt").then(m => ({ default: m.PushNotificationPrompt })));
+import { UserProfile } from "@/components/UserProfile";
+import { ExploreTab } from "@/components/ExploreTab";
+import { JetCard } from "@/components/JetCard";
+import { NotificationCard } from "@/components/NotificationCard";
+import DirectionsDialog from "@/components/DirectionsDialog";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 
 // Minimal critical imports
 import { Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-
-// Check for cached token synchronously to determine if we can skip loading state
-const hasCachedToken = getMapboxTokenFromCache() !== null;
 
 // Top 10 most popular venues in Charlotte, NC metropolitan area with real addresses
 const charlotteVenues: Venue[] = [
@@ -65,8 +57,6 @@ const Index = () => {
   
   // Use shared navigation hook for consistent tab handling
   const { activeTab, setActiveTab, handleTabChange } = useBottomNavigation({ defaultTab: "map" });
-  // Defer Mapbox loading until browser is idle to reduce TBT while keeping map as primary
-  const [isMapboxReady, setIsMapboxReady] = useState(false);
   const [mapUIResetKey, setMapUIResetKey] = useState(0); // Increments when switching to map tab to reset collapsed UI
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCity, setSelectedCity] = useState<City>(CITIES[0]); // Default to Charlotte
@@ -199,25 +189,6 @@ const Index = () => {
     }
   }, [activeTab]);
 
-  // Defer Mapbox initialization until after initial paint to reduce TBT
-  useEffect(() => {
-    if (activeTab === "map" && !isMapboxReady) {
-      // Use requestIdleCallback with 500ms timeout to push loading after LCP
-      const scheduleMapboxLoad = () => {
-        if ('requestIdleCallback' in window) {
-          (window as any).requestIdleCallback(() => {
-            setIsMapboxReady(true);
-          }, { timeout: 800 }); // 800ms delay to allow LCP to complete
-        } else {
-          // Fallback for Safari - use setTimeout after paint
-          requestAnimationFrame(() => {
-            setTimeout(() => setIsMapboxReady(true), 100);
-          });
-        }
-      };
-      scheduleMapboxLoad();
-    }
-  }, [activeTab, isMapboxReady]);
 
   const handleCityChange = useCallback((city: City) => {
     setSelectedCity(city);
@@ -334,10 +305,8 @@ const Index = () => {
           cityName={detectedLocationName || `${selectedCity.name}, ${selectedCity.state}`}
         />
 
-        {/* Offline Banner - lazy loaded, non-critical */}
-        <Suspense fallback={null}>
-          <OfflineBanner />
-        </Suspense>
+        {/* Offline Banner */}
+        <OfflineBanner />
 
       {/* Main Content - FIXED height using CSS variables, positioned BETWEEN header and bottom nav */}
       <main 
@@ -421,7 +390,7 @@ const Index = () => {
               <div 
                 className="h-full w-full"
                 style={{
-                  opacity: isMapboxReady && mapboxToken ? 1 : 0,
+                  opacity: mapboxToken ? 1 : 0,
                   transition: 'opacity 300ms ease-out',
                 }}
               >
@@ -467,13 +436,11 @@ const Index = () => {
                       <div className="w-10 h-1 bg-muted-foreground/40 rounded-full" />
                     </div>
                   )}
-                  <Suspense fallback={<div className="h-32 bg-muted/50 rounded-xl" />}>
-                    <JetCard 
-                      venue={selectedVenue} 
-                      onGetDirections={handleGetDirections}
-                      onClose={() => setSelectedVenue(null)}
-                    />
-                  </Suspense>
+                  <JetCard 
+                    venue={selectedVenue} 
+                    onGetDirections={handleGetDirections}
+                    onClose={() => setSelectedVenue(null)}
+                  />
                 </div>
               </div>
             )}
@@ -494,28 +461,22 @@ const Index = () => {
                 <p className="text-xs sm:text-sm mt-1 sm:mt-2">Enable location tracking to receive deal alerts</p>
               </div>
             ) : (
-              <Suspense fallback={<div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 bg-muted/50 rounded-lg" />)}</div>}>
-                {notifications.map((notification) => (
-                  <div 
-                    key={notification.id}
-                  >
-                    <NotificationCard 
-                      notification={notification} 
-                      onVenueClick={handleVenueSelect}
-                      onRead={() => markAsRead(notification.id)}
-                    />
-                  </div>
-                ))}
-              </Suspense>
+              notifications.map((notification) => (
+                <div key={notification.id}>
+                  <NotificationCard 
+                    notification={notification} 
+                    onVenueClick={handleVenueSelect}
+                    onRead={() => markAsRead(notification.id)}
+                  />
+                </div>
+              ))
             )}
           </div>
         )}
 
         {activeTab === "explore" && (
           <div className="px-fluid-md py-fluid-md">
-            <Suspense fallback={null}>
-              <ExploreTab onVenueSelect={handleVenueSelect} />
-            </Suspense>
+            <ExploreTab onVenueSelect={handleVenueSelect} />
           </div>
         )}
       </main>
@@ -524,39 +485,28 @@ const Index = () => {
       <BottomNav 
         activeTab={activeTab} 
         onTabChange={handleTabChange}
-        onPrefetch={(tab) => {
-          // Prefetch Mapbox chunk on hover/touch of map tab
-          if (tab === "map" && !isMapboxReady) {
-            import("@/components/MapboxHeatmap");
-          }
-        }}
+        onPrefetch={() => {}}
         notificationCount={notifications.filter(n => !n.read).length}
       />
 
-      {/* Directions Dialog - Lazy loaded */}
-      <Suspense fallback={null}>
-        <DirectionsDialog
-          open={showDirectionsDialog}
-          onOpenChange={setShowDirectionsDialog}
-          venue={selectedVenue}
-        />
-      </Suspense>
+      {/* Directions Dialog */}
+      <DirectionsDialog
+        open={showDirectionsDialog}
+        onOpenChange={setShowDirectionsDialog}
+        venue={selectedVenue}
+      />
 
-      {/* PWA Install Prompt - lazy loaded */}
-      <Suspense fallback={null}>
-        <PWAInstallPrompt />
-      </Suspense>
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
 
       {/* Push Notification Prompt - shows after PWA install */}
-      <Suspense fallback={null}>
-        <PushNotificationPrompt 
-          show={justInstalled || showPushPrompt}
-          onDismiss={() => {
-            clearJustInstalled();
-            setShowPushPrompt(false);
-          }}
-        />
-      </Suspense>
+      <PushNotificationPrompt 
+        show={justInstalled || showPushPrompt}
+        onDismiss={() => {
+          clearJustInstalled();
+          setShowPushPrompt(false);
+        }}
+      />
     </div>
   );
 };
