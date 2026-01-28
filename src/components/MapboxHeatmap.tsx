@@ -228,13 +228,17 @@ export const MapboxHeatmap = ({ onVenueSelect, venues, mapboxToken, selectedCity
   const [showMovementPaths, setShowMovementPaths] = useState(false);
   const [pathTimeFilter, setPathTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_hour'>('all');
   
-  // CLS fix: Defer layer controls render until after initial paint
+  // CLS fix: Defer layer controls render until map is loaded
+  // This ensures controls appear immediately after map is ready, not a fixed delay
   const [controlsReady, setControlsReady] = useState(false);
   useEffect(() => {
-    // Delay rendering layer controls until after CLS measurement window (500ms after FCP)
-    const timer = setTimeout(() => setControlsReady(true), 600);
-    return () => clearTimeout(timer);
-  }, []);
+    // Show controls as soon as map is loaded (no arbitrary delay)
+    if (mapLoaded) {
+      // Small delay to ensure map paint is complete
+      const timer = setTimeout(() => setControlsReady(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [mapLoaded]);
   const [minPathFrequency, setMinPathFrequency] = useState(2);
   const [isTabVisible, setIsTabVisible] = useState(!document.hidden);
   
