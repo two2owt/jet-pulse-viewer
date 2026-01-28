@@ -14,7 +14,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useConnections } from "@/hooks/useConnections";
 import { User, Camera, Edit2, X, Save, Settings, Heart, Users, Shield, LogOut, Loader2, Instagram, Twitter, Facebook, Linkedin, Video } from "lucide-react";
-import { ProfileSkeleton } from "@/components/skeletons";
+
 import { toast } from "sonner";
 import { z } from "zod";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -342,15 +342,7 @@ export default function Profile() {
       </PageLayout>
     );
   }
-  if (isLoading) {
-    return (
-      <PageLayout defaultTab="map" notificationCount={0}>
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <ProfileSkeleton />
-        </div>
-      </PageLayout>
-    );
-  }
+  // Direct rendering - no loading fallback per architecture requirements
   return (
     <PageLayout defaultTab="map">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">

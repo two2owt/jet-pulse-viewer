@@ -11,7 +11,6 @@ import { EmptyState } from "@/components/EmptyState";
 import { ConnectionProfileDialog } from "@/components/ConnectionProfileDialog";
 import { UpgradePrompt, useFeatureAccess } from "@/components/UpgradePrompt";
 import { VirtualGrid } from "@/components/ui/virtual-list";
-import { SocialPageSkeleton } from "@/components/skeletons";
 
 interface Profile {
   id: string;
@@ -23,10 +22,9 @@ export default function Social() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
-  const { canAccessSocialFeatures, loading: subscriptionLoading } = useFeatureAccess();
+  const { canAccessSocialFeatures } = useFeatureAccess();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -45,7 +43,6 @@ export default function Social() {
   const {
     connections,
     pendingRequests,
-    loading: connectionsLoading,
     sendRequest,
     acceptRequest,
     removeConnection,
@@ -54,8 +51,6 @@ export default function Social() {
   useEffect(() => {
     if (user) {
       fetchProfiles();
-    } else {
-      setLoading(false);
     }
   }, [user]);
 
@@ -70,8 +65,6 @@ export default function Social() {
       setProfiles(data || []);
     } catch (error) {
       console.error("Error fetching profiles:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -118,12 +111,25 @@ export default function Social() {
     );
   }
 
-  if (loading || connectionsLoading || subscriptionLoading) {
+  // Show upgrade prompt for users without JET+ subscription
+  if (!canAccessSocialFeatures()) {
     return (
-      <PageLayout defaultTab="social" notificationCount={0}>
-        <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
-          <SocialPageSkeleton />
+      <PageLayout defaultTab="social">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <EmptyState
+            icon={Crown}
+            title="Unlock Social Features"
+            description="Connect with friends, share deals, and discover new spots together. Upgrade to JET+ to access all social features."
+            actionLabel="Upgrade to JET+"
+            onAction={() => setShowUpgradePrompt(true)}
+          />
         </div>
+        <UpgradePrompt
+          requiredTier="jet_plus"
+          featureName="Social features"
+          isOpen={showUpgradePrompt}
+          onClose={() => setShowUpgradePrompt(false)}
+        />
       </PageLayout>
     );
   }

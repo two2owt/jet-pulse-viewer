@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/PageLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { VirtualGrid } from "@/components/ui/virtual-list";
-import { FavoritesSkeleton } from "@/components/skeletons";
 
 interface Deal {
   id: string;
@@ -25,7 +24,6 @@ export default function Favorites() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -44,15 +42,10 @@ export default function Favorites() {
   const { favorites, loading: favoritesLoading } = useFavorites(user?.id);
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user || favoritesLoading) return;
 
-    if (!favoritesLoading && favorites.length > 0) {
+    if (favorites.length > 0) {
       fetchFavoriteDeals();
-    } else {
-      setLoading(false);
     }
   }, [favorites, favoritesLoading, user]);
 
@@ -69,8 +62,6 @@ export default function Favorites() {
       setDeals(data || []);
     } catch (error) {
       console.error("Error fetching favorite deals:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -85,16 +76,6 @@ export default function Favorites() {
             actionLabel="Sign In"
             onAction={() => navigate("/auth")}
           />
-        </div>
-      </PageLayout>
-    );
-  }
-
-  if (loading) {
-    return (
-      <PageLayout defaultTab="favorites" notificationCount={0}>
-        <div className="max-w-7xl mx-auto px-fluid-md py-fluid-lg">
-          <FavoritesSkeleton />
         </div>
       </PageLayout>
     );
