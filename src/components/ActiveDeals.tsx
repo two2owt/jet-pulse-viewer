@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Clock, MapPin, TrendingUp, ChevronDown, ChevronUp, Heart, Share2, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { OptimizedImage } from "./ui/optimized-image";
-import { DealCardSkeleton } from "./skeletons/DealCardSkeleton";
+
 import { toast } from "sonner";
 import type { City } from "@/types/cities";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
@@ -232,21 +232,7 @@ export const ActiveDeals = memo(({ selectedCity }: ActiveDealsProps) => {
     return `${minutes}m left`;
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-3 animate-fade-in">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-bold text-foreground">Active Deals</h3>
-        </div>
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => (
-            <DealCardSkeleton key={i} />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // Direct rendering - no loading fallback per architecture/direct-rendering
 
   if (filteredDeals.length === 0 && deals.length > 0) {
     return (

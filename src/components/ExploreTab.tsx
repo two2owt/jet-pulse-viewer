@@ -11,7 +11,7 @@ import { Button } from "./ui/button";
 import { EmptyState } from "./EmptyState";
 import { calculateDistance, getDynamicRadius, formatDistance } from "@/utils/geospatialUtils";
 import { useFavorites } from "@/hooks/useFavorites";
-import { ExploreTabSkeleton } from "./skeletons";
+
 import type { User } from "@supabase/supabase-js";
 
 // Lazy load Sheet and DealDetailCard - only needed when user clicks a deal
@@ -375,10 +375,7 @@ export const ExploreTab = ({ onVenueSelect }: ExploreTabProps) => {
     setSelectedDeal(null);
   };
 
-  // Show skeleton while loading
-  if (isLoading) {
-    return <ExploreTabSkeleton />;
-  }
+  // Direct rendering - no loading fallback per architecture/direct-rendering
 
   return (
     <>
